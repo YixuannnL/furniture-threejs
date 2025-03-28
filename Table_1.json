@@ -1,0 +1,23 @@
+{
+  "title": "Table 1",
+  "data": [
+    {
+      "Seat": "<Seat><Board>[<BottomFace><FrontLeftCorner>]",
+      "Base": "`<Leg_Front_Left><Block>[<TopFace>]`"
+    },
+    {
+      "Seat": "<Seat><Board>[<BottomFace><FrontRightCorner>]",
+      "Base": "`<Leg_Front_Right><Block>[<TopFace>]`"
+    },
+    {
+      "Objeft": "Seat",
+      "Seat": "<Seat><Board>[<BottomFace><BackLeftCorner>]",
+      "Base": "`<Leg_Rear_Left><Block>[<TopFace>]`"
+    },
+    {
+      "Objeft": "Seat",
+      "Seat": "<Seat><Board>[<BottomFace><BackRightCorner>]",
+      "Base": "`<Leg_Rear_Right><Block>[<TopFace>]`"
+    }
+  ]
+}
