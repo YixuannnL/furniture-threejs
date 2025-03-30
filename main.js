@@ -353,6 +353,225 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.update();
 
+// ******* 新增：以下是交互逻辑 ******* //
+let currentMode = 'connect'; // 'connect' or 'stretch'
+const infoDiv = document.getElementById('info');
+
+// -- 用于“连接模式”时，先点第一个，再点第二个 --
+let firstPickedObject = null;
+let firstPickedPoint = new THREE.Vector3();
+
+// -- 用于“拉伸模式”时，选中的对象 / faceIndex / 初始点击点 --
+let pickedMeshForStretch = null;
+let pickedFaceIndex = -1;
+let mouseDown = false;
+let lastMousePos = { x: 0, y: 0 }; // 记录拖动前坐标
+
+// 区分 face 在本地坐标下方向的简易函数
+function getFaceNormalDirection(mesh, faceIndex) {
+// 对 BoxGeometry，每个面可能对应 +x, -x, +y, -y, +z, -z
+// faceIndex 在 BoxGeometry 通常是两三角面代表一个“面”，需要把它对应到 Box 的 6 个面
+// 一个面的两个三角，所以 faceIndex // 2 可以表示对应第几个面(0~5)
+// 但更稳定的做法是通过 geometry.groups
+// 这里只做一个简单映射：
+const faceId = Math.floor(faceIndex / 2);
+// faceId: 0-> +z,1-> -z,2-> +y,3-> -y,4-> +x,5-> -x (this is typical for BoxGeometry, 可能视three版本变化)
+switch(faceId) {
+    case 0: return new THREE.Vector3(0, 0, 1);
+    case 1: return new THREE.Vector3(0, 0, -1);
+    case 2: return new THREE.Vector3(0, 1, 0);
+    case 3: return new THREE.Vector3(0, -1, 0);
+    case 4: return new THREE.Vector3(1, 0, 0);
+    case 5: return new THREE.Vector3(-1, 0, 0);
+    default: return new THREE.Vector3(0,0,0);
+}
+}
+
+// 更新显示文字
+function updateInfo() {
+    infoDiv.innerText = `Mode: ${currentMode}\n`;
+    if (currentMode === 'connect') {
+      if (!firstPickedObject) {
+        infoDiv.innerText += 'Click first object to set anchor...';
+      } else {
+        infoDiv.innerText += `First object = ${firstPickedObject.name}, pick second object...`;
+      }
+    } else {
+      infoDiv.innerText += 'Click on a mesh face, then drag vertically to scale...';
+    }
+  }
+
+// 切换模式
+document.getElementById('connectModeBtn').addEventListener('click', () => {
+    currentMode = 'connect';
+    firstPickedObject = null;
+    pickedMeshForStretch = null;
+    pickedFaceIndex = -1;
+    updateInfo();
+  });
+
+document.getElementById('stretchModeBtn').addEventListener('click', () => {
+currentMode = 'stretch';
+firstPickedObject = null;
+pickedMeshForStretch = null;
+pickedFaceIndex = -1;
+updateInfo();
+});
+
+// 声明一个 Raycaster
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+function onPointerMove(event) {
+  // 记录鼠标拖动位置
+  lastMousePos.x = event.clientX;
+  lastMousePos.y = event.clientY;
+}
+
+function onPointerDown(event) {
+  mouseDown = true;
+  lastMousePos.x = event.clientX;
+  lastMousePos.y = event.clientY;
+
+  // 将鼠标坐标转换到 -1~+1
+  mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+  mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+  // 射线检测
+  raycaster.setFromCamera(mouse, camera);
+  // intersectObjects(scene.children, true) -> 检测场景中所有物体
+  const intersects = raycaster.intersectObjects(scene.children, true);
+
+  if (intersects.length > 0) {
+    const hit = intersects[0];
+    const hitObject = hit.object; 
+    // 'object' 可能是子Mesh
+    // 拾取点 world position: hit.point
+    // faceIndex: hit.faceIndex
+
+    if (currentMode === 'connect') {
+      if (!firstPickedObject) {
+        // 第一次点击
+        firstPickedObject = hitObject;
+        firstPickedPoint.copy(hit.point);
+      } else {
+        // 第二次点击 -> 让 secondPickedObject 的点击点与 firstPickedObject 的点击点重合
+        const secondPickedObject = hitObject;
+        const secondPickedPoint = hit.point.clone();
+
+        // 让 secondPickedObject 所在的 Group 移动到 firstPickedPoint
+        // 先计算 offset = firstPickedPoint - secondPickedPoint
+        const offset = new THREE.Vector3().subVectors(firstPickedPoint, secondPickedPoint);
+
+        // group 逻辑
+        const groupA = getOrCreateConnectionGroup(firstPickedObject);
+        const groupB = getOrCreateConnectionGroup(secondPickedObject);
+
+        if (groupA !== groupB) {
+          // 移动 groupB
+          groupB.forEach(item => {
+            item.position.add(offset);
+          });
+          unifyGroups(groupA, groupB);
+        }
+
+        // 清空第一个对象
+        firstPickedObject = null;
+      }
+    }
+    else if (currentMode === 'stretch') {
+      // 记录下：选中了哪个mesh+哪个face
+      pickedMeshForStretch = (hitObject.isMesh) ? hitObject : null;
+      pickedFaceIndex = hit.faceIndex;
+      console.log('Picked for stretch:', pickedMeshForStretch, 'faceIndex:', pickedFaceIndex);
+    }
+  }
+
+  updateInfo();
+}
+
+function onPointerUp(event) {
+    mouseDown = false;
+    pickedMeshForStretch = null;
+    pickedFaceIndex = -1;
+  }
+  
+  // 拖动时更新 stretch
+  function onPointerDrag(event) {
+    if (!mouseDown) return;
+    if (currentMode !== 'stretch') return;
+    if (!pickedMeshForStretch || pickedFaceIndex < 0) return;
+  
+    const dy = event.clientY - lastMousePos.y; // 拖动的垂直方向像素
+    // 可以定义一个像素->尺寸的比例
+    const scaleFactor = 1; // 先简单处理：拖动 1 像素 -> 改变 1mm
+  
+    // 判断面法线方向(在mesh本地坐标)
+    // e.g. (0,1,0) 表示是上表面
+    const normalDir = getFaceNormalDirection(pickedMeshForStretch, pickedFaceIndex);
+  
+    // 只做最简单的：如果 normalDir.y > 0.5，表示 top face -> 改变 height(正方向)
+    // 如果 normalDir.y < -0.5，表示 bottom face -> 改变 height(负方向)
+    // 如果 normalDir.x > 0.5 -> 改变 width
+    // 如果 normalDir.z > 0.5 -> 改变 depth
+    // ...
+    const geometry = pickedMeshForStretch.geometry;
+    if (!geometry || !geometry.parameters) return;
+    let { width, height, depth } = geometry.parameters;
+  
+    if (normalDir.y > 0.5) {
+      // top face
+      height += (-dy * scaleFactor);
+    } else if (normalDir.y < -0.5) {
+      // bottom face
+      height += (dy * scaleFactor);
+    } else if (normalDir.x > 0.5) {
+      // right face
+      width += (-dy * scaleFactor); // 也可以换成 dx
+    } else if (normalDir.x < -0.5) {
+      // left face
+      width += (dy * scaleFactor);
+    } else if (normalDir.z > 0.5) {
+      // front face
+      depth += (-dy * scaleFactor);
+    } else if (normalDir.z < -0.5) {
+      // back face
+      depth += (dy * scaleFactor);
+    }
+  
+    // 不要出现负数或 0
+    width = Math.max(1, width);
+    height = Math.max(1, height);
+    depth = Math.max(1, depth);
+  
+    // 重新赋值 geometry
+    pickedMeshForStretch.geometry.dispose(); // 释放旧的
+    pickedMeshForStretch.geometry = new THREE.BoxGeometry(width, height, depth);
+  
+    // 更新Three.js变换以保证中心对齐 / 重新计算 bounding
+    pickedMeshForStretch.geometry.computeBoundingBox();
+    pickedMeshForStretch.geometry.computeBoundingSphere();
+  
+    // 记录新的参数
+    geometry.parameters.width = width;
+    geometry.parameters.height = height;
+    geometry.parameters.depth = depth;
+  
+    lastMousePos.x = event.clientX;
+    lastMousePos.y = event.clientY;
+  }
+
+// 事件监听
+window.addEventListener('mousemove', onPointerMove, false);
+window.addEventListener('mousedown', onPointerDown, false);
+window.addEventListener('mouseup', onPointerUp, false);
+window.addEventListener('mousemove', onPointerDrag, false); // 也可用 mousemove + mouseDown 标记
+updateInfo();
+
+
+
+// ******* 新增：以上是交互逻辑 ******* //
+
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
