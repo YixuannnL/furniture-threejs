@@ -1,0 +1,457 @@
+{
+    "metadata": {
+        "version": 4.6,
+        "type": "Object",
+        "generator": "Object3D.toJSON"
+    },
+    "geometries": [
+        {
+            "uuid": "21bda19c-c7d1-4cf3-b91a-13131486c4ea",
+            "type": "BoxGeometry",
+            "width": 1500,
+            "height": 30,
+            "depth": 400,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "1d4f109c-2a20-430b-9c96-7db9c61be351",
+            "type": "BoxGeometry",
+            "width": 100,
+            "height": 420,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "638403da-f5c0-4e69-b563-0609fb82071d",
+            "type": "BoxGeometry",
+            "width": 100,
+            "height": 420,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "6b64018a-2dbd-440d-81a2-e28781aad6cb",
+            "type": "BoxGeometry",
+            "width": 100,
+            "height": 420,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "05a117bf-952d-4eab-9e88-0b7b6d4a83e6",
+            "type": "BoxGeometry",
+            "width": 100,
+            "height": 420,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "be89d5d1-1124-4725-b41d-b36eb979b696",
+            "type": "BoxGeometry",
+            "width": 1300,
+            "height": 100,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "ada81a04-f777-4d4d-86ab-08ea4f60fb8f",
+            "type": "BoxGeometry",
+            "width": 1300,
+            "height": 100,
+            "depth": 100,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        },
+        {
+            "uuid": "c67d3842-ec3f-4032-bcb1-b68e8fb15f7b",
+            "type": "BoxGeometry",
+            "width": 50,
+            "height": 50,
+            "depth": 200,
+            "widthSegments": 1,
+            "heightSegments": 1,
+            "depthSegments": 1
+        }
+    ],
+    "materials": [
+        {
+            "uuid": "4b031e5c-0609-4435-a0b2-0e399411d3c6",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "c1ecbe89-44a5-457a-9aba-239eed40f992",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "bc567c4a-1463-46dd-9fc9-1b18d628e5ae",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "141989c6-31d3-4c95-b008-0b0bf08863e6",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "e0bf066d-5dc6-4ba4-9434-f3c3940909ad",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "41d215d9-0bde-474a-9a58-e0be9ff1bf24",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "6919e2d0-83fa-4f1e-b785-b955c3cde9aa",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        },
+        {
+            "uuid": "a04069a5-e56a-49ad-885a-d16cee8d8136",
+            "type": "MeshNormalMaterial",
+            "opacity": 0.8,
+            "transparent": true,
+            "blendColor": 0
+        }
+    ],
+    "object": {
+        "uuid": "0408eb05-683c-4020-86c9-62865a38fc8b",
+        "type": "Group",
+        "name": "Dining Bench",
+        "layers": 1,
+        "matrix": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+        ],
+        "up": [
+            0,
+            1,
+            0
+        ],
+        "children": [
+            {
+                "uuid": "3c6419e1-4e83-4580-8001-a2c13326d45b",
+                "type": "Mesh",
+                "name": "Seat",
+                "layers": 1,
+                "matrix": [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                ],
+                "up": [
+                    0,
+                    1,
+                    0
+                ],
+                "geometry": "21bda19c-c7d1-4cf3-b91a-13131486c4ea",
+                "material": "4b031e5c-0609-4435-a0b2-0e399411d3c6"
+            },
+            {
+                "uuid": "cbea7bfc-0e62-49a0-9b47-ad916555aa82",
+                "type": "Group",
+                "name": "Base",
+                "layers": 1,
+                "matrix": [
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    1
+                ],
+                "up": [
+                    0,
+                    1,
+                    0
+                ],
+                "children": [
+                    {
+                        "uuid": "682c4e38-4a35-490f-ae00-ca20cf17f9c8",
+                        "type": "Mesh",
+                        "name": "Leg_Front_Left",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "1d4f109c-2a20-430b-9c96-7db9c61be351",
+                        "material": "c1ecbe89-44a5-457a-9aba-239eed40f992"
+                    },
+                    {
+                        "uuid": "99efe47b-8831-4411-8eb1-f2ad5ad7ff11",
+                        "type": "Mesh",
+                        "name": "Leg_Front_Right",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "638403da-f5c0-4e69-b563-0609fb82071d",
+                        "material": "bc567c4a-1463-46dd-9fc9-1b18d628e5ae"
+                    },
+                    {
+                        "uuid": "dd03b603-0361-4267-99cd-24a93d2496d1",
+                        "type": "Mesh",
+                        "name": "Leg_Rear_Left",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "6b64018a-2dbd-440d-81a2-e28781aad6cb",
+                        "material": "141989c6-31d3-4c95-b008-0b0bf08863e6"
+                    },
+                    {
+                        "uuid": "63ffe2dc-bca0-4e2f-81ec-e0f2420a42fc",
+                        "type": "Mesh",
+                        "name": "Leg_Rear_Right",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "05a117bf-952d-4eab-9e88-0b7b6d4a83e6",
+                        "material": "e0bf066d-5dc6-4ba4-9434-f3c3940909ad"
+                    },
+                    {
+                        "uuid": "ad3d4c4d-8012-4d29-8791-a3e0f6f62cb2",
+                        "type": "Mesh",
+                        "name": "Support_Beam_Front",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "be89d5d1-1124-4725-b41d-b36eb979b696",
+                        "material": "41d215d9-0bde-474a-9a58-e0be9ff1bf24"
+                    },
+                    {
+                        "uuid": "75059345-cdfc-4788-95cd-322751845e86",
+                        "type": "Mesh",
+                        "name": "Support_Beam_Rear",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "ada81a04-f777-4d4d-86ab-08ea4f60fb8f",
+                        "material": "6919e2d0-83fa-4f1e-b785-b955c3cde9aa"
+                    },
+                    {
+                        "uuid": "9fa2c615-f31a-4d5a-89f9-03aa6e7daa47",
+                        "type": "Mesh",
+                        "name": "Support_Beam_Center",
+                        "layers": 1,
+                        "matrix": [
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            1
+                        ],
+                        "up": [
+                            0,
+                            1,
+                            0
+                        ],
+                        "geometry": "c67d3842-ec3f-4032-bcb1-b68e8fb15f7b",
+                        "material": "a04069a5-e56a-49ad-885a-d16cee8d8136"
+                    }
+                ]
+            }
+        ]
+    }
+}

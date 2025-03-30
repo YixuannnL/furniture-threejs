@@ -58,39 +58,10 @@ function parseMeta(meta) {
     });
   }
 
+  console.log(meta, currentObject)
+
   return currentObject;
 }
-
-
-// function parseMeta(meta) {
-//     // 1) 新建一个Group表示当前节点
-//     const container = new THREE.Group();
-//     // 给它命名，方便调试与查找
-//     container.name = meta.object || 'Unnamed_Group';
-  
-//     // 在全局字典里存储。这里约定以 meta.object 作为 key。
-//     // 如果 meta.object 为空/重名，要做额外处理，这里演示默认情况
-//     objectsByName[container.name] = container;
-  
-//     // 2) 如果当前节点不是 group，就创建一个 Mesh 当做可见几何，挂到这个Group下
-//     if (meta.object_type !== 'group') {
-//       const mesh = createMesh(meta.object_type, meta.dimensions);
-//       // 给 mesh 命个名字，区别于它所在的 group
-//       mesh.name = (meta.object || 'Unnamed_Object') + '_mesh';
-//       container.add(mesh);
-//     }
-  
-//     // 3) 如果有子节点，递归解析并将结果加到当前Group
-//     if (Array.isArray(meta.children)) {
-//       meta.children.forEach(child => {
-//         const childGroup = parseMeta(child.meta);
-//         container.add(childGroup);
-//       });
-//     }
-  
-//     // 4) 返回当前这个包含了自己 Mesh (可选) + 子Group的容器Group
-//     return container;
-//   }
 
 
 // --------------------------------------------------------------------------------------------
@@ -108,9 +79,9 @@ function parseConnectionString(str) {
     const patternBracket = /\[([^(\]]+)\]/; // 匹配 [ ... ] 之间内容
     // 1) 提取所有 <...> 部分
     const angleMatches = cleanStr.match(patternAngle) || [];
-    //    angleMatches 可能是 ["<Seat>", "<Board>", "<BottomFace>", "<FrontLeftCorner>"]
-    //    但注意 <BottomFace><FrontLeftCorner> 实际是放在方括号里面
-    //    我们约定：第一个 <...> 是 name，第二个 <...> 是 type，后面的在方括号里才是 anchors
+    //  angleMatches 可能是 ["<Seat>", "<Board>", "<BottomFace>", "<FrontLeftCorner>"]
+    //  但注意 <BottomFace><FrontLeftCorner> 实际是放在方括号里面
+    //  我们约定：第一个 <...> 是 name，第二个 <...> 是 type，后面的在方括号里才是 anchors
     let name = '';
     let type = '';
     let anchors = [];
@@ -134,6 +105,20 @@ function parseConnectionString(str) {
     return { name, type, anchors };
   }
 
+function getCenterPoint(mesh) {
+    var middle = new THREE.Vector3();
+    var geometry = mesh.geometry;
+
+    geometry.computeBoundingBox();
+
+    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
+    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
+    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
+
+    mesh.localToWorld( middle );
+    return middle;
+}
+
 // --------------------------------------------------------------------------------------------
 //  根据 anchors 列表，计算该物体在局部坐标的“锚点位置” (x, y, z)
 //    目前只处理 <BottomFace>/<TopFace>/<FrontLeftCorner>/<FrontRightCorner>/<BackLeftCorner>/<BackRightCorner>
@@ -150,7 +135,9 @@ function calcLocalAnchorPosition(object3D, anchors) {
     }
   
     const { width, height, depth } = mesh.geometry.parameters;
-    let x = 0, y = 0, z = 0;
+
+    const Center = getCenterPoint(mesh); 
+    let x = Center.x, y = Center.y, z = Center.z;
   
     // 遍历 anchors
     anchors.forEach(anchor => {
@@ -192,52 +179,34 @@ function calcLocalAnchorPosition(object3D, anchors) {
 // “连接分组” 逻辑：给每个 Object3D 分配一个 “connectionGroup”(THREE.Group)
 // --------------------------------------------------------------------------------------------
 // 从 object.userData 中获取 (或创建) 它的 connectionGroup
-function getOrCreateConnectionGroup(obj, scene) {
+function getOrCreateConnectionGroup(obj) {
     // 如果已经有 connectionGroup，就返回
     if (obj.userData.connectionGroup) {
       return obj.userData.connectionGroup;
     }
   
     // 否则创建一个新 group
-    const newGroup = new THREE.Group();
+    const newGroup = new Set();
   
     // 把 obj 以“保持世界变换不变”的方式，attach 到 group
     // 这会自动处理好位置/旋转等
-    newGroup.attach(obj);
+    newGroup.add(obj);
   
-    // 把 group 加到场景中（如果还没在场景里）
-    scene.add(newGroup);
-  
-    // 对 obj 及其子孙，标记 userData.connectionGroup
-    markConnectionGroup(obj, newGroup);
+    obj.userData.connectionGroup = newGroup;
   
     return newGroup;
   }
 
-// 递归给所有子孙标记 userData.connectionGroup
-function markConnectionGroup(rootObj, group) {
-    rootObj.traverse(o => {
-      o.userData.connectionGroup = group;
-    });
-  }
 
 // 把 groupB 的所有孩子都 attach 到 groupA
 function unifyGroups(groupA, groupB) {
-    if (groupA === groupB) return; // 已经在同一个组，无需合并
-  
     // 把 groupB 里的所有子对象都 attach 到 groupA
     // 这样它们的世界变换不会变，直接重挂
-    const children = [...groupB.children];
-    children.forEach(child => {
-      groupA.attach(child);
-      // 同时给所有child打上groupA标记
-      markConnectionGroup(child, groupA);
+    groupB.forEach(item => {
+        item.userData.connectionGroup = groupA;
+        groupA.add(item)
     });
-  
-    // 最后可以从场景/父级移除 groupB(它现在空了)
-    if (groupB.parent) {
-      groupB.parent.remove(groupB);
-    }
+    return groupA
   }
 
 
@@ -267,12 +236,13 @@ function applyConnections(connectionData) {
 
         // ==========以下是新增的group逻辑
         // 先让 seatObj 和 baseObj 各自进到某个 connectionGroup
-        const groupA = getOrCreateConnectionGroup(seatObj, scene);
-        const groupB = getOrCreateConnectionGroup(baseObj, scene);
+        const groupA = getOrCreateConnectionGroup(seatObj);
+        const groupB = getOrCreateConnectionGroup(baseObj);
 
-        // 如果 groupA != groupB，则合并
-        unifyGroups(groupA, groupB);
-        const finalGroup = seatObj.userData.connectionGroup; // seatObj 最终所属组
+        if (groupA === groupB) {
+            console.warn('group equal', groupA)
+            return;
+        }
 
         // ==========以上是新增的group逻辑
   
@@ -283,22 +253,31 @@ function applyConnections(connectionData) {
     
         // seatObj 的局部锚点
         const seatLocalAnchor = calcLocalAnchorPosition(seatObj, seatConn.anchors);
+        
         // 转成世界坐标
         const seatWorldAnchor = seatObj.localToWorld(seatLocalAnchor.clone());
     
         // baseObj 的局部锚点
         const baseLocalAnchor = calcLocalAnchorPosition(baseObj, baseConn.anchors);
+        
         // 转成世界坐标
         const baseWorldAnchor = baseObj.localToWorld(baseLocalAnchor.clone());
+
+        console.log(seatLocalAnchor)
+        console.log(seatWorldAnchor)
+        console.log(baseLocalAnchor)
+        console.log(baseWorldAnchor)
     
         // 让 seatObj 的锚点贴到 baseObj 的锚点位置
         // 最简单的做法：seatObj.position += (baseWorldAnchor - seatWorldAnchor)
         // 这里假设 seatObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标
-        const offset = new THREE.Vector3().subVectors(baseWorldAnchor, seatWorldAnchor);
+        const offset = new THREE.Vector3().subVectors(seatWorldAnchor, baseWorldAnchor);
 
-        finalGroup.worldToLocal(offset);
-
-        seatObj.position.add(offset);
+        groupB.forEach(item => {
+            item.position.add(offset)
+        })
+        // 如果 groupA != groupB，则合并
+        unifyGroups(groupA, groupB);
     });
   }
 
@@ -306,6 +285,34 @@ function applyConnections(connectionData) {
 // 创建 Three.js 场景
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
+
+const axesHelper = new THREE.AxesHelper( 500 );
+scene.add( axesHelper );
+
+
+const dir_x = new THREE.Vector3( 1, 0, 0 );
+const dir_y = new THREE.Vector3( 0, 0, 1 );
+const dir_z = new THREE.Vector3( 0, 1, 0 );
+
+//normalize the direction vector (convert to vector of length 1)
+dir_x.normalize();
+dir_y.normalize();
+dir_z.normalize();
+
+const origin = new THREE.Vector3( 0, 0, 0 );
+const length = 1500;
+const hex_x = 0xffff00;
+const hex_y = 0x00ffff;
+const hex_z = 0xff00ff;
+
+
+const arrowHelper_x = new THREE.ArrowHelper( dir_x, origin, length, hex_x );
+const arrowHelper_y = new THREE.ArrowHelper( dir_y, origin, length, hex_y );
+const arrowHelper_z = new THREE.ArrowHelper( dir_z, origin, length, hex_z );
+scene.add( arrowHelper_x );
+scene.add( arrowHelper_y );
+scene.add( arrowHelper_z );
+
 
 // 创建相机
 const camera = new THREE.PerspectiveCamera(
