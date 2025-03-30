@@ -14,8 +14,26 @@
       border: 1px solid #888;
       font-family: sans-serif;
       font-size: 14px;
+      max-width: 250px;
     }
     button { margin: 4px 0; }
+    #connectionLog {
+      margin-top: 10px;
+      border-top: 1px solid #888;
+      padding-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .conn-item {
+      margin-bottom: 5px;
+      border-bottom: 1px dotted #888;
+      padding-bottom: 5px;
+    }
+    .stretch-panel {
+      margin-top: 6px;
+      border: 1px dashed #888;
+      padding: 6px;
+    }
   </style>
 </head>
 <body>
@@ -25,6 +43,24 @@
   <button id="connectModeBtn">Connect Parts</button>
   <button id="stretchModeBtn">Stretch Dimension</button>
   <div id="info"></div>
+  
+  <!-- 新增：显示/编辑“拉伸”数据的区域 -->
+  <div id="stretchPanel" class="stretch-panel" style="display:none;">
+    <div><strong>Selected Face Info</strong></div>
+    <div>Object: <span id="stretchObjectName"></span></div>
+    <div>Face Axis: <span id="stretchFaceAxis"></span></div>
+    <div>Current Size: <span id="stretchCurrentSize">0</span> mm</div>
+    <div>
+      New Size: 
+      <input type="number" id="stretchSizeInput" style="width:80px;" /> mm
+    </div>
+    <button id="applyStretchBtn">Apply</button>
+  </div>
+
+  <div id="connectionLog">
+    <div><strong>Connections:</strong></div>
+    <!-- 连接记录项将注入到这里 -->
+  </div>
 </div>
 
 <script type="module" src="main.js"></script>
