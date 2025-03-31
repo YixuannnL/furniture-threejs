@@ -9,6 +9,8 @@ import ConnData from './Table_1.json' assert { type: 'json' };
 const furnitureData = jsonData;
 const connectionData = ConnData;
 
+let editingConnections = new Map();
+
 // ============== 创建一个十字叉辅助对象 ==============
 function createCrossMarker(size = 20, color = 0xff0000) {
     const group = new THREE.Group();
@@ -230,19 +232,19 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 break;
             case 'FrontLeftCorner':
                 x = -width / 2;
-                z = -depth / 2;
+                z = +depth / 2;
                 break;
             case 'FrontRightCorner':
                 x = +width / 2;
-                z = -depth / 2;
+                z = +depth / 2;
                 break;
             case 'BackLeftCorner':
                 x = -width / 2;
-                z = +depth / 2;
+                z = -depth / 2;
                 break;
             case 'BackRightCorner':
                 x = +width / 2;
-                z = +depth / 2;
+                z = -depth / 2;
                 break;
             case 'TopEgde':
             case 'TopEdgeCenter':
@@ -305,8 +307,8 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 });
                 console.log("result:", result)
                 switch (result[0]) {
-                    case 'FrontFace': z = -depth / 2; break;
-                    case 'BackFace': z = +depth / 2; break;
+                    case 'FrontFace': z = +depth / 2; break;
+                    case 'BackFace': z = -depth / 2; break;
                     case 'LeftFace': x = -width / 2; break;
                     case 'RightFace': x = +width / 2; break;
                     case 'TopFace': y = +height / 2; break;
@@ -747,39 +749,152 @@ function renderConnectionLog(selectedMeshName = null) {
     }
 
     // 逐条渲染
-    conns.forEach((item, index) => {
-        // 构建一个容器 div
-        console.log("item:", item)
-        console.log("item.Seat:", item.Seat)
+    conns.forEach((item) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'conn-item';
 
-        const seatStr = item.Seat || '';
-        const baseStr = item.Base || '';
-
-        // 组装 HTML 文本
-        //   比如: "Seat => <Seat><Board>[<BottomFace><FrontLeftCorner>]" + "<br>"
-        //         "Base => <Leg_Front_Left><Block>[<TopFace>]"
-        const seatLine = `FirstMesh => ${escapeHtml(seatStr)}`;
-        const baseLine = `SecondMesh => ${escapeHtml(baseStr)}`;
-
-        // 文字展示
-        const textBlock = document.createElement('div');
-        textBlock.innerHTML = `${seatLine}<br>${baseLine}`;
-        itemDiv.appendChild(textBlock);
-
-        // 生成“Remove”按钮
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.addEventListener('click', () => {
-            // 点击后移除该条连接
-            removeConnection(item);
-        });
-
-        itemDiv.appendChild(removeBtn);
+        // 若此连接在编辑模式
+        if (editingConnections.has(item)) {
+            renderConnectionItem_EditMode(itemDiv, item);
+        } else {
+            renderConnectionItem_NormalMode(itemDiv, item);
+        }
 
         container.appendChild(itemDiv);
     });
+}
+
+/**
+ * 正常模式下(未编辑)
+ * 显示文本 + [Remove] [Edit] 按钮
+ */
+function renderConnectionItem_NormalMode(parentDiv, item) {
+    const seatStr = item['Seat'] || '';
+    const baseStr = item['Base'] || '';
+
+    const textBlock = document.createElement('div');
+    textBlock.innerHTML = `
+        FirstMesh => ${escapeHtml(seatStr)} <br>
+        SecondMesh => ${escapeHtml(baseStr)}
+    `;
+    parentDiv.appendChild(textBlock);
+
+    // Remove 按钮
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = 'Remove';
+    removeBtn.addEventListener('click', () => {
+        removeConnection(item);
+    });
+    parentDiv.appendChild(removeBtn);
+
+    // Edit 按钮
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => {
+        startEditingConnection(item);
+    });
+    parentDiv.appendChild(editBtn);
+}
+
+/**
+ * 编辑模式下
+ * 显示两个输入框 + [Cancel] [Save] 按钮
+ */
+function renderConnectionItem_EditMode(parentDiv, item) {
+    // 从 editingConnections 里取出临时数据
+    const editingData = editingConnections.get(item);
+    // editingData = { seatStr, baseStr }
+
+    // 创建输入框
+    const seatInput = document.createElement('input');
+    seatInput.type = 'text';
+    seatInput.style.width = '90%';
+    seatInput.value = editingData.seatStr;
+    parentDiv.appendChild(document.createTextNode('Seat => '));
+    parentDiv.appendChild(seatInput);
+    parentDiv.appendChild(document.createElement('br'));
+
+    const baseInput = document.createElement('input');
+    baseInput.type = 'text';
+    baseInput.style.width = '90%';
+    baseInput.value = editingData.baseStr;
+    parentDiv.appendChild(document.createTextNode('Base => '));
+    parentDiv.appendChild(baseInput);
+    parentDiv.appendChild(document.createElement('br'));
+
+    // Cancel 按钮
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => {
+        cancelEditingConnection(item);
+    });
+    parentDiv.appendChild(cancelBtn);
+
+    // Save 按钮
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save';
+    saveBtn.addEventListener('click', () => {
+        saveEditingConnection(item, seatInput.value, baseInput.value);
+    });
+    parentDiv.appendChild(saveBtn);
+}
+
+/**
+ * 进入编辑模式
+ * 在 editingConnections 中登记此条的 seat/base 原始值
+ */
+function startEditingConnection(item) {
+    editingConnections.set(item, {
+        seatStr: item.Seat || '',
+        baseStr: item.Base || ''
+    });
+    // 重新渲染面板
+    renderConnectionLog();
+}
+
+/**
+ * 取消编辑模式
+ */
+function cancelEditingConnection(item) {
+    editingConnections.delete(item);
+    renderConnectionLog();
+}
+
+/**
+ * 保存编辑
+ * - seatStrNew / baseStrNew 是用户在输入框里改过的值
+ */
+function saveEditingConnection(item, seatStrNew, baseStrNew) {
+    // 1) 校验 seatStrNew
+    if (!validateConnectionStringFormat(seatStrNew)) {
+        alert('Invalid Seat connection string format!');
+        return;
+    }
+
+    // 2) 校验 baseStrNew
+    if (!validateConnectionStringFormat(baseStrNew)) {
+        alert('Invalid Base connection string format!');
+        return;
+    }
+
+    // 若都通过 => 更新 item
+    item.Seat = seatStrNew;
+    item.Base = baseStrNew;
+
+    // 完成更新后，退出编辑模式
+    editingConnections.delete(item);
+
+    // 重新渲染场景和面板
+    render_furniture(furnitureData, connectionData);
+}
+
+function validateConnectionStringFormat(str) {
+    const conn = parseConnectionString(str);
+    // 简单判断
+    if (!conn.name || !conn.type || !Array.isArray(conn.anchors) || conn.anchors.length === 0) {
+        return false;
+    }
+    return true;
 }
 
 // ===============================
