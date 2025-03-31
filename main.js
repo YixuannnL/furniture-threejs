@@ -84,6 +84,11 @@ function selectMesh(mesh) {
     clearSelectedMesh();
     selectedMesh = mesh;
     selectedEdges = highlightMesh(mesh);
+
+    // 如果当前模式是 'connect'，则在Connections面板里把相关连接排到最前
+    if (currentMode === 'connect' && mesh && mesh.name) {
+        renderConnectionLog(mesh.name);
+    }
 }
 
 // 用来存储“当前家具根对象”
@@ -345,11 +350,11 @@ function getAnchorDescription(mesh, localPos) {
         const dist1 = localPos.distanceTo(end1Coord);
         const dist2 = localPos.distanceTo(end2Coord);
         console.log("type:", objType);
-        if (dist1 < eps && dist1 < dist2) {
+        if (Math.abs(dist1) < eps) {
             // 靠近 end1 => 返回 <LeftEnd> / <BottomEnd> / <FrontEnd>...
             return `<${end1Name}>`;
         }
-        else if (dist2 < eps && dist2 < dist1) {
+        else if (Math.abs(dist2) < eps) {
             // 靠近 end2
             return `<${end2Name}>`;
         }
@@ -462,6 +467,8 @@ function render_furniture(meta_data, conn_data) {
 
     // 5) 应用连接
     applyConnections(conn_data);
+
+    renderConnectionLog();
 
     return furniture_object;
 }
@@ -591,8 +598,6 @@ function updateDimensionInMeta(rootMeta, targetName, axis, newVal) {
     recurse(rootMeta);
 }
 
-
-
 // =============================
 // 当用户点击某个面时，显示面板并填入数据
 // =============================
@@ -700,6 +705,97 @@ document.getElementById('stretchModeBtn').addEventListener('click', () => {
     clearSelectedMesh();
     updateInfo();
 });
+
+function escapeHtml(str) {
+    return str
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+/**
+ * 判断某个连接 item 是否包含指定的 meshName
+ * item 形如 { "Seat": "<Seat>...", "Base": "<Leg_Front_Left>..." }
+ */
+function connectionItemHasName(connItem, meshName) {
+    // 只要 Seat/Base 的字符串里解析到 name == meshName 就算匹配
+    const seatConn = parseConnectionString(connItem['Seat'] || '');
+    const baseConn = parseConnectionString(connItem['Base'] || '');
+    return (seatConn.name === meshName) || (baseConn.name === meshName);
+}
+// ===============================
+//  渲染“Connections”面板
+//  selectedMeshName：可选参数；若有，会将相关连接排在最前
+// ===============================
+function renderConnectionLog(selectedMeshName = null) {
+    const container = document.getElementById('connectionLog');
+    // 先把容器里的东西都清空（保留最初那行“<strong>Connections:</strong>”）
+    // 为了保留最前头的 <div><strong>Connections:</strong></div>，我们可以先只移除它之后的所有子节点
+    while (container.children.length > 1) {
+        container.removeChild(container.lastChild);
+    }
+
+    // 复制一份连接数组
+    let conns = [...connectionData.data];
+
+    // 如果指定了 selectedMeshName，就排序，让相关连接排前面
+    if (selectedMeshName) {
+        conns.sort((a, b) => {
+            const aHas = connectionItemHasName(a, selectedMeshName);
+            const bHas = connectionItemHasName(b, selectedMeshName);
+            // bHas - aHas 能让 true(1) 的排在前面
+            return (bHas - aHas);
+        });
+    }
+
+    // 逐条渲染
+    conns.forEach((item, index) => {
+        // 构建一个容器 div
+        console.log("item:", item)
+        console.log("item.Seat:", item.Seat)
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'conn-item';
+
+        const seatStr = item.Seat || '';
+        const baseStr = item.Base || '';
+
+        // 组装 HTML 文本
+        //   比如: "Seat => <Seat><Board>[<BottomFace><FrontLeftCorner>]" + "<br>"
+        //         "Base => <Leg_Front_Left><Block>[<TopFace>]"
+        const seatLine = `FirstMesh => ${escapeHtml(seatStr)}`;
+        const baseLine = `SecondMesh => ${escapeHtml(baseStr)}`;
+
+        // 文字展示
+        const textBlock = document.createElement('div');
+        textBlock.innerHTML = `${seatLine}<br>${baseLine}`;
+        itemDiv.appendChild(textBlock);
+
+        // 生成“Remove”按钮
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.addEventListener('click', () => {
+            // 点击后移除该条连接
+            removeConnection(item);
+        });
+
+        itemDiv.appendChild(removeBtn);
+
+        container.appendChild(itemDiv);
+    });
+}
+
+// ===============================
+//  从 connectionData.data 中移除一条连接
+// ===============================
+function removeConnection(item) {
+    // 找到它的索引
+    const idx = connectionData.data.indexOf(item);
+    if (idx >= 0) {
+        connectionData.data.splice(idx, 1);
+    }
+
+    // 移除后重新渲染家具 & 重新渲染连接列表
+    render_furniture(furnitureData, connectionData);
+    renderConnectionLog();
+}
 
 // 重置
 function resetConnectProcess() {
@@ -855,7 +951,7 @@ function onPointerUp(event) {
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
-
+                    console.log("AnchorStr:", firstConnStr, secondAnchorStr)
                     connectionData.data.push({
                         "Seat": firstConnStr,
                         "Base": secondConnStr

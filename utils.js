@@ -44,8 +44,8 @@ export function findBarAxisAndEnds(mesh) {
         end2Coord = new THREE.Vector3(0, +height / 2, 0);
     }
     else {
-        end1Name = 'FrontEnd';
-        end2Name = 'BackEnd';
+        end1Name = 'BackEnd';
+        end2Name = 'FrontEnd';
         end1Coord = new THREE.Vector3(0, 0, -depth / 2);
         end2Coord = new THREE.Vector3(0, 0, +depth / 2);
     }
