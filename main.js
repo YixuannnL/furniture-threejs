@@ -94,20 +94,6 @@ function selectMesh(mesh) {
     selectedEdges = highlightMesh(mesh);
 }
 
-function render_furniture(meta_data, conn_data) {
-
-    // 旧的furniture object清除掉
-    ///清理objectByNmae清理掉
-
-    const furniture_object = parseMeta(meta_data)
-
-    scene.add(furniture_object);
-
-    applyConnections(conn_data);
-
-    return furniture_object
-}
-
 // 用来存储“当前家具根对象”
 let currentFurnitureRoot = null;
 // 用来存储 "名称->Object3D" 映射（每次 render 时重新生成）
@@ -394,7 +380,7 @@ function getAnchorDescription(mesh, localPos) {
             break;
         case 'LeftFace':
         case 'RightFace':
-            anchorStr = `<${faceType}_${frac1}Height_${frac2}Depth?`;
+            anchorStr = `<${faceType}_${frac1}Height_${frac2}Depth>`;
             break;
         case 'BottomFace':
         case 'TopFace':
@@ -836,6 +822,9 @@ function onPointerMove(event) {
     }
 }
 
+let firstAnchorStr = null
+let firstMeshType = null
+
 // ============ 事件监听(连接模式/拉伸模式) ============
 function onPointerUp(event) {
     if (onDownTime + 300 < Date.now()) {
@@ -851,9 +840,6 @@ function onPointerUp(event) {
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children, true);
-
-    let firstAnchorStr = null
-    let firstMeshType = null
 
     if (currentMode === 'connect') {
         // 根据 connectState 分情况
@@ -892,6 +878,8 @@ function onPointerUp(event) {
                     localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
                     firstAnchorStr = getAnchorDescription(firstMesh, localPos);
                     firstMeshType = getObjectType({ width: firstMesh.geometry.parameters.width, height: firstMesh.geometry.parameters.height, depth: firstMesh.geometry.parameters.depth })
+                    console.log("firstMesh:", firstMesh)
+                    console.log("firstMeshType:", firstMeshType)
                     firstAnchor.copy(firstMesh.localToWorld(localPos.clone()));
 
                     connectState = 2; // 等待选第二物体
@@ -943,6 +931,8 @@ function onPointerUp(event) {
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
+                    console.log("Str1:", firstConnStr, "Str2:", secondConnStr)
+
                     connectionData.data.push({
                         "Seat": firstConnStr,
                         "Base": secondConnStr
@@ -954,6 +944,8 @@ function onPointerUp(event) {
                     connectState = 0;
                     firstMesh = null;
                     secondMesh = null
+                    firstAnchorStr = null
+                    firstMeshType = null
 
                     clearSelectedMesh()
                 }
