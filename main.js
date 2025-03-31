@@ -96,7 +96,8 @@ function selectMesh(mesh) {
 
 function render_furniture(meta_data, conn_data) {
 
-    // 旧的furniture object清除掉///清理objectByNmae清理掉
+    // 旧的furniture object清除掉
+    ///清理objectByNmae清理掉
 
     const furniture_object = parseMeta(meta_data)
 
@@ -106,6 +107,11 @@ function render_furniture(meta_data, conn_data) {
 
     return furniture_object
 }
+
+// 用来存储“当前家具根对象”
+let currentFurnitureRoot = null;
+// 用来存储 "名称->Object3D" 映射（每次 render 时重新生成）
+let objectsByName = {};
 
 // 创建网格（Mesh）的辅助函数
 function createMesh(objectType, dimensions) {
@@ -122,15 +128,8 @@ function createMesh(objectType, dimensions) {
     // 创建网格（Mesh）
     const mesh = new THREE.Mesh(geometry, material);
 
-    // 可根据 objectType 做特殊处理，比如设置不同颜色或贴图等，TODO
-    // if (objectType === 'board') { ... }
-    // if (objectType === 'block') { ... }
-    // if (objectType === 'bar')   { ... }
-
     return mesh;
 }
-
-const objectsByName = {}; // 用来存储 "meta.object" -> 生成的 Mesh 或 Group
 
 // 递归解析 JSON，生成 Three.js 对象
 function parseMeta(meta) {
@@ -143,7 +142,6 @@ function parseMeta(meta) {
         currentObject = createMesh(meta.object_type, meta.dimensions);
     }
 
-    // 给这个对象命个名字，方便后续查询
     if (meta.object) {
         currentObject.name = meta.object;
         objectsByName[meta.object] = currentObject;
@@ -161,7 +159,6 @@ function parseMeta(meta) {
 
     return currentObject;
 }
-
 
 // --------------------------------------------------------------------------------------------
 // 解析 “<名称><类型>[<锚点A><锚点B>...]” 格式的字符串，并返回 { name, type, anchors:[] }
@@ -274,48 +271,194 @@ function calcLocalAnchorPosition(object3D, anchors) {
     return new THREE.Vector3(x, y, z);
 }
 
-// --------------------------------------------------------------------------------------------
-// “连接分组” 逻辑：给每个 Object3D 分配一个 “connectionGroup”(THREE.Group)
-// --------------------------------------------------------------------------------------------
-// 从 object.userData 中获取 (或创建) 它的 connectionGroup
-function getOrCreateConnectionGroup(obj) {
-    // 如果已经有 connectionGroup，就返回
-    if (obj.userData.connectionGroup) {
-        return obj.userData.connectionGroup;
+// 根据坐标得到Anchor名字
+function getAnchorDescription(mesh, localPos) {
+    const geom = mesh.geometry;
+    if (!geom || !geom.parameters) {
+        // 若不是 BoxGeometry，则返回一个默认值
+        return '<UnknownFace>';
     }
 
-    // 否则创建一个新 group
-    const newGroup = new Set();
+    const { width, height, depth } = geom.parameters;
 
-    // 把 obj 以“保持世界变换不变”的方式，attach 到 group
-    // 这会自动处理好位置/旋转等
-    newGroup.add(obj);
+    // 计算与 6 面边界的距离
+    // 因为前面是 z = -depth/2，后面是 z = +depth/2 (若你的定义相反可做适当调整)
+    const distFront = Math.abs(localPos.z + depth / 2);
+    const distBack = Math.abs(localPos.z - depth / 2);
+    const distLeft = Math.abs(localPos.x + width / 2);
+    const distRight = Math.abs(localPos.x - width / 2);
+    const distBottom = Math.abs(localPos.y + height / 2);
+    const distTop = Math.abs(localPos.y - height / 2);
 
-    obj.userData.connectionGroup = newGroup;
+    // 先假设最近的是 front 面
+    let faceType = 'FrontFace';
+    let minDist = distFront;
 
-    return newGroup;
+    // 后面依次比较 back、left、right、bottom、top
+    if (distBack < minDist) { minDist = distBack; faceType = 'BackFace'; }
+    if (distLeft < minDist) { minDist = distLeft; faceType = 'LeftFace'; }
+    if (distRight < minDist) { minDist = distRight; faceType = 'RightFace'; }
+    if (distBottom < minDist) { minDist = distBottom; faceType = 'BottomFace'; }
+    if (distTop < minDist) { minDist = distTop; faceType = 'TopFace'; }
+
+    // 我们要算该面的 "两个方向" 的占比 [0~1]，并映射到 "Height" / "Width" / "Depth"
+    // 下面定义 param1, param2 表示两个方向的归一化数值(0~1)
+    let param1 = 0;
+    let param2 = 0;
+
+    // clamp 函数，防止略微超出 [0,1]
+    const clamp01 = v => Math.min(1, Math.max(0, v));
+
+    // 面的命名： 
+    // - 前/后：   faceType=FrontFace/BackFace        => param1=Height(Y), param2=Width(X)
+    // - 左/右：   faceType=LeftFace/RightFace        => param1=Height(Y), param2=Depth(Z)
+    // - 底/顶：   faceType=BottomFace/TopFace        => param1=Depth(Z),  param2=Width(X)
+
+    // 注：对于反面的坐标，我们通常还是从同一个方向(左->右 / 下->上 / 前->后)来计算 fraction(0->1)，
+    //     这样 "BackFace_1/3Height_1/2Width" 意味着在后面那块板上，左->右：1/2，底->顶：1/3。
+    //     你也可以做某些翻转，但要保持一致。
+
+    switch (faceType) {
+        case 'FrontFace':
+            // front: z ~ -depth/2
+            // param1 => y
+            // param2 => x
+            param1 = (localPos.y + height / 2) / height;
+            param2 = (localPos.x + width / 2) / width;
+            break;
+
+        case 'BackFace':
+            // back: z ~ +depth/2
+            // 也可以同 front 一样： y->Height(0=底,1=顶), x->Width(0=左,1=右)
+            param1 = (localPos.y + height / 2) / height;
+            param2 = (localPos.x + width / 2) / width;
+            break;
+
+        case 'LeftFace':
+            // left: x ~ -width/2
+            // param1 => y => Height
+            // param2 => z => Depth(0=前,1=后)
+            param1 = (localPos.y + height / 2) / height;
+            param2 = (localPos.z + depth / 2) / depth;
+            break;
+
+        case 'RightFace':
+            // right: x ~ +width/2
+            param1 = (localPos.y + height / 2) / height;
+            param2 = (localPos.z + depth / 2) / depth;
+            break;
+
+        case 'BottomFace':
+            // bottom: y ~ -height/2
+            // param1 => z => Depth(0=前,1=后)
+            // param2 => x => Width(0=左,1=右)
+            param1 = (localPos.z + depth / 2) / depth;
+            param2 = (localPos.x + width / 2) / width;
+            break;
+
+        case 'TopFace':
+            // top: y ~ +height/2
+            param1 = (localPos.z + depth / 2) / depth;
+            param2 = (localPos.x + width / 2) / width;
+            break;
+    }
+
+    // clamp 到 [0,1]
+    param1 = clamp01(param1);
+    param2 = clamp01(param2);
+
+    // 将数值(0~1) 尝试转换成常见分数(1/2,1/3,2/3...)，最多用分母到 10
+    function decimalToFraction(value, maxDen = 10) {
+        let best = { num: 1, den: 1, err: Math.abs(value - 1) };
+        for (let d = 1; d <= maxDen; d++) {
+            let n = Math.round(value * d);
+            let approx = n / d;
+            let err = Math.abs(value - approx);
+            if (err < best.err) {
+                best = { num: n, den: d, err: err };
+            }
+        }
+        return best.num + '/' + best.den; // 返回 "1/3" 这样的字符串
+    }
+
+    let frac1 = decimalToFraction(param1);
+    let frac2 = decimalToFraction(param2);
+
+    // 根据面来拼接最终字符串
+    // 例如：FrontFace_1/3Height_1/2Width
+    let anchorStr = '';
+    switch (faceType) {
+        case 'FrontFace':
+        case 'BackFace':
+            anchorStr = `<${faceType}_${frac1}Height_${frac2}Width>`;
+            break;
+        case 'LeftFace':
+        case 'RightFace':
+            anchorStr = `<${faceType}_${frac1}Height_${frac2}Depth?`;
+            break;
+        case 'BottomFace':
+        case 'TopFace':
+            anchorStr = `<${faceType}_${frac1}Depth_${frac2}Width>`;
+            break;
+    }
+
+    return anchorStr;
 }
 
+function getObjectType(dimensions) {
+    const { width, height, depth } = dimensions;
 
-// 把 groupB 的所有孩子都 attach 到 groupA
-function unifyGroups(groupA, groupB) {
-    // 把 groupB 里的所有子对象都 attach 到 groupA
-    // 这样它们的世界变换不会变，直接重挂
-    groupB.forEach(item => {
-        item.userData.connectionGroup = groupA;
-        groupA.add(item)
-    });
-    return groupA
+    // 排序，得到 small, mid, large
+    const sorted = [width, height, depth].sort((a, b) => a - b);
+    const small = sorted[0];
+    const mid = sorted[1];
+    const large = sorted[2];
+
+    //    判断 bar
+    //    如果 "最大值" 大于 "中值" 的 3 倍 (阈值3可调),
+    //    说明一个维度特别长 => bar(长条)
+    if (large >= mid * 3) {
+        return 'bar';
+    }
+
+    //    判断 board
+    //    如果 "中值" 大于 "最小值" 的 5 倍 (阈值5可调),
+    //    说明最小值很小(板很薄), 另两个较大 => board(板材)
+    if (mid >= small * 5) {
+        return 'board';
+    }
+
+    // 其余都归类为 block(块)
+    return 'block';
 }
-
-
 // --------------------------------------------------------------------------------------------
 // 真正处理连接：让 ObjA 的某个 anchor 对齐到 ObjB 的某个 anchor
 //    同时确保它们在同一个 connectionGroup 里
 // --------------------------------------------------------------------------------------------
 function applyConnections(connectionData) {
+
     const list = connectionData.data;
     if (!list || !Array.isArray(list)) return;
+
+    // 用于记录：每个Object3D的“所属连接组”
+    // 这样如果A和B已经在同一个组，就不再移动
+    const groupMap = new Map();
+    function getGroup(obj) {
+        let g = groupMap.get(obj);
+        if (!g) {
+            g = new Set();
+            g.add(obj);
+            groupMap.set(obj, g);
+        }
+        return g;
+    }
+    function unifyGroups(gA, gB) {
+        if (gA === gB) return;
+        for (let item of gB) {
+            gA.add(item);
+            groupMap.set(item, gA);
+        }
+    }
 
     list.forEach(item => {
 
@@ -333,93 +476,72 @@ function applyConnections(connectionData) {
             return;
         }
 
-        // ==========以下是新增的group逻辑
-        // 先让 seatObj 和 baseObj 各自进到某个 connectionGroup
-        const groupA = getOrCreateConnectionGroup(seatObj);
-        const groupB = getOrCreateConnectionGroup(baseObj);
-
-        if (groupA === groupB) {
-            console.warn('group equal', groupA)
-            return;
-        }
-
-        // ==========以上是新增的group逻辑
-
         // 计算它们的世界坐标 anchor
         // 先各自更新一次世界矩阵
         seatObj.updateMatrixWorld(true);
         baseObj.updateMatrixWorld(true);
 
-        // seatObj 的局部锚点
         const seatLocalAnchor = calcLocalAnchorPosition(seatObj, seatConn.anchors);
-
-        // 转成世界坐标
         const seatWorldAnchor = seatObj.localToWorld(seatLocalAnchor.clone());
 
-        // baseObj 的局部锚点
         const baseLocalAnchor = calcLocalAnchorPosition(baseObj, baseConn.anchors);
-
-        // 转成世界坐标
         const baseWorldAnchor = baseObj.localToWorld(baseLocalAnchor.clone());
-
-        console.log(seatLocalAnchor)
-        console.log(seatWorldAnchor)
-        console.log(baseLocalAnchor)
-        console.log(baseWorldAnchor)
 
         // 让 seatObj 的锚点贴到 baseObj 的锚点位置
         // 最简单的做法：seatObj.position += (baseWorldAnchor - seatWorldAnchor)
         // 这里假设 seatObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标
         const offset = new THREE.Vector3().subVectors(seatWorldAnchor, baseWorldAnchor);
 
-        groupB.forEach(item => {
-            item.position.add(offset)
-        })
-        // 如果 groupA != groupB，则合并
-        unifyGroups(groupA, groupB);
+        // 如果 seatObj 和 baseObj 不在同一组，移动 baseObj那一组
+        const gA = getGroup(seatObj);
+        const gB = getGroup(baseObj);
+        if (gA !== gB) {
+            // 移动 group B 的所有对象
+            for (let obj of gB) {
+                obj.position.add(offset);
+            }
+            unifyGroups(gA, gB);
+        }
+        // 如果已经在同一个组，就什么都不做（说明可能之前已经对齐过）
     });
 }
 
+// ======================
+//      整体渲染函数 (核心！)
+//      1) 清理旧的家具对象
+//      2) 解析新的 meta
+//      3) 应用 connData 对象对齐
+//      4) 返回新的家具根对象
+// ======================
+function render_furniture(meta_data, conn_data) {
+    // 1) 如果已有旧的家具根对象，就先从场景移除
+    if (currentFurnitureRoot) {
+        scene.remove(currentFurnitureRoot);
+        currentFurnitureRoot = null;
+    }
 
-// 创建 Three.js 场景
+    // 2) 清空 "objectsByName" 映射
+    objectsByName = {};
+
+    // 3) 递归生成新的家具Object3D层次
+    const furniture_object = parseMeta(meta_data.meta);
+
+    // 4) 加到场景
+    scene.add(furniture_object);
+    currentFurnitureRoot = furniture_object;
+
+    // 5) 应用连接
+    applyConnections(conn_data);
+
+    return furniture_object;
+}
+
+// ===========================
+// Three.js 初始化
+// ===========================
 const scene = new THREE.Scene();
-
-const crossMarker = createCrossMarker(20, 0xff0000);
-scene.add(crossMarker);
-// 初始隐藏
-crossMarker.visible = false;
-
 scene.background = new THREE.Color(0xffffff);
 
-const axesHelper = new THREE.AxesHelper(500);
-scene.add(axesHelper);
-
-
-const dir_x = new THREE.Vector3(1, 0, 0);
-const dir_y = new THREE.Vector3(0, 0, 1);
-const dir_z = new THREE.Vector3(0, 1, 0);
-
-//normalize the direction vector (convert to vector of length 1)
-dir_x.normalize();
-dir_y.normalize();
-dir_z.normalize();
-
-const origin = new THREE.Vector3(0, 0, 0);
-const length = 1500;
-const hex_x = 0xffff00;
-const hex_y = 0x00ffff;
-const hex_z = 0xff00ff;
-
-
-const arrowHelper_x = new THREE.ArrowHelper(dir_x, origin, length, hex_x);
-const arrowHelper_y = new THREE.ArrowHelper(dir_y, origin, length, hex_y);
-const arrowHelper_z = new THREE.ArrowHelper(dir_z, origin, length, hex_z);
-scene.add(arrowHelper_x);
-scene.add(arrowHelper_y);
-scene.add(arrowHelper_z);
-
-
-// 创建相机
 const camera = new THREE.PerspectiveCamera(
     75, // 视野(FOV)
     window.innerWidth / window.innerHeight, // 宽高比
@@ -428,6 +550,32 @@ const camera = new THREE.PerspectiveCamera(
 );
 camera.position.set(0, 800, 1500);
 camera.lookAt(0, 0, 0);
+
+const crossMarker = createCrossMarker(20, 0xff0000);
+scene.add(crossMarker);
+// 初始隐藏
+crossMarker.visible = false;
+
+const axesHelper = new THREE.AxesHelper(500);
+scene.add(axesHelper);
+const dir_x = new THREE.Vector3(1, 0, 0);
+const dir_y = new THREE.Vector3(0, 0, 1);
+const dir_z = new THREE.Vector3(0, 1, 0);
+//normalize the direction vector (convert to vector of length 1)
+dir_x.normalize();
+dir_y.normalize();
+dir_z.normalize();
+const origin = new THREE.Vector3(0, 0, 0);
+const length = 1500;
+const hex_x = 0xffff00;
+const hex_y = 0x00ffff;
+const hex_z = 0xff00ff;
+const arrowHelper_x = new THREE.ArrowHelper(dir_x, origin, length, hex_x);
+const arrowHelper_y = new THREE.ArrowHelper(dir_y, origin, length, hex_y);
+const arrowHelper_z = new THREE.ArrowHelper(dir_z, origin, length, hex_z);
+scene.add(arrowHelper_x);
+scene.add(arrowHelper_y);
+scene.add(arrowHelper_z);
 
 // 创建渲染器并添加到页面
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -442,130 +590,33 @@ const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
 dirLight.position.set(0, 1000, 1000);
 scene.add(dirLight);
 
-// // 将解析出来的家具对象添加到场景
-// const rootObject = parseMeta(furnitureData.meta);
-// console.log(rootObject)
-// scene.add(rootObject);
-let rootObject = render_furniture(furnitureData.meta, connectionData)
-
-// // --------------------------------------------------------------------------------------------
-// // 在所有对象创建完成后，应用“连接关系”逻辑
-// // --------------------------------------------------------------------------------------------
-// applyConnections(connectionData);
-
 // 方便鼠标交互旋转、缩放
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.update();
 
-// ******* 新增：以下是交互逻辑 ******* //
+// ======================
+// 一开始就渲染一遍(初始状态)
+// ======================
+render_furniture(furnitureData, connectionData);
 
-function addConnectionRecord(objA, snapPosA, objB, snapPosB, offset, groupA, groupB) {
-    connectionCount++;
-    const id = connectionCount;
-
-    // 将本次连接信息保存到 connectionLog 数组
-    // 除了保存 objectA/objectB，还需要记录它们在合并前 groupB 的所有 item 的 原始位置(世界坐标)
-    // 以便撤销时能够还原
-    // （如果 groupB 中不只一个 item，我们需要记录每个 item 的 originalWorldPos）
-    const groupBPositions = [];
-    groupB.forEach(item => {
-        const wp = new THREE.Vector3();
-        item.getWorldPosition(wp);
-        groupBPositions.push({ object: item, pos: wp.clone() });
-    });
-
-    const connInfo = {
-        id,
-        objA,
-        objB,
-        snapPosA: snapPosA.clone(),
-        snapPosB: snapPosB.clone(),
-        offset: offset.clone(),
-        groupA,
-        groupB,
-        groupBPositions
-    };
-    connectionLog.push(connInfo);
-
-    // 在面板中添加一条显示
-    const itemDiv = document.createElement('div');
-    itemDiv.className = 'conn-item';
-    itemDiv.innerHTML = `
-      <div>Connection #${id}:
-        <br/>A: ${objA.name}
-        <br/>B: ${objB.name}
-      </div>
-    `;
-    // 添加“取消”按钮
-    const removeBtn = document.createElement('button');
-    removeBtn.innerText = 'Remove';
-    removeBtn.onclick = () => {
-        removeConnection(id, itemDiv);
-    };
-    itemDiv.appendChild(removeBtn);
-
-    connectionLogContainer.appendChild(itemDiv);
-}
-
-// 取消连接
-function removeConnection(id, domElement) {
-    // 在 connectionLog 找到对应记录
-    const index = connectionLog.findIndex(item => item.id === id);
-    if (index < 0) return;
-
-    const connInfo = connectionLog[index];
-
-    // 确保 groupB 再次从 groupA 脱离
-    // 1) 如果 connInfo.groupA == connInfo.groupB 说明已经合并成同一个Set
-    // 2) 我们要把 groupB 里的所有 item 从 groupA 中拿出来
-    // 3) 并把它们的 position 恢复到原始记录
-    const { groupA, groupB, groupBPositions, offset } = connInfo;
-
-    // 如果 groupA 和 groupB 已经是同一个 set，拆分时要新建一个 setB
-    const newSetB = new Set();
-    groupB.forEach(item => {
-        // 把 item 从 groupA 中剔除
-        groupA.delete(item);
-        // 还原 item 的 userData.connectionGroup 指向 newSetB
-        item.userData.connectionGroup = newSetB;
-        newSetB.add(item);
-    });
-
-    // 还原位置
-    groupBPositions.forEach(entry => {
-        const { object, pos } = entry;
-        // setWorldPosition
-        // 由于 position.set(x,y,z) 是局部坐标，需要先把 object.parent==scene 或根
-        // 我们可以先 detach 再 attach
-        let parentBefore = object.parent;
-        if (parentBefore) {
-            parentBefore.remove(object);
-        }
-        // 先放到 scene
-        scene.add(object);
-
-        // 计算 oldPos 在 scene 下的坐标
-        object.position.copy(pos);
-    });
-
-    // 最后，从日志中移除这条记录
-    connectionLog.splice(index, 1);
-
-    // 从UI面板移除
-    if (domElement && domElement.parentNode) {
-        domElement.parentNode.removeChild(domElement);
-    }
-}
+// ======================
+// 以下是交互逻辑：用户交互如何“更新 data”，再“重新渲染”
+//   （1）连接模式：点A点B => 在 connectionData.data.push(...)
+//   （2）修改尺寸：在 furnitureData.meta.children[...] 里更新 => 再 render_furniture
+// ======================
 
 let currentMode = 'connect'; // 'connect' or 'stretch'
 const infoDiv = document.getElementById('info');
 
+// 声明一个 Raycaster
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
 let selectedEdges = null;    // 用于边缘高亮的 lineSegments
 
-// -- 用于“连接模式”时，先点第一个，再点第二个 --
 const SNAP_STEP = 50; // 以 50mm 为吸附步长
 
 // =========== 连接模式状态机 =============
@@ -575,14 +626,11 @@ let firstAnchor = new THREE.Vector3(); // 第一个锚点(世界坐标)
 let secondMesh = null;    // 第二个物体
 let secondAnchor = new THREE.Vector3(); // 第二个锚点(世界坐标)
 
-let firstPickedObject = null;
-let firstPickedPoint = new THREE.Vector3();
 
 // -- 用于“拉伸模式”时，选中的对象 / faceIndex / 初始点击点 --
 let pickedMeshForStretch = null;
 let pickedFaceIndex = -1;
 let pickedFaceAxis = null; // "width"|"height"|"depth"
-
 
 // 对应 HTML 面板元素
 const stretchPanel = document.getElementById('stretchPanel');
@@ -592,9 +640,26 @@ const stretchCurrentSizeSpan = document.getElementById('stretchCurrentSize');
 const stretchSizeInput = document.getElementById('stretchSizeInput');
 const applyStretchBtn = document.getElementById('applyStretchBtn');
 
-
 let mouseDown = false;
 let lastMousePos = { x: 0, y: 0 }; // 记录拖动前坐标
+
+// ============ 工具函数：更新 metaData 里的某个对象的尺寸 ============
+function updateDimensionInMeta(rootMeta, targetName, axis, newVal) {
+    // 递归在 meta 里找 object==targetName
+    function recurse(meta) {
+        if (meta.object === targetName) {
+            if (meta.dimensions && meta.dimensions[axis] !== undefined) {
+                meta.dimensions[axis] = newVal;
+            }
+        }
+        if (Array.isArray(meta.children)) {
+            for (let c of meta.children) {
+                recurse(c.meta);
+            }
+        }
+    }
+    recurse(rootMeta);
+}
 
 // =============================
 // 获取 BoxGeometry 面对应的轴
@@ -663,32 +728,11 @@ applyStretchBtn.addEventListener('click', () => {
         alert('Invalid number');
         return;
     }
-
-    // 取当前 geometry
-    const geometry = pickedMeshForStretch.geometry;
-    if (!geometry || !geometry.parameters) return;
-    let { width, height, depth } = geometry.parameters;
-
-    // 根据 pickedFaceAxis 修改对应维度
-    if (pickedFaceAxis === 'width') width = newVal;
-    if (pickedFaceAxis === 'height') height = newVal;
-    if (pickedFaceAxis === 'depth') depth = newVal;
-
-    // 重新创建 BoxGeometry
-    pickedMeshForStretch.geometry.dispose();
-    pickedMeshForStretch.geometry = new THREE.BoxGeometry(width, height, depth);
-    pickedMeshForStretch.geometry.computeBoundingBox();
-    pickedMeshForStretch.geometry.computeBoundingSphere();
-
-    // 更新 geometry.parameters 里保存的值
-    pickedMeshForStretch.geometry.parameters.width = width;
-    pickedMeshForStretch.geometry.parameters.height = height;
-    pickedMeshForStretch.geometry.parameters.depth = depth;
-
-    // 更新界面
-    stretchCurrentSizeSpan.innerText = newVal.toFixed(1);
-
-    alert('Dimension updated!');
+    // 在 metaData 里找这个mesh对应的 objectName，更新其 axis
+    updateDimensionInMeta(furnitureData.meta, pickedMeshForStretch.name, pickedFaceAxis, newVal);
+    // 然后重新渲染
+    render_furniture(furnitureData, connectionData);
+    alert('Dimension updated and re-rendered!');
 });
 
 
@@ -733,10 +777,6 @@ function updateInfo() {
     infoDiv.innerHTML = text;
 }
 
-// 声明一个 Raycaster
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
 document.getElementById('connectModeBtn').addEventListener('click', () => {
     currentMode = 'connect';
     clearSelectedMesh();
@@ -747,26 +787,6 @@ document.getElementById('stretchModeBtn').addEventListener('click', () => {
     clearSelectedMesh();
     updateInfo();
 });
-
-// 进行最终连接: 让 secondMesh 对齐
-function doConnect() {
-    // 计算 offset = firstAnchor - secondAnchor
-    console.log("MOVEMOVEMOVE")
-    const offset = new THREE.Vector3().subVectors(firstAnchor, secondAnchor);
-
-    // 让 secondMesh (及其group) 移动
-    const groupA = getOrCreateConnectionGroup(firstMesh);
-    const groupB = getOrCreateConnectionGroup(secondMesh);
-    if (groupA !== groupB) {
-        groupB.forEach(item => {
-            item.position.add(offset);
-        });
-        unifyGroups(groupA, groupB);
-    }
-
-    // 连接完，重置状态
-    resetConnectProcess();
-}
 
 // 重置
 function resetConnectProcess() {
@@ -816,6 +836,7 @@ function onPointerMove(event) {
     }
 }
 
+// ============ 事件监听(连接模式/拉伸模式) ============
 function onPointerUp(event) {
     if (onDownTime + 300 < Date.now()) {
         return
@@ -831,6 +852,8 @@ function onPointerUp(event) {
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children, true);
 
+    let firstAnchorStr = null
+    let firstMeshType = null
 
     if (currentMode === 'connect') {
         // 根据 connectState 分情况
@@ -867,6 +890,8 @@ function onPointerUp(event) {
                     localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
                     localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
                     localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+                    firstAnchorStr = getAnchorDescription(firstMesh, localPos);
+                    firstMeshType = getObjectType({ width: firstMesh.geometry.parameters.width, height: firstMesh.geometry.parameters.height, depth: firstMesh.geometry.parameters.depth })
                     firstAnchor.copy(firstMesh.localToWorld(localPos.clone()));
 
                     connectState = 2; // 等待选第二物体
@@ -911,13 +936,24 @@ function onPointerUp(event) {
                     localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
                     localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
                     localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+                    let secondAnchorStr = getAnchorDescription(secondMesh, localPos);
+                    let secondMeshType = getObjectType({ width: secondMesh.geometry.parameters.width, height: secondMesh.geometry.parameters.height, depth: secondMesh.geometry.parameters.depth })
                     secondAnchor.copy(secondMesh.localToWorld(localPos.clone()));
 
-                    // 更新conn_data
-                    // 调用render_furniture
+                    const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
+                    const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
-                    // 完成连接
-                    doConnect();
+                    connectionData.data.push({
+                        "Seat": firstConnStr,
+                        "Base": secondConnStr
+                    })
+
+                    render_furniture(furnitureData, connectionData);
+
+                    // 重置
+                    connectState = 0;
+                    firstMesh = null;
+                    secondMesh = null
 
                     clearSelectedMesh()
                 }
@@ -942,9 +978,6 @@ function onPointerUp(event) {
             if (hitObject.isMesh && hitObject.geometry && hitObject.geometry.parameters) {
                 showStretchPanel(hitObject, faceIndex);
             }
-
-            // 更新meta_data
-            // 调用render_furniture
         }
     }
 
