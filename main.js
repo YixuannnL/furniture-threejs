@@ -1,20 +1,13 @@
 // 引入 Three.js 与 OrbitControls
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as Utils from './utils.js';
 
 import jsonData from './output_2.json' assert { type: 'json' };
 import ConnData from './Table_1.json' assert { type: 'json' };
 
 const furnitureData = jsonData;
 const connectionData = ConnData;
-
-// =============================
-// 新增：连接日志与管理
-// =============================
-let connectionCount = 0; // 递增ID
-const connectionLog = []; // 用于记录每一次连接
-
-const connectionLogContainer = document.getElementById('connectionLog');
 
 // ============== 创建一个十字叉辅助对象 ==============
 function createCrossMarker(size = 20, color = 0xff0000) {
@@ -63,7 +56,6 @@ function highlightMesh(mesh) {
     mesh.add(edges);
     return edges;
 }
-
 
 // ============== clearSelectedMesh: 取消之前选中的高亮效果 ==============
 function clearSelectedMesh() {
@@ -141,7 +133,6 @@ function parseMeta(meta) {
         });
     }
 
-    console.log(meta, currentObject)
 
     return currentObject;
 }
@@ -187,23 +178,8 @@ function parseConnectionString(str) {
     return { name, type, anchors };
 }
 
-function getCenterPoint(mesh) {
-    var middle = new THREE.Vector3();
-    var geometry = mesh.geometry;
-
-    geometry.computeBoundingBox();
-
-    middle.x = (geometry.boundingBox.max.x + geometry.boundingBox.min.x) / 2;
-    middle.y = (geometry.boundingBox.max.y + geometry.boundingBox.min.y) / 2;
-    middle.z = (geometry.boundingBox.max.z + geometry.boundingBox.min.z) / 2;
-
-    mesh.localToWorld(middle);
-    return middle;
-}
-
 // --------------------------------------------------------------------------------------------
 //  根据 anchors 列表，计算该物体在局部坐标的“锚点位置” (x, y, z)
-//    目前只处理 <BottomFace>/<TopFace>/<FrontLeftCorner>/<FrontRightCorner>/<BackLeftCorner>/<BackRightCorner>
 // --------------------------------------------------------------------------------------------
 function calcLocalAnchorPosition(object3D, anchors) {
     // 首先要知道这个物体的宽高深。因为我们之前用 BoxGeometry(width, height, depth) + 中心在(0,0,0)。
@@ -217,10 +193,26 @@ function calcLocalAnchorPosition(object3D, anchors) {
     }
 
     const { width, height, depth } = mesh.geometry.parameters;
+    const objType = Utils.getObjectType({ width, height, depth });
 
-    const Center = getCenterPoint(mesh);
-    let x = Center.x, y = Center.y, z = Center.z;
+    // const Center = getCenterPoint(mesh);
+    // let x = Center.x, y = Center.y, z = Center.z;
+    let x = 0, y = 0, z = 0; //local坐标？
 
+    // 定义一个辅助函数，用于把字符串如 "1/3" => 0.3333
+    function fractionToFloat(fracStr) {
+        // fracStr 形如 "1/2"、"2/3"、"1/4"...
+        const parts = fracStr.split('/');
+        if (parts.length === 2) {
+            const numerator = parseFloat(parts[0]);
+            const denominator = parseFloat(parts[1]);
+            if (denominator !== 0) {
+                return numerator / denominator;
+            }
+        }
+        return 0; // 如果解析失败，返回0
+    }
+    console.log("anchor", anchors)
     // 遍历 anchors
     anchors.forEach(anchor => {
         // 判断一些关键标签
@@ -247,9 +239,85 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 x = +width / 2;
                 z = +depth / 2;
                 break;
-            // 你可以继续扩展更多标签
+            case 'TopEgde':
+            case 'TopEdgeCenter':
+                y = +height / 2;
+                x = 0;
+                z = 0;
+                break;
+            case 'BottomEdge':
+            case 'BottomEdgeCenter':
+                y = -height / 2;
+                x = 0;
+                z = 0;
+                break;
+            case 'LeftEdge':
+            case 'LeftEdgeCenter':
+                x = -width / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'RightEdge':
+            case 'RightEdgeCenter':
+                x = +width / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'FrontEdge':
+            case 'FrontEdgeCenter':
+                z = +depth / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'BackEdge':
+            case 'BackEdgeCenter':
+                z = -depth / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'TopEnd': y = +height / 2; x = 0; z = 0; break;
+            case 'BottomEnd': y = -height / 2; x = 0; z = 0; break;
+            case 'LeftEnd': x = -width / 2; y = 0; z = 0; break;
+            case 'RightEnd': x = +width / 2; y = 0; z = 0; break;
+            case 'FrontEnd': z = +depth / 2; y = 0; x = 0; break;
+            case 'BackEnd': z = -depth / 2; y = 0; x = 0; break;
+
+            case 'TopEndQuarter': y = +height / 2 - height * 0.25
+
+            // 可以继续扩展更多标签
             default:
-                // 未知标签，这里先不处理
+                // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
+                // 先拆成 tokens
+                const parts = anchor.split('_')
+
+                const result = parts.map(part => {
+                    // 用正则分离以分数开头的部分，例如 1/4Height => ["1/4", "Height"]
+                    const match = part.match(/^(\d+\/\d+)([A-Za-z]+)$/);
+                    if (match) {
+                        return [match[1], match[2]];
+                    }
+                    return part; // 如果不是分数+文本，就原样返回
+                });
+                console.log("result:", result)
+                switch (result[0]) {
+                    case 'FrontFace': z = -depth / 2; break;
+                    case 'BackFace': z = +depth / 2; break;
+                    case 'LeftFace': x = -width / 2; break;
+                    case 'RightFace': x = +width / 2; break;
+                    case 'TopFace': y = +height / 2; break;
+                    case 'BottomFace': y = -height / 2; break;
+                    default: break;
+                }
+                for (let i = 1; i < result.length; i++) {
+                    const item = result[i]
+                    const fval = fractionToFloat(item[0]);
+                    switch (item[1]) {
+                        case 'Height': y = -height / 2 + fval * height; break;
+                        case 'Width': x = -width / 2 + fval * width; break;
+                        case 'Depth': z = -depth / 2 + fval * depth; break;
+                    }
+                }
+
                 break;
         }
     });
@@ -266,157 +334,33 @@ function getAnchorDescription(mesh, localPos) {
     }
 
     const { width, height, depth } = geom.parameters;
+    const objType = Utils.getObjectType({ width, height, depth });
 
-    // 计算与 6 面边界的距离
-    // 因为前面是 z = -depth/2，后面是 z = +depth/2 (若你的定义相反可做适当调整)
-    const distFront = Math.abs(localPos.z + depth / 2);
-    const distBack = Math.abs(localPos.z - depth / 2);
-    const distLeft = Math.abs(localPos.x + width / 2);
-    const distRight = Math.abs(localPos.x - width / 2);
-    const distBottom = Math.abs(localPos.y + height / 2);
-    const distTop = Math.abs(localPos.y - height / 2);
+    if (objType === 'bar') {
+        const { axisName, axisSize, end1Name, end2Name, end1Coord, end2Coord }
+            = Utils.findBarAxisAndEnds(mesh);
 
-    // 先假设最近的是 front 面
-    let faceType = 'FrontFace';
-    let minDist = distFront;
-
-    // 后面依次比较 back、left、right、bottom、top
-    if (distBack < minDist) { minDist = distBack; faceType = 'BackFace'; }
-    if (distLeft < minDist) { minDist = distLeft; faceType = 'LeftFace'; }
-    if (distRight < minDist) { minDist = distRight; faceType = 'RightFace'; }
-    if (distBottom < minDist) { minDist = distBottom; faceType = 'BottomFace'; }
-    if (distTop < minDist) { minDist = distTop; faceType = 'TopFace'; }
-
-    // 我们要算该面的 "两个方向" 的占比 [0~1]，并映射到 "Height" / "Width" / "Depth"
-    // 下面定义 param1, param2 表示两个方向的归一化数值(0~1)
-    let param1 = 0;
-    let param2 = 0;
-
-    // clamp 函数，防止略微超出 [0,1]
-    const clamp01 = v => Math.min(1, Math.max(0, v));
-
-    // 面的命名： 
-    // - 前/后：   faceType=FrontFace/BackFace        => param1=Height(Y), param2=Width(X)
-    // - 左/右：   faceType=LeftFace/RightFace        => param1=Height(Y), param2=Depth(Z)
-    // - 底/顶：   faceType=BottomFace/TopFace        => param1=Depth(Z),  param2=Width(X)
-
-    // 注：对于反面的坐标，我们通常还是从同一个方向(左->右 / 下->上 / 前->后)来计算 fraction(0->1)，
-    //     这样 "BackFace_1/3Height_1/2Width" 意味着在后面那块板上，左->右：1/2，底->顶：1/3。
-    //     你也可以做某些翻转，但要保持一致。
-
-    switch (faceType) {
-        case 'FrontFace':
-            // front: z ~ -depth/2
-            // param1 => y
-            // param2 => x
-            param1 = (localPos.y + height / 2) / height;
-            param2 = (localPos.x + width / 2) / width;
-            break;
-
-        case 'BackFace':
-            // back: z ~ +depth/2
-            // 也可以同 front 一样： y->Height(0=底,1=顶), x->Width(0=左,1=右)
-            param1 = (localPos.y + height / 2) / height;
-            param2 = (localPos.x + width / 2) / width;
-            break;
-
-        case 'LeftFace':
-            // left: x ~ -width/2
-            // param1 => y => Height
-            // param2 => z => Depth(0=前,1=后)
-            param1 = (localPos.y + height / 2) / height;
-            param2 = (localPos.z + depth / 2) / depth;
-            break;
-
-        case 'RightFace':
-            // right: x ~ +width/2
-            param1 = (localPos.y + height / 2) / height;
-            param2 = (localPos.z + depth / 2) / depth;
-            break;
-
-        case 'BottomFace':
-            // bottom: y ~ -height/2
-            // param1 => z => Depth(0=前,1=后)
-            // param2 => x => Width(0=左,1=右)
-            param1 = (localPos.z + depth / 2) / depth;
-            param2 = (localPos.x + width / 2) / width;
-            break;
-
-        case 'TopFace':
-            // top: y ~ +height/2
-            param1 = (localPos.z + depth / 2) / depth;
-            param2 = (localPos.x + width / 2) / width;
-            break;
-    }
-
-    // clamp 到 [0,1]
-    param1 = clamp01(param1);
-    param2 = clamp01(param2);
-
-    // 将数值(0~1) 尝试转换成常见分数(1/2,1/3,2/3...)，最多用分母到 10
-    function decimalToFraction(value, maxDen = 10) {
-        let best = { num: 1, den: 1, err: Math.abs(value - 1) };
-        for (let d = 1; d <= maxDen; d++) {
-            let n = Math.round(value * d);
-            let approx = n / d;
-            let err = Math.abs(value - approx);
-            if (err < best.err) {
-                best = { num: n, den: d, err: err };
-            }
+        // 用一个 eps(阈值) 来判断“足够近”，表示用户点击在端面
+        const eps = axisSize * 0.1;
+        const dist1 = localPos.distanceTo(end1Coord);
+        const dist2 = localPos.distanceTo(end2Coord);
+        console.log("type:", objType);
+        if (dist1 < eps && dist1 < dist2) {
+            // 靠近 end1 => 返回 <LeftEnd> / <BottomEnd> / <FrontEnd>...
+            return `<${end1Name}>`;
         }
-        return best.num + '/' + best.den; // 返回 "1/3" 这样的字符串
+        else if (dist2 < eps && dist2 < dist1) {
+            // 靠近 end2
+            return `<${end2Name}>`;
+        }
+        else {
+            // 两端都不近 => 可能是中段
+            // 你可以返回 <MidEnd> 或者再做更多判断(比如 partial quarter?)
+            return Utils.getFaceFractionAnchor(localPos, width, height, depth);
+        }
     }
-
-    let frac1 = decimalToFraction(param1);
-    let frac2 = decimalToFraction(param2);
-
-    // 根据面来拼接最终字符串
-    // 例如：FrontFace_1/3Height_1/2Width
-    let anchorStr = '';
-    switch (faceType) {
-        case 'FrontFace':
-        case 'BackFace':
-            anchorStr = `<${faceType}_${frac1}Height_${frac2}Width>`;
-            break;
-        case 'LeftFace':
-        case 'RightFace':
-            anchorStr = `<${faceType}_${frac1}Height_${frac2}Depth>`;
-            break;
-        case 'BottomFace':
-        case 'TopFace':
-            anchorStr = `<${faceType}_${frac1}Depth_${frac2}Width>`;
-            break;
-    }
-
-    return anchorStr;
 }
 
-function getObjectType(dimensions) {
-    const { width, height, depth } = dimensions;
-
-    // 排序，得到 small, mid, large
-    const sorted = [width, height, depth].sort((a, b) => a - b);
-    const small = sorted[0];
-    const mid = sorted[1];
-    const large = sorted[2];
-
-    //    判断 bar
-    //    如果 "最大值" 大于 "中值" 的 3 倍 (阈值3可调),
-    //    说明一个维度特别长 => bar(长条)
-    if (large >= mid * 3) {
-        return 'bar';
-    }
-
-    //    判断 board
-    //    如果 "中值" 大于 "最小值" 的 5 倍 (阈值5可调),
-    //    说明最小值很小(板很薄), 另两个较大 => board(板材)
-    if (mid >= small * 5) {
-        return 'board';
-    }
-
-    // 其余都归类为 block(块)
-    return 'block';
-}
 // --------------------------------------------------------------------------------------------
 // 真正处理连接：让 ObjA 的某个 anchor 对齐到 ObjB 的某个 anchor
 //    同时确保它们在同一个 connectionGroup 里
@@ -647,24 +591,7 @@ function updateDimensionInMeta(rootMeta, targetName, axis, newVal) {
     recurse(rootMeta);
 }
 
-// =============================
-// 获取 BoxGeometry 面对应的轴
-//   faceIndex -> faceId = floor(faceIndex/2)
-//   根据 faceId 判断 +X/-X, +Y/-Y, +Z/-Z
-// =============================
-function getFaceAxisByIndex(faceIndex) {
-    const faceId = Math.floor(faceIndex / 2);
-    // BoxGeometry 通常 0->+Z,1->-Z,2->+Y,3->-Y,4->+X,5->-X (部分版本可能顺序不同)
-    switch (faceId) {
-        case 0: return { axis: 'width', sign: +1 };   // +Z
-        case 1: return { axis: 'width', sign: -1 };   // -Z
-        case 2: return { axis: 'height', sign: +1 };  // +Y
-        case 3: return { axis: 'height', sign: -1 };  // -Y
-        case 4: return { axis: 'depth', sign: +1 };  // +X
-        case 5: return { axis: 'depth', sign: -1 };  // -X
-        default: return { axis: null, sign: 0 };
-    }
-}
+
 
 // =============================
 // 当用户点击某个面时，显示面板并填入数据
@@ -673,7 +600,7 @@ function showStretchPanel(mesh, faceIndex) {
     if (!mesh.geometry || !mesh.geometry.parameters) return;
 
     const { width, height, depth } = mesh.geometry.parameters;
-    const { axis, sign } = getFaceAxisByIndex(faceIndex);
+    const { axis, sign } = Utils.getFaceAxisByIndex(faceIndex);
 
     // 如果找不到轴，就不显示面板
     if (!axis) {
@@ -864,22 +791,20 @@ function onPointerUp(event) {
                 // 如果点到别的物体 或 空白
                 // if (hitObject !== firstMesh) {
                 const hit = intersects.find(item => item.object == firstMesh)
-                console.log("hit:", hit)
                 if (!hit) {
                     // 取消选中 & 重置
                     resetConnectProcess();
                 } else {
                     // 点到 firstMesh => 这是 anchor
+                    console.log("hit:", hit);
                     const hitPoint = hit.point.clone();
                     // 吸附
                     let localPos = firstMesh.worldToLocal(hitPoint);
                     localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
                     localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
                     localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
-                    firstAnchorStr = getAnchorDescription(firstMesh, localPos);
-                    firstMeshType = getObjectType({ width: firstMesh.geometry.parameters.width, height: firstMesh.geometry.parameters.height, depth: firstMesh.geometry.parameters.depth })
-                    console.log("firstMesh:", firstMesh)
-                    console.log("firstMeshType:", firstMeshType)
+                    firstAnchorStr = getAnchorDescription(firstMesh, localPos); //这个函数有问题
+                    firstMeshType = Utils.getObjectType({ width: firstMesh.geometry.parameters.width, height: firstMesh.geometry.parameters.height, depth: firstMesh.geometry.parameters.depth })
                     firstAnchor.copy(firstMesh.localToWorld(localPos.clone()));
 
                     connectState = 2; // 等待选第二物体
@@ -912,7 +837,6 @@ function onPointerUp(event) {
             // 已选中第二物体, 等待 anchor
             console.log("step4:", intersects)
             if (intersects.length > 0) {
-                console.log("HERE")
                 // const hitObject = intersects[0].object;
                 const hit = intersects.find(item => item.object == secondMesh)
                 if (!hit) {
@@ -925,13 +849,12 @@ function onPointerUp(event) {
                     localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
                     localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
                     let secondAnchorStr = getAnchorDescription(secondMesh, localPos);
-                    let secondMeshType = getObjectType({ width: secondMesh.geometry.parameters.width, height: secondMesh.geometry.parameters.height, depth: secondMesh.geometry.parameters.depth })
+                    let secondMeshType = Utils.getObjectType({ width: secondMesh.geometry.parameters.width, height: secondMesh.geometry.parameters.height, depth: secondMesh.geometry.parameters.depth })
                     secondAnchor.copy(secondMesh.localToWorld(localPos.clone()));
 
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
-                    console.log("Str1:", firstConnStr, "Str2:", secondConnStr)
 
                     connectionData.data.push({
                         "Seat": firstConnStr,
