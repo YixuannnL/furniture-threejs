@@ -55,8 +55,8 @@ export function findBarAxisAndEnds(mesh) {
 
 export function getFaceFractionAnchor(localPos, width, height, depth) {
     // 1) 计算与 6 面边界的距离
-    const distFront = Math.abs(localPos.z + depth / 2);
-    const distBack = Math.abs(localPos.z - depth / 2);
+    const distFront = Math.abs(localPos.z - depth / 2);
+    const distBack = Math.abs(localPos.z + depth / 2);
     const distLeft = Math.abs(localPos.x + width / 2);
     const distRight = Math.abs(localPos.x - width / 2);
     const distBottom = Math.abs(localPos.y + height / 2);

@@ -10,6 +10,8 @@ const furnitureData = jsonData;
 const connectionData = ConnData;
 
 let editingConnections = new Map();
+let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
+let selectedEdges = null;    // 用于边缘高亮的 lineSegments
 
 // ============== 创建一个十字叉辅助对象 ==============
 function createCrossMarker(size = 20, color = 0xff0000) {
@@ -89,7 +91,7 @@ function selectMesh(mesh) {
 
     // 如果当前模式是 'connect'，则在Connections面板里把相关连接排到最前
     if (currentMode === 'connect' && mesh && mesh.name) {
-        renderConnectionLog(mesh.name);
+        renderConnectionLog();
     }
 }
 
@@ -553,9 +555,6 @@ const infoDiv = document.getElementById('info');
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
-let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
-let selectedEdges = null;    // 用于边缘高亮的 lineSegments
-
 const SNAP_STEP = 50; // 以 50mm 为吸附步长
 
 // =========== 连接模式状态机 =============
@@ -701,11 +700,31 @@ document.getElementById('connectModeBtn').addEventListener('click', () => {
     currentMode = 'connect';
     clearSelectedMesh();
     updateInfo();
+    // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
+    var divElement = document.getElementById("stretchPanel");
+    // 设置 div 的 display 样式为 none
+    if (divElement) {
+        divElement.style.display = "none";
+    } else {
+        console.error("无法找到指定的 div 元素");
+    }
+    var divElement_c = document.getElementById("connectionLog");
+    divElement_c.style.display = "block";
 });
 document.getElementById('stretchModeBtn').addEventListener('click', () => {
     currentMode = 'stretch';
     clearSelectedMesh();
     updateInfo();
+    // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
+    var divElement = document.getElementById("connectionLog");
+    // 设置 div 的 display 样式为 none
+    if (divElement) {
+        divElement.style.display = "none";
+    } else {
+        console.error("无法找到指定的 div 元素");
+    }
+    var divElement_s = document.getElementById("stretchPanel");
+    divElement_s.style.display = "block";
 });
 
 function escapeHtml(str) {
@@ -727,7 +746,11 @@ function connectionItemHasName(connItem, meshName) {
 //  渲染“Connections”面板
 //  selectedMeshName：可选参数；若有，会将相关连接排在最前
 // ===============================
-function renderConnectionLog(selectedMeshName = null) {
+function renderConnectionLog() {
+    let selectedMeshName = null
+    if (selectedMesh && selectedMesh.name) {
+        selectedMeshName = selectedMesh.name;
+    }
     const container = document.getElementById('connectionLog');
     // 先把容器里的东西都清空（保留最初那行“<strong>Connections:</strong>”）
     // 为了保留最前头的 <div><strong>Connections:</strong></div>，我们可以先只移除它之后的所有子节点
@@ -965,6 +988,12 @@ let firstMeshType = null
 
 // ============ 事件监听(连接模式/拉伸模式) ============
 function onPointerUp(event) {
+    console.log(event.target == renderer.domElement)
+    console.log(event)
+
+    if (event.target != renderer.domElement) {
+        return
+    }
     if (onDownTime + 300 < Date.now()) {
         return
     }
@@ -1122,6 +1151,36 @@ window.addEventListener('mousemove', onPointerMove, false);
 window.addEventListener('mouseup', onPointerUp, false);
 
 updateInfo();
+
+function exportAllData() {
+    // 将数据组装成一个对象
+    const dataToExport = {
+        furnitureData: furnitureData,
+        connectionData: connectionData
+    };
+
+    // 转成字符串，并且格式化一下（缩进2格）
+    const jsonStr = JSON.stringify(dataToExport, null, 2);
+
+    // 创建一个 Blob 对象，类型为 JSON
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    // 生成一个临时 URL
+    const url = URL.createObjectURL(blob);
+
+    // 创建一个 <a> 标签，用于下载
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'export.json';  // 下载文件名
+    link.click();
+
+    // 释放 URL 对象
+    URL.revokeObjectURL(url);
+}
+
+const exportBtn = document.getElementById('exportBtn');
+exportBtn.addEventListener('click', () => {
+    exportAllData();
+});
 
 // ******* 新增：以上是交互逻辑 ******* //
 
