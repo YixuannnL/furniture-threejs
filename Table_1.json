@@ -10,12 +10,10 @@
       "Base": "`<Leg_Front_Right><Block>[<TopFace>]`"
     },
     {
-      "Objeft": "Seat",
       "Seat": "<Seat><Board>[<BottomFace><BackLeftCorner>]",
       "Base": "`<Leg_Rear_Left><Block>[<TopFace>]`"
     },
     {
-      "Objeft": "Seat",
       "Seat": "<Seat><Board>[<BottomFace><BackRightCorner>]",
       "Base": "`<Leg_Rear_Right><Block>[<TopFace>]`"
     }
