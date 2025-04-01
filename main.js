@@ -398,42 +398,48 @@ function applyConnections(connectionData) {
             groupMap.set(item, gA);
         }
     }
-
+    console.log("list", list);
     list.forEach(item => {
 
-        const seatStr = item['Seat'];
-        const baseStr = item['Base'];
-        if (!seatStr || !baseStr) return;
+        const keys = Object.keys(item) // ['Seat','Base']
+        const firstkey = keys[0]
+        const secondkey = keys[1]
+        const firstStr = item[firstkey];
+        const secondStr = item[secondkey];
+        if (!firstStr || !secondStr) return;
 
-        const seatConn = parseConnectionString(seatStr);
-        const baseConn = parseConnectionString(baseStr);
+        const firstConn = parseConnectionString(firstStr);
+        const secondConn = parseConnectionString(secondStr);
 
-        const seatObj = objectsByName[seatConn.name];
-        const baseObj = objectsByName[baseConn.name];
-        if (!seatObj || !baseObj) {
-            console.warn('找不到对象:', seatConn.name, baseConn.name);
+        console.log("firstConn", firstConn);
+        console.log("secondConn", secondConn);
+
+        const firstObj = objectsByName[firstConn.name];
+        const secondObj = objectsByName[secondConn.name];
+        if (!firstObj || !secondObj) {
+            console.warn('找不到对象:', firstConn.name, secondConn.name);
             return;
         }
 
         // 计算它们的世界坐标 anchor
         // 先各自更新一次世界矩阵
-        seatObj.updateMatrixWorld(true);
-        baseObj.updateMatrixWorld(true);
+        firstObj.updateMatrixWorld(true);
+        secondObj.updateMatrixWorld(true);
 
-        const seatLocalAnchor = calcLocalAnchorPosition(seatObj, seatConn.anchors);
-        const seatWorldAnchor = seatObj.localToWorld(seatLocalAnchor.clone());
+        const firstLocalAnchor = calcLocalAnchorPosition(firstObj, firstConn.anchors);
+        const firstWorldAnchor = firstObj.localToWorld(firstLocalAnchor.clone());
 
-        const baseLocalAnchor = calcLocalAnchorPosition(baseObj, baseConn.anchors);
-        const baseWorldAnchor = baseObj.localToWorld(baseLocalAnchor.clone());
+        const secondLocalAnchor = calcLocalAnchorPosition(secondObj, secondConn.anchors);
+        const secondWorldAnchor = secondObj.localToWorld(secondLocalAnchor.clone());
 
-        // 让 seatObj 的锚点贴到 baseObj 的锚点位置
-        // 最简单的做法：seatObj.position += (baseWorldAnchor - seatWorldAnchor)
-        // 这里假设 seatObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标
-        const offset = new THREE.Vector3().subVectors(seatWorldAnchor, baseWorldAnchor);
+        // 让 firstObj 的锚点贴到 secondObj 的锚点位置
+        // 最简单的做法：firstObj.position += (secondWorldAnchor - firstWorldAnchor)
+        // 这里假设 firstObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标
+        const offset = new THREE.Vector3().subVectors(firstWorldAnchor, secondWorldAnchor);
 
-        // 如果 seatObj 和 baseObj 不在同一组，移动 baseObj那一组
-        const gA = getGroup(seatObj);
-        const gB = getGroup(baseObj);
+        // 如果 firstObj 和 secondObj 不在同一组，移动 secondObj那一组
+        const gA = getGroup(firstObj);
+        const gB = getGroup(secondObj);
         if (gA !== gB) {
             // 移动 group B 的所有对象
             for (let obj of gB) {
@@ -758,10 +764,13 @@ function escapeHtml(str) {
  * item 形如 { "Seat": "<Seat>...", "Base": "<Leg_Front_Left>..." }
  */
 function connectionItemHasName(connItem, meshName) {
-    // 只要 Seat/Base 的字符串里解析到 name == meshName 就算匹配
-    const seatConn = parseConnectionString(connItem['Seat'] || '');
-    const baseConn = parseConnectionString(connItem['Base'] || '');
-    return (seatConn.name === meshName) || (baseConn.name === meshName);
+    // 只要 firstitem/seconditem 的字符串里解析到 name == meshName 就算匹配
+    const keys = Object.keys(connItem);
+    const firstKey = keys[0];
+    const secondKey = keys[1];
+    const firstConn = parseConnectionString(connItem[firstKey] || '');
+    const secondConn = parseConnectionString(connItem[secondKey] || '');
+    return (firstConn.name === meshName) || (secondConn.name === meshName);
 }
 // ===============================
 //  渲染“Connections”面板
@@ -813,13 +822,16 @@ function renderConnectionLog() {
  * 显示文本 + [Remove] [Edit] 按钮
  */
 function renderConnectionItem_NormalMode(parentDiv, item) {
-    const seatStr = item['Seat'] || '';
-    const baseStr = item['Base'] || '';
+    const keys = Object.keys(item);
+    const firstKey = keys[0];
+    const secondKey = keys[1];
+    const firstStr = item[firstKey] || '';
+    const secondStr = item[secondKey] || '';
 
     const textBlock = document.createElement('div');
     textBlock.innerHTML = `
-        FirstMesh => ${escapeHtml(seatStr)} <br>
-        SecondMesh => ${escapeHtml(baseStr)}
+        FirstMesh => ${escapeHtml(firstStr)} <br>
+        SecondMesh => ${escapeHtml(secondStr)}
     `;
     parentDiv.appendChild(textBlock);
 
@@ -847,23 +859,23 @@ function renderConnectionItem_NormalMode(parentDiv, item) {
 function renderConnectionItem_EditMode(parentDiv, item) {
     // 从 editingConnections 里取出临时数据
     const editingData = editingConnections.get(item);
-    // editingData = { seatStr, baseStr }
+    // editingData = { firstStr, secondStr }
 
     // 创建输入框
-    const seatInput = document.createElement('input');
-    seatInput.type = 'text';
-    seatInput.style.width = '90%';
-    seatInput.value = editingData.seatStr;
-    parentDiv.appendChild(document.createTextNode('Seat => '));
-    parentDiv.appendChild(seatInput);
+    const firstInput = document.createElement('input');
+    firstInput.type = 'text';
+    firstInput.style.width = '90%';
+    firstInput.value = editingData.firstStr;
+    parentDiv.appendChild(document.createTextNode('firstMesh => '));
+    parentDiv.appendChild(firstInput);
     parentDiv.appendChild(document.createElement('br'));
 
-    const baseInput = document.createElement('input');
-    baseInput.type = 'text';
-    baseInput.style.width = '90%';
-    baseInput.value = editingData.baseStr;
-    parentDiv.appendChild(document.createTextNode('Base => '));
-    parentDiv.appendChild(baseInput);
+    const secondInput = document.createElement('input');
+    secondInput.type = 'text';
+    secondInput.style.width = '90%';
+    secondInput.value = editingData.secondStr;
+    parentDiv.appendChild(document.createTextNode('secondMesh => '));
+    parentDiv.appendChild(secondInput);
     parentDiv.appendChild(document.createElement('br'));
 
     // Cancel 按钮
@@ -878,19 +890,22 @@ function renderConnectionItem_EditMode(parentDiv, item) {
     const saveBtn = document.createElement('button');
     saveBtn.textContent = 'Save';
     saveBtn.addEventListener('click', () => {
-        saveEditingConnection(item, seatInput.value, baseInput.value);
+        saveEditingConnection(item, firstInput.value, secondInput.value);
     });
     parentDiv.appendChild(saveBtn);
 }
 
 /**
  * 进入编辑模式
- * 在 editingConnections 中登记此条的 seat/base 原始值
+ * 在 editingConnections 中登记此条的 firstmesh/secondmesh 原始值
  */
 function startEditingConnection(item) {
+    const keys = Object.keys(item);
+    const firstKey = keys[0];
+    const secondKey = keys[1];
     editingConnections.set(item, {
-        seatStr: item.Seat || '',
-        baseStr: item.Base || ''
+        firstStr: item[firstKey] || '',
+        secondStr: item[secondKey] || ''
     });
     // 重新渲染面板
     renderConnectionLog();
@@ -906,24 +921,28 @@ function cancelEditingConnection(item) {
 
 /**
  * 保存编辑
- * - seatStrNew / baseStrNew 是用户在输入框里改过的值
+ * - firstStrNew / secondStrNew 是用户在输入框里改过的值
  */
-function saveEditingConnection(item, seatStrNew, baseStrNew) {
-    // 1) 校验 seatStrNew
-    if (!validateConnectionStringFormat(seatStrNew)) {
-        alert('Invalid Seat connection string format!');
+function saveEditingConnection(item, firstStrNew, secondStrNew) {
+    // 1) 校验 firstStrNew
+    if (!validateConnectionStringFormat(firstStrNew)) {
+        alert('Invalid firstMesh connection string format!');
         return;
     }
 
-    // 2) 校验 baseStrNew
-    if (!validateConnectionStringFormat(baseStrNew)) {
-        alert('Invalid Base connection string format!');
+    // 2) 校验 secondStrNew
+    if (!validateConnectionStringFormat(secondStrNew)) {
+        alert('Invalid secondMesh connection string format!');
         return;
     }
+
+    const keys = Object.keys(data);
+    const firstKey = keys[0];
+    const secondKey = keys[1];
 
     // 若都通过 => 更新 item
-    item.Seat = seatStrNew;
-    item.Base = baseStrNew;
+    item[firstKey] = firstStrNew;
+    item[secondKey] = secondStrNew;
 
     // 完成更新后，退出编辑模式
     editingConnections.delete(item);
@@ -964,6 +983,61 @@ function resetConnectProcess() {
     clearSelectedMesh();
     updateInfo();
 }
+
+function findSiblingKeysFor(meshAName, meshBName) {
+    // 1) 拿到从 root 到 A、B 的路径
+    const pathA = Utils.findPathInFurnitureData(furnitureData.meta, meshAName);
+    const pathB = Utils.findPathInFurnitureData(furnitureData.meta, meshBName);
+
+    if (!pathA || !pathB) {
+        // 若找不到，说明 furnitureData 里没收录它们，就直接退回
+        console.warn("Cannot find path for A or B in furnitureData", meshAName, meshBName);
+        return { keyA: meshAName, keyB: meshBName };
+        // 退而求其次，直接返回它们自己的名字
+    }
+
+    // 2) 找到第一个分叉点
+    let i = 0;
+    while (i < pathA.length && i < pathB.length && pathA[i] === pathB[i]) {
+        i++;
+    }
+    // i 此刻是分叉下标(或者已经超出某一路径)
+
+    // 如果 i==0，说明根节点就不一样 => keys 就是 pathA[0].object vs pathB[0].object
+    // 若 i == pathA.length || pathB.length，说明 A/B 是彼此祖先关系 => 
+    //   但是我们仍然把最后一个节点当做 "self"
+    if (i === 0) {
+        // 直接用最顶层
+        return {
+            keyA: pathA[0].object,
+            keyB: pathB[0].object
+        };
+    }
+
+    // 3) 这里 i>0 => pathA[i-1] 是它们的最近公共父节点
+    //    pathA[i] 是 A 独有分支的节点(在公共父节点之下), pathB[i] 类似
+    //    这两个节点就是 siblings
+    if (i < pathA.length && i < pathB.length) {
+        // 正常分叉
+        return {
+            keyA: pathA[i].object,
+            keyB: pathB[i].object
+        };
+    } else {
+        // 有一种情况：其中一路可能到底了 => 说明 B 是 A 的祖先或反之
+        //   例如 A: [Root, Base, Leg_Front_Left], B: [Root, Base]
+        //   i=2, pathA[2] = Leg_Front_Left, pathB[2] 不存在
+        //   => siblings = (Leg_Front_Left, Base) ?
+        //   你可根据需求决定
+        const lastA = pathA[pathA.length - 1];
+        const lastB = pathB[pathB.length - 1];
+        return {
+            keyA: lastA.object,
+            keyB: lastB.object
+        };
+    }
+}
+
 
 function onPointerMove(event) {
     // 如果不是“连接模式”，就隐藏十字叉，返回
@@ -1113,10 +1187,13 @@ function onPointerUp(event) {
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
+                    // 获取lowest siblings name
+                    const { keyA, keyB } = findSiblingKeysFor(firstMesh.name, secondMesh.name);
+
                     connectionData.data.push({
-                        "Seat": firstConnStr,
-                        "Base": secondConnStr
-                    })
+                        [keyA]: firstConnStr,
+                        [keyB]: secondConnStr
+                    });
 
                     render_furniture(furnitureData, connectionData);
 
@@ -1241,11 +1318,15 @@ function connectionExists(meshA, meshB) {
 
     for (const item of connectionData.data) {
 
-        const seatStr = item.Seat || '';
-        const baseStr = item.Base || '';
+        const keys = Object.keys(item);
+        const firstKey = keys[0];
+        const secondKey = keys[1];
 
-        const cA = parseConnectionString(seatStr);
-        const cB = parseConnectionString(baseStr);
+        const firstStr = item[firstKey] || '';
+        const secondStr = item[secondKey] || '';
+
+        const cA = parseConnectionString(firstStr);
+        const cB = parseConnectionString(secondStr);
 
         // 判断此条连接是否包含 nameA & nameB
         const names = [cA.name, cB.name];
@@ -1278,8 +1359,6 @@ function detectAndAddConnections() {
                 // 3) 两者接触，生成对应的 anchor 字符串
                 const anchorA = Utils.guessAnchorFromContact(meshA, contactInfo.contactAxis, contactInfo.contactPointA);
                 const anchorB = Utils.guessAnchorFromContact(meshB, contactInfo.contactAxis, contactInfo.contactPointB);
-                console.log("meshA meshB", meshA, meshB);
-                console.log("anchorA anchorB", anchorA, anchorB);
                 // 4) 写入 connectionData
                 // 这里为了和你现有结构兼容，我们依然写 "Seat" & "Base"。
                 //   - 如果 meshA.name.includes('Seat') 就把它当Seat，否则当Base；你也可以更灵活判断。
@@ -1289,7 +1368,6 @@ function detectAndAddConnections() {
                 const connItem = {};
                 connItem[keyA] = `<${meshA.name}><${Utils.getObjectType({ width: meshA.geometry.parameters.width, height: meshA.geometry.parameters.height, depth: meshA.geometry.parameters.depth })}>[${anchorA}]`;
                 connItem[keyB] = `<${meshB.name}><${Utils.getObjectType({ width: meshB.geometry.parameters.width, height: meshB.geometry.parameters.height, depth: meshB.geometry.parameters.depth })}>[${anchorB}]`;
-                console.log("KeyA KeyB", keyA, keyB);
                 // push 到 connectionData
                 connectionData.data.push(connItem);
             }

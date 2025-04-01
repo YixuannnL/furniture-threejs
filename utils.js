@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { exp } from 'three/tsl';
 
 export function getCenterPoint(mesh) {
     var middle = new THREE.Vector3();
@@ -362,7 +361,24 @@ export function computeWorldBoundingBoxForObject(obj3D) {
     return hasAtLeastOne ? unionBox : null;
 }
 
-
+export function findPathInFurnitureData(rootMeta, targetName) {
+    // 若自己就是
+    if (rootMeta.object === targetName) {
+        return [rootMeta];
+    }
+    // 若有子节点，则逐个递归
+    if (Array.isArray(rootMeta.children)) {
+        for (const child of rootMeta.children) {
+            const subPath = findPathInFurnitureData(child.meta, targetName);
+            if (subPath) {
+                // 找到了
+                return [rootMeta, ...subPath];
+            }
+        }
+    }
+    // 没找到
+    return null;
+}
 
 export function getOrientationLabels(boxA, boxB) {
     // 1) 判断是否包围（Encased/Encasing）
