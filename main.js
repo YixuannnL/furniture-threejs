@@ -221,7 +221,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
         }
         return 0; // 如果解析失败，返回0
     }
-    console.log("anchor", anchors)
+
     // 遍历 anchors
     anchors.forEach(anchor => {
         // 判断一些关键标签
@@ -307,7 +307,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
                     }
                     return part; // 如果不是分数+文本，就原样返回
                 });
-                console.log("result:", result)
+
                 switch (result[0]) {
                     case 'FrontFace': z = +depth / 2; break;
                     case 'BackFace': z = -depth / 2; break;
@@ -353,7 +353,7 @@ function getAnchorDescription(mesh, localPos) {
         const eps = axisSize * 0.1;
         const dist1 = localPos.distanceTo(end1Coord);
         const dist2 = localPos.distanceTo(end2Coord);
-        console.log("type:", objType);
+
         if (Math.abs(dist1) < eps) {
             // 靠近 end1 => 返回 <LeftEnd> / <BottomEnd> / <FrontEnd>...
             return `<${end1Name}>`;
@@ -988,8 +988,6 @@ let firstMeshType = null
 
 // ============ 事件监听(连接模式/拉伸模式) ============
 function onPointerUp(event) {
-    console.log(event.target == renderer.domElement)
-    console.log(event)
 
     if (event.target != renderer.domElement) {
         return
@@ -1036,7 +1034,6 @@ function onPointerUp(event) {
                     resetConnectProcess();
                 } else {
                     // 点到 firstMesh => 这是 anchor
-                    console.log("hit:", hit);
                     const hitPoint = hit.point.clone();
                     // 吸附
                     let localPos = firstMesh.worldToLocal(hitPoint);
@@ -1095,7 +1092,6 @@ function onPointerUp(event) {
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
 
-                    console.log("AnchorStr:", firstConnStr, secondAnchorStr)
                     connectionData.data.push({
                         "Seat": firstConnStr,
                         "Base": secondConnStr
@@ -1152,6 +1148,74 @@ window.addEventListener('mouseup', onPointerUp, false);
 
 updateInfo();
 
+// 如有更多字段（不止 seat/base），可遍历 item 的 key 做更通用的查找。
+function connectionExists(meshA, meshB) {
+
+    const nameA = meshA.name;
+    const nameB = meshB.name;
+
+    for (const item of connectionData.data) {
+
+        const seatStr = item.Seat || '';
+        const baseStr = item.Base || '';
+
+        const cA = parseConnectionString(seatStr);
+        const cB = parseConnectionString(baseStr);
+
+        // 判断此条连接是否包含 nameA & nameB
+        const names = [cA.name, cB.name];
+        if (names.includes(nameA) && names.includes(nameB)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function detectAndAddConnections() {
+    // 先收集场景中所有Mesh
+    const allMeshes = Utils.getAllMeshesInScene(currentFurnitureRoot);
+
+    // 设定一个接触阈值(若 bounding boxes 在某轴仅差 <= eps 就算接触)
+    const eps = 1e-3;
+
+    for (let i = 0; i < allMeshes.length; i++) {
+        for (let j = i + 1; j < allMeshes.length; j++) {
+            const meshA = allMeshes[i];
+            const meshB = allMeshes[j];
+
+            // 1) 判断是否已经在 connectionData 中
+            if (connectionExists(meshA, meshB)) {
+                continue; // 已记录连接，不再重复
+            }
+            // 2) 检测它们是否接触
+            const contactInfo = Utils.checkBoundingBoxContact(meshA, meshB, eps);
+            if (contactInfo.isTouching) {
+                // 3) 两者接触，生成对应的 anchor 字符串
+                const anchorA = Utils.guessAnchorFromContact(meshA, contactInfo.contactAxis, contactInfo.contactPointA);
+                const anchorB = Utils.guessAnchorFromContact(meshB, contactInfo.contactAxis, contactInfo.contactPointB);
+                console.log("meshA meshB", meshA, meshB);
+                console.log("anchorA anchorB", anchorA, anchorB);
+                // 4) 写入 connectionData
+                // 这里为了和你现有结构兼容，我们依然写 "Seat" & "Base"。
+                //   - 如果 meshA.name.includes('Seat') 就把它当Seat，否则当Base；你也可以更灵活判断。
+                const keyA = meshA.name
+                const keyB = meshB.name
+                // -------------- 简易写法：--------------
+                const connItem = {};
+                connItem[keyA] = `<${meshA.name}><${Utils.getObjectType({ width: meshA.geometry.parameters.width, height: meshA.geometry.parameters.height, depth: meshA.geometry.parameters.depth })}>[${anchorA}]`;
+                connItem[keyB] = `<${meshB.name}><${Utils.getObjectType({ width: meshB.geometry.parameters.width, height: meshB.geometry.parameters.height, depth: meshB.geometry.parameters.depth })}>[${anchorB}]`;
+                console.log("KeyA KeyB", keyA, keyB);
+                // push 到 connectionData
+                connectionData.data.push(connItem);
+            }
+        }
+    }
+
+    // 如果有新连接，重新渲染
+    render_furniture(furnitureData, connectionData);
+}
+
+
 function exportAllData() {
     // 将数据组装成一个对象
     const dataToExport = {
@@ -1179,6 +1243,11 @@ function exportAllData() {
 
 const exportBtn = document.getElementById('exportBtn');
 exportBtn.addEventListener('click', () => {
+
+    // 先做碰撞检测 => 给未记录的相邻部件补充连接数据
+    detectAndAddConnections();
+
+    //调用导出函数
     exportAllData();
 });
 
