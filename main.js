@@ -1148,6 +1148,70 @@ window.addEventListener('mouseup', onPointerUp, false);
 
 updateInfo();
 
+function detectOrientationHierarchy(meta) {
+    // 若 meta.object_type === 'group' 或 'board'/'block'/'bar' 都可处理。
+    // 这里我们都统一按照 “children” 递归，但要注意 group 视为整体 vs. mesh 是个单体
+
+    const result = {
+        objectName: meta.object || '(unnamed)',
+        childrenOrientation: [],
+        children: []
+    };
+
+    // 若没有 children 或 children.length < 2，无需做对比
+    if (!meta.children || meta.children.length === 0) {
+        return result;
+    }
+
+    // 同级 children 两两对比 => 先收集 boundingBox
+    //   如果 child 是 group，则 boundingBox = union(其所有子mesh)
+    //   如果 child 是 mesh，则 boundingBox = 该mesh
+    // 要获取场景里的 Object3D => 我们用 objectsByName[childName]
+    const siblingsInfo = meta.children.map(childMeta => {
+        const name = childMeta.meta.object;
+        const obj3D = objectsByName[name];
+        return {
+            meta: childMeta.meta,
+            name,
+            box: Utils.computeWorldBoundingBoxForObject(obj3D) //见下方函数
+        };
+    });
+
+    // 两两对比
+    for (let i = 0; i < siblingsInfo.length; i++) {
+        for (let j = i + 1; j < siblingsInfo.length; j++) {
+            const A = siblingsInfo[i];
+            const B = siblingsInfo[j];
+            if (!A.box || !B.box) continue; //若缺失
+
+            // A->B
+            const relAtoB = Utils.getOrientationLabels(A.box, B.box);
+            // B->A
+            // 如果你只想记录一次，就只存 "A sees B => relAtoB"
+            // 也可以存 "B sees A => relBtoA" 同时在一个记录里保存
+            // 这里演示只存一个方向: A=>B
+            result.childrenOrientation.push({
+                objectA: A.name,
+                objectB: B.name,
+                relation: relAtoB
+            });
+        }
+    }
+
+    // 然后对每个 child 若是 group，也要往下递归
+    meta.children.forEach(child => {
+        const childMeta = child.meta;
+        // 如果 childMeta.object_type === 'group' 并且有 children，则深入
+        if (childMeta.object_type === 'group' && Array.isArray(childMeta.children) && childMeta.children.length > 0) {
+            const sub = detectOrientationHierarchy(childMeta);
+            result.children.push(sub);
+        }
+        // 若不是 group，就不再深入
+    });
+
+    return result;
+}
+
 // 如有更多字段（不止 seat/base），可遍历 item 的 key 做更通用的查找。
 function connectionExists(meshA, meshB) {
 
@@ -1217,10 +1281,14 @@ function detectAndAddConnections() {
 
 
 function exportAllData() {
+
+    // 生成方位关系数据
+    const orientationData = detectOrientationHierarchy(furnitureData.meta);
     // 将数据组装成一个对象
     const dataToExport = {
         furnitureData: furnitureData,
-        connectionData: connectionData
+        connectionData: connectionData,
+        orientationData: orientationData
     };
 
     // 转成字符串，并且格式化一下（缩进2格）

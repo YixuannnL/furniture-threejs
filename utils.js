@@ -320,6 +320,122 @@ export function guessAnchorFromContact(mesh, contactAxis, contactWorldPos) {
     return anchor;
 }
 
+// 若 obj3D 是 Group，则取它所有子节点（Mesh）包围盒的并集 (union)；
+// 若是单个 Mesh，则直接拿它的 geometry.boundingBox 并转换到世界坐标；
+// 返回 THREE.Box3
+export function computeWorldBoundingBoxForObject(obj3D) {
+    if (!obj3D) return null;
+
+    // 更新世界矩阵
+    obj3D.updateMatrixWorld(true);
+
+    // 如果是 Mesh
+    if (obj3D.isMesh) {
+        const geo = obj3D.geometry;
+        if (!geo || !geo.boundingBox) {
+            geo.computeBoundingBox();
+        }
+        const boxLocal = geo.boundingBox.clone();
+        return boxLocal.applyMatrix4(obj3D.matrixWorld);
+    }
+    // 如果是 Group => 遍历子节点
+    let unionBox = new THREE.Box3();
+    let hasAtLeastOne = false;
+
+    obj3D.traverse(child => {
+        if (child.isMesh && child.geometry) {
+            child.updateMatrixWorld(true);
+            if (!child.geometry.boundingBox) {
+                child.geometry.computeBoundingBox();
+            }
+            const boxLocal = child.geometry.boundingBox.clone();
+            boxLocal.applyMatrix4(child.matrixWorld);
+            if (!hasAtLeastOne) {
+                unionBox.copy(boxLocal);
+                hasAtLeastOne = true;
+            } else {
+                unionBox.union(boxLocal);
+            }
+        }
+    });
+
+    return hasAtLeastOne ? unionBox : null;
+}
+
+
+
+export function getOrientationLabels(boxA, boxB) {
+    // 1) 判断是否包围（Encased/Encasing）
+    if (isBoxInside(boxA, boxB)) {
+        // A 被 B 包围 => A对B = <Encased>
+        return ["<Encased>"];
+    }
+    if (isBoxInside(boxB, boxA)) {
+        // A 包围 B => A对B = <Encasing>
+        return ["<Encasing>"];
+    }
+
+    // 2) 否则根据中心点相对位置，多轴一起判断
+    const centerA = boxA.getCenter(new THREE.Vector3());
+    const centerB = boxB.getCenter(new THREE.Vector3());
+    const dx = centerB.x - centerA.x;
+    const dy = centerB.y - centerA.y;
+    const dz = centerB.z - centerA.z;
+
+    // 找到三者绝对值的最大值
+    const absX = Math.abs(dx), absY = Math.abs(dy), absZ = Math.abs(dz);
+    const maxAbs = Math.max(absX, absY, absZ);
+
+    // 如果三者都非常小(意味着几乎重叠？)
+    if (maxAbs < 1e-6) {
+        return ["<Unknown>"];
+    }
+
+    // 给定一个阈值比率 (越小 => 越容易出现多标签)
+    const ratio = 0.5;
+
+    let tags = [];
+
+    // 若某维度绝对值 >= ratio * maxAbs => 说明这个维度也算“显著”
+    if (absX >= ratio * maxAbs) {
+        tags.push(dx > 0 ? "<Right>" : "<Left>");
+    }
+    if (absY >= ratio * maxAbs) {
+        tags.push(dy > 0 ? "<Top>" : "<Bottom>");
+    }
+    if (absZ >= ratio * maxAbs) {
+        tags.push(dz > 0 ? "<Front>" : "<Back>");
+    }
+
+    // 如果全部轴都没达到 ratio*maxAbs（可能因为 ratio 过大），就至少取最大轴
+    if (tags.length === 0) {
+        // 直接选最大轴
+        if (absX >= absY && absX >= absZ) {
+            tags.push(dx > 0 ? "<Right>" : "<Left>");
+        } else if (absY >= absZ) {
+            tags.push(dy > 0 ? "<Top>" : "<Bottom>");
+        } else {
+            tags.push(dz > 0 ? "<Front>" : "<Back>");
+        }
+    }
+
+    return tags;
+}
+
+/** 判断 box1 是否完全包含在 box2 内部 */
+function isBoxInside(box1, box2, eps = 1e-3) {
+    // box1的min >= box2的min && box1的max <= box2的max
+    // 允许少量 eps 误差
+    return (
+        box1.min.x >= box2.min.x - eps &&
+        box1.min.y >= box2.min.y - eps &&
+        box1.min.z >= box2.min.z - eps &&
+        box1.max.x <= box2.max.x + eps &&
+        box1.max.y <= box2.max.y + eps &&
+        box1.max.z <= box2.max.z + eps
+    );
+}
+
 // 当我们知道 A 的 max.x ~ B 的 min.x 之类时，可以在另外两轴上取区间交集的中心，然后在第一个轴上取对应的 min/max 点，得到接触面的中心点
 // 可能需要更复杂的逻辑来处理多面相交、斜面等情况(?)
 function getContactCenterOnAxis(boxA, boxB, axis, isA_side) {
