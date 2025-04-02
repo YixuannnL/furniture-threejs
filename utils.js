@@ -408,7 +408,7 @@ export function getOrientationLabels(boxA, boxB) {
     }
 
     // 给定一个阈值比率 (越小 => 越容易出现多标签)
-    const ratio = 0.5;
+    const ratio = 0.2;
 
     let tags = [];
 
