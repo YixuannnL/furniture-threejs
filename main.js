@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Utils from './utils.js';
 
-import jsonData from './output_2.json' assert { type: 'json' };
-import ConnData from './Table_1.json' assert { type: 'json' };
+// import jsonData from './output_2.json' assert { type: 'json' };
+// import ConnData from './Table_1.json' assert { type: 'json' };
+import jsonData from './meta_data.json' assert { type: 'json' };
+import ConnData from './conn_data.json' assert { type: 'json' };
 
 const furnitureData = jsonData;
 const connectionData = ConnData;
@@ -81,6 +83,12 @@ function clearSelectedMesh() {
     }
     selectedMesh = null;
     selectedEdges = null;
+
+    // 新增：恢复显示区域
+    const displayDiv = document.getElementById('selectedMeshDisplay');
+    if (displayDiv) {
+        displayDiv.textContent = "No mesh selected";
+    }
 }
 
 // ============== selectMesh: 高亮新的 Mesh，取消之前的 ==============
@@ -92,6 +100,11 @@ function selectMesh(mesh) {
     // 如果当前模式是 'connect'，则在Connections面板里把相关连接排到最前
     if (currentMode === 'connect' && mesh && mesh.name) {
         renderConnectionLog();
+    }
+
+    const displayDiv = document.getElementById('selectedMeshDisplay');
+    if (displayDiv && mesh.name) {
+        displayDiv.textContent = `Selected Mesh: ${mesh.name}`;
     }
 }
 
@@ -400,13 +413,14 @@ function applyConnections(connectionData) {
     }
     console.log("list", list);
     list.forEach(item => {
-
+        console.log("item:", item);
         const keys = Object.keys(item) // ['Seat','Base']
         const firstkey = keys[0]
         const secondkey = keys[1]
         const firstStr = item[firstkey];
         const secondStr = item[secondkey];
         if (!firstStr || !secondStr) return;
+        if (firstStr === "" || secondStr === "") return;
 
         const firstConn = parseConnectionString(firstStr);
         const secondConn = parseConnectionString(secondStr);
@@ -477,6 +491,8 @@ function render_furniture(meta_data, conn_data) {
 
     // 5) 应用连接
     applyConnections(conn_data);
+
+    //遍历一遍所有的mesh，此处排开
 
     renderConnectionLog();
 
