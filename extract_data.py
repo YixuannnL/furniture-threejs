@@ -112,8 +112,8 @@ def parse_markdown_tables(text):
                 table_data = handle_table_data(table_data)
                 # 将解析出来的表格信息保存到字典中
                 table_info = {
-                    # "headers": headers,
-                    # "row_labels": row_labels,
+                    "row_headers": headers,
+                    "column_header": row_labels,
                     "title": f"table_{len(tables)+1}",
                     "data": table_data
                 }
