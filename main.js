@@ -3,10 +3,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Utils from './utils.js';
 
-// import jsonData from './output_2.json' assert { type: 'json' };
-// import ConnData from './Table_1.json' assert { type: 'json' };
-import jsonData from './meta_data.json' assert { type: 'json' };
-import ConnData from './conn_data.json' assert { type: 'json' };
+import jsonData from './output_2.json' assert { type: 'json' };
+import ConnData from './Table_1.json' assert { type: 'json' };
+import { element, sign } from 'three/tsl';
+// import jsonData from './meta_data.json' assert { type: 'json' };
+// import ConnData from './conn_data.json' assert { type: 'json' };
 
 const furnitureData = jsonData;
 const connectionData = ConnData;
@@ -14,6 +15,147 @@ const connectionData = ConnData;
 let editingConnections = new Map();
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
 let selectedEdges = null;    // 用于边缘高亮的 lineSegments
+
+// 用来存储“当前家具根对象”
+let currentFurnitureRoot = null;
+// 用来存储 "名称->Object3D" 映射（每次 render 时重新生成）
+let objectsByName = {};
+
+// 存储所有拉伸变更的日志记录
+let dimensionChangeLog = [];
+
+// ==================== 新增：处理家具树形结构的增删操作 ====================
+
+// 生成树形面板, 传入初始层级 0
+function renderTreePanel() {
+    const treePanel = document.getElementById('treePanel');
+    if (!treePanel) return;
+
+    treePanel.innerHTML = '<h3>Furniture Hierarchy</h3>';
+    const rootMeta = furnitureData.meta;
+    const rootContainer = document.createElement('div');
+    buildMetaNodeUI(rootMeta, rootContainer, null, 0); // 初始层级设为 0
+    treePanel.appendChild(rootContainer);
+}
+
+/**
+ * 递归构建某个 meta 节点的 UI
+ * @param {Object} meta  - 当前节点的 meta
+ * @param {HTMLElement} container - 容器DOM
+ * @param {Object} parentMeta - 父节点meta，用于删除操作时找到自己在children中的位置
+ * @param {number} level - 当前节点的层级（用于缩进）
+ */
+function buildMetaNodeUI(meta, container, parentMeta, level) {
+    const indent = level * 20; // 每层缩进20px
+    const row = document.createElement('div');
+    row.style.marginLeft = indent + 'px';
+    // 只有非根节点显示边框
+    row.style.borderLeft = level > 0 ? '1px dashed #ccc' : 'none';
+    row.style.paddingLeft = '8px';
+
+    // 显示当前节点信息
+    const titleSpan = document.createElement('span');
+    const objName = meta.object || '(no-name)';
+    const objType = meta.object_type || '(no-type)';
+    titleSpan.textContent = `${objName} (${objType})`;
+    titleSpan.style.fontWeight = 'bold';
+    row.appendChild(titleSpan);
+
+    // 如果不是根节点，可以显示「删除」按钮
+    if (parentMeta) {
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.style.marginLeft = '8px';
+        delBtn.addEventListener('click', () => {
+            const yes = confirm(`Are you sure to delete ${objName}?`);
+            if (!yes) return;
+            removeChildMeta(parentMeta, meta);
+        });
+        row.appendChild(delBtn);
+    }
+
+    // 如果是 group 类型，就允许添加子节点
+    if (meta.object_type === 'group') {
+        const addBtn = document.createElement('button');
+        addBtn.textContent = 'Add Child';
+        addBtn.style.marginLeft = '4px';
+        addBtn.addEventListener('click', () => {
+            promptAddChild(meta);
+        });
+        row.appendChild(addBtn);
+    }
+
+    container.appendChild(row);
+
+    // 如果有 children，递归生成子节点UI，层级加1
+    if (meta.children && Array.isArray(meta.children)) {
+        meta.children.forEach(child => {
+            buildMetaNodeUI(child.meta, container, meta, level + 1);
+        });
+    }
+}
+
+/**
+ * 删除操作：从 parentMeta.children 中移除指定 childMeta
+ */
+function removeChildMeta(parentMeta, childMeta) {
+    if (!parentMeta.children) return;
+    // 在 parentMeta.children 中找到 childMeta 对应的 index
+    const idx = parentMeta.children.findIndex(c => c.meta === childMeta);
+    if (idx >= 0) {
+        parentMeta.children.splice(idx, 1);
+        // 重新渲染
+        render_furniture(furnitureData, connectionData);
+        renderTreePanel();
+    }
+}
+
+/**
+ * 弹窗让用户输入新节点信息，然后插入到 parentMeta.children
+ */
+function promptAddChild(parentMeta) {
+    const objName = prompt('New Object Name (e.g. "Back_Rest")');
+    if (!objName) return; // 用户取消
+    const objType = prompt('New Object Type (group / board / block / bar)');
+    if (!objType) return;
+
+    // 如果 objType != group，需要让用户输入尺寸
+    // 如果 objType == group，可以给默认尺寸(或者也可以让用户输)
+    let width = 0, height = 0, depth = 0;
+    if (objType === 'group') {
+        // 给一个默认体积(或者也可不写)
+        width = 1000; height = 1000; depth = 1000;
+    } else {
+        // 让用户输入具体尺寸
+        width = parseFloat(prompt('width (mm)', '500')) || 500;
+        height = parseFloat(prompt('height (mm)', '100')) || 100;
+        depth = parseFloat(prompt('depth (mm)', '300')) || 300;
+    }
+
+    // 构造一个新的 child
+    const newChild = {
+        "meta": {
+            "object": objName,
+            "object_type": objType,
+            "dimensions": {
+                "width": width,
+                "height": height,
+                "depth": depth
+            }
+            // children: [] // 一般不需要显式加, group时如果你想初始就有children可加
+        }
+    };
+
+    // 如果 parentMeta 没有 children，就先创建
+    if (!parentMeta.children) {
+        parentMeta.children = [];
+    }
+    parentMeta.children.push(newChild);
+
+    // 重新渲染
+    render_furniture(furnitureData, connectionData);
+    renderTreePanel();
+}
 
 // ============== 创建一个十字叉辅助对象 ==============
 function createCrossMarker(size = 20, color = 0xff0000) {
@@ -107,11 +249,6 @@ function selectMesh(mesh) {
         displayDiv.textContent = `Selected Mesh: ${mesh.name}`;
     }
 }
-
-// 用来存储“当前家具根对象”
-let currentFurnitureRoot = null;
-// 用来存储 "名称->Object3D" 映射（每次 render 时重新生成）
-let objectsByName = {};
 
 // 创建网格（Mesh）的辅助函数
 function createMesh(objectType, dimensions) {
@@ -411,9 +548,9 @@ function applyConnections(connectionData) {
             groupMap.set(item, gA);
         }
     }
-    console.log("list", list);
+    // console.log("list", list);
     list.forEach(item => {
-        console.log("item:", item);
+        // console.log("item:", item);
         const keys = Object.keys(item) // ['Seat','Base']
         const firstkey = keys[0]
         const secondkey = keys[1]
@@ -425,8 +562,8 @@ function applyConnections(connectionData) {
         const firstConn = parseConnectionString(firstStr);
         const secondConn = parseConnectionString(secondStr);
 
-        console.log("firstConn", firstConn);
-        console.log("secondConn", secondConn);
+        // console.log("firstConn", firstConn);
+        // console.log("secondConn", secondConn);
 
         const firstObj = objectsByName[firstConn.name];
         const secondObj = objectsByName[secondConn.name];
@@ -495,6 +632,8 @@ function render_furniture(meta_data, conn_data) {
     //遍历一遍所有的mesh，此处排开
 
     renderConnectionLog();
+
+    renderTreePanel();
 
     return furniture_object;
 }
@@ -586,6 +725,14 @@ let firstAnchor = new THREE.Vector3(); // 第一个锚点(世界坐标)
 let secondMesh = null;    // 第二个物体
 let secondAnchor = new THREE.Vector3(); // 第二个锚点(世界坐标)
 
+// =========== 连接模式状态机 =============
+// 0: 未选择A
+// 1: 已选择A及其faceIndex => 等待选B面
+let stretchState = 0;
+let stretchMeshA = null;
+let stretchMeshB = null;
+let stretchFaceIndexA = -1;
+let stretchFaceIndexB = -1;
 
 // -- 用于“拉伸模式”时，选中的对象 / faceIndex / 初始点击点 --
 let pickedMeshForStretch = null;
@@ -603,9 +750,8 @@ const applyStretchBtn = document.getElementById('applyStretchBtn');
 let mouseDown = false;
 let lastMousePos = { x: 0, y: 0 }; // 记录拖动前坐标
 
-// ============ 工具函数：更新 metaData 里的某个对象的尺寸 ============
-function updateDimensionInMeta(rootMeta, targetName, axis, newVal) {
-    // 递归在 meta 里找 object==targetName
+// ============== 新增：更新 dimensions 与 offset 的辅助函数 ==============
+function updateDimensionAndOffsetInMeta(rootMeta, targetName, axis, newVal) {
     function recurse(meta) {
         if (meta.object === targetName) {
             if (meta.dimensions && meta.dimensions[axis] !== undefined) {
@@ -624,57 +770,57 @@ function updateDimensionInMeta(rootMeta, targetName, axis, newVal) {
 // =============================
 // 当用户点击某个面时，显示面板并填入数据
 // =============================
-function showStretchPanel(mesh, faceIndex) {
-    if (!mesh.geometry || !mesh.geometry.parameters) return;
+// function showStretchPanel(mesh, faceIndex) {
+//     if (!mesh.geometry || !mesh.geometry.parameters) return;
 
-    const { width, height, depth } = mesh.geometry.parameters;
-    const { axis, sign } = Utils.getFaceAxisByIndex(faceIndex);
+//     const { width, height, depth } = mesh.geometry.parameters;
+//     const { axis, sign } = Utils.getFaceAxisByIndex(faceIndex);
 
-    // 如果找不到轴，就不显示面板
-    if (!axis) {
-        stretchPanel.style.display = 'none';
-        return;
-    }
+//     // 如果找不到轴，就不显示面板
+//     if (!axis) {
+//         stretchPanel.style.display = 'none';
+//         return;
+//     }
 
-    // 记录
-    pickedMeshForStretch = mesh;
-    pickedFaceIndex = faceIndex;
-    pickedFaceAxis = axis;
+//     // 记录
+//     pickedMeshForStretch = mesh;
+//     pickedFaceIndex = faceIndex;
+//     pickedFaceAxis = axis;
 
-    // 根据 axis，取当前尺寸
-    let currentVal = 0;
-    if (axis === 'width') currentVal = width;
-    if (axis === 'height') currentVal = height;
-    if (axis === 'depth') currentVal = depth;
+//     // 根据 axis，取当前尺寸
+//     let currentVal = 0;
+//     if (axis === 'width') currentVal = width;
+//     if (axis === 'height') currentVal = height;
+//     if (axis === 'depth') currentVal = depth;
 
-    // 更新面板UI
-    stretchObjectNameSpan.innerText = mesh.name || '(unnamed)';
-    stretchFaceAxisSpan.innerText = axis.toUpperCase();
-    stretchCurrentSizeSpan.innerText = currentVal.toFixed(1);
-    stretchSizeInput.value = currentVal.toFixed(1);
+//     // 更新面板UI
+//     stretchObjectNameSpan.innerText = mesh.name || '(unnamed)';
+//     stretchFaceAxisSpan.innerText = axis.toUpperCase();
+//     stretchCurrentSizeSpan.innerText = currentVal.toFixed(1);
+//     stretchSizeInput.value = currentVal.toFixed(1);
 
-    // 显示面板
-    stretchPanel.style.display = 'block';
-}
+//     // 显示面板
+//     stretchPanel.style.display = 'block';
+// }
 
 // =============================
 // 用户点击 "Apply" 按钮时，更新几何
 // =============================
-applyStretchBtn.addEventListener('click', () => {
-    if (!pickedMeshForStretch || !pickedFaceAxis) return;
+// applyStretchBtn.addEventListener('click', () => {
+//     if (!pickedMeshForStretch || !pickedFaceAxis) return;
 
-    // 从输入框取新的尺寸
-    const newVal = parseFloat(stretchSizeInput.value);
-    if (isNaN(newVal) || newVal <= 0) {
-        alert('Invalid number');
-        return;
-    }
-    // 在 metaData 里找这个mesh对应的 objectName，更新其 axis
-    updateDimensionInMeta(furnitureData.meta, pickedMeshForStretch.name, pickedFaceAxis, newVal);
-    // 然后重新渲染
-    render_furniture(furnitureData, connectionData);
-    alert('Dimension updated and re-rendered!');
-});
+//     // 从输入框取新的尺寸
+//     const newVal = parseFloat(stretchSizeInput.value);
+//     if (isNaN(newVal) || newVal <= 0) {
+//         alert('Invalid number');
+//         return;
+//     }
+//     // 在 metaData 里找这个mesh对应的 objectName，更新其 axis
+//     updateDimensionInMeta(furnitureData.meta, pickedMeshForStretch.name, pickedFaceAxis, newVal);
+//     // 然后重新渲染
+//     render_furniture(furnitureData, connectionData);
+//     alert('Dimension updated and re-rendered!');
+// });
 
 
 // 更新显示文字
@@ -711,19 +857,36 @@ function updateInfo() {
 
     }
     else {
-        // 拉伸模式提示
-        text += 'Click on a face to see/edit dimension.';
+        // 拉伸模式
+        if (stretchState === 0) {
+            text += `<div> Please pick the object you want to stretch. </div>`;
+        } else if (stretchState === 1) {
+            text += `<div>Now you choose the object: ${stretchMeshA.name}. Please choose a face to  to stretch this object. </div>`;
+        } else if (stretchState === 2) {
+            text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
+            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>Please Choose the referece object.</div>`
+        } else if (stretchState === 3) {
+            text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
+            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>Please Choose the referece object ${stretchMeshB.name}, please choose a face on it.</div>`
+        } else {
+            text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
+            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>Please Choose the referece object ${stretchMeshB.name}, please choose a face on it.</div>`
+            text += `<div>The Face you choose on reference object is (${stretchFaceIndexA})</div>`
+        }
     }
 
     infoDiv.innerHTML = text;
 }
 
-document.getElementById('connectModeBtn').addEventListener('click', () => {
+function changeConnectState() {
     currentMode = 'connect';
     clearSelectedMesh();
     updateInfo();
     // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
-    var divElement = document.getElementById("stretchPanel");
+    var divElement = document.getElementById("dimensionChanges");
     // 设置 div 的 display 样式为 none
     if (divElement) {
         divElement.style.display = "none";
@@ -732,9 +895,11 @@ document.getElementById('connectModeBtn').addEventListener('click', () => {
     }
     var divElement_c = document.getElementById("connectionLog");
     divElement_c.style.display = "block";
-});
-document.getElementById('stretchModeBtn').addEventListener('click', () => {
+}
+
+function changeStretchState() {
     currentMode = 'stretch';
+    stretchState = 0;
     clearSelectedMesh();
     updateInfo();
     // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
@@ -745,8 +910,15 @@ document.getElementById('stretchModeBtn').addEventListener('click', () => {
     } else {
         console.error("无法找到指定的 div 元素");
     }
-    var divElement_s = document.getElementById("stretchPanel");
+    var divElement_s = document.getElementById("dimensionChanges");
     divElement_s.style.display = "block";
+}
+
+document.getElementById('connectModeBtn').addEventListener('click', () => {
+    changeConnectState()
+});
+document.getElementById('stretchModeBtn').addEventListener('click', () => {
+    changeStretchState()
 });
 
 function escapeHtml(str) {
@@ -767,6 +939,24 @@ function connectionItemHasName(connItem, meshName) {
     const secondConn = parseConnectionString(connItem[secondKey] || '');
     return (firstConn.name === meshName) || (secondConn.name === meshName);
 }
+
+
+/**
+ * 将dimensionChangeLog里的内容渲染到 #dimensionLogInner 
+ * 让用户看到每一次的尺寸变化
+ */
+function renderDimensionChangeLog() {
+    const container = document.getElementById('dimensionLogInner');
+    if (!container) return;
+    container.innerHTML = '';
+    dimensionChangeLog.forEach((record, idx) => {
+        const line = document.createElement('div');
+        line.textContent = `[${idx + 1}] Mesh "${record.meshName}" axis "${record.axis}" changed from ${record.oldVal.toFixed(2)} to ${record.newVal.toFixed(2)}`;
+        container.appendChild(line);
+    });
+}
+
+
 // ===============================
 //  渲染“Connections”面板
 //  selectedMeshName：可选参数；若有，会将相关连接排在最前
@@ -979,6 +1169,16 @@ function resetConnectProcess() {
     updateInfo();
 }
 
+function resetStretchProcess() {
+    stretchState = 0
+    stretchMeshA = null;
+    stretchFaceIndexA = -1;
+    stretchMeshB = null;
+    stretchFaceIndexB = -1;
+    clearSelectedMesh();
+    updateInfo();
+}
+
 function findSiblingKeysFor(meshAName, meshBName) {
     // 1) 拿到从 root 到 A、B 的路径
     const pathA = Utils.findPathInFurnitureData(furnitureData.meta, meshAName);
@@ -1071,6 +1271,98 @@ function onPointerMove(event) {
         // 没有命中任何对象，就隐藏
         crossMarker.visible = false;
     }
+}
+
+// 计算“meshA在axis方向需要变成多长，才能让A的这个面平齐到meshB那面”
+// 原理：
+//   - 拿到A面在世界空间的“对侧面”点 planeA_oppo
+//   - 拿到B面在世界空间的planeB
+//   - distance = 投影到axis方向(planeB - planeA_oppo)
+//   - A.dimensions[axis] = distance
+function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
+    // 1) 找出A的 axisA, signA
+    const { axis: axisA, sign: signA } = Utils.getFaceAxisAndSign(meshA, faceIndexA); // 这个函数没有问题
+    if (!axisA) return;
+    // console.log("axisA:", axisA, signA);
+    // 保存 oldVal
+    const oldVal = meshA.geometry.parameters[axisA];
+
+    // 2) 找出B的世界空间“中心点” planeB_center
+    //    同理 A面与对侧面各自中心点 planeA_center / planeA_oppo_center
+    //    这里用 boundingBox 或者用 geometry顶点来算中心
+    meshA.updateMatrixWorld(true);
+    meshB.updateMatrixWorld(true);
+
+    // =========== 获取某个面的中心(世界坐标) ===========
+    function getFaceCenterWorld(mesh, rawFaceIndex) {
+        const { axis, sign } = Utils.getFaceAxisAndSign(mesh, rawFaceIndex);
+        const half = mesh.geometry.parameters[axis] * 0.5;
+        let centerLocal = new THREE.Vector3(0, 0, 0);
+        if (axis === 'width') centerLocal.x = sign * half;
+        if (axis === 'height') centerLocal.y = sign * half;
+        if (axis === 'depth') centerLocal.z = sign * half;
+        return mesh.localToWorld(centerLocal.clone());
+    }
+
+    const A_faceCenter_oppo = getFaceCenterWorld(meshA, faceIndexA ^ 1);
+    const B_faceCenter = getFaceCenterWorld(meshB, faceIndexB);
+
+    console.log("face_center", A_faceCenter_oppo, B_faceCenter);
+
+    let diffVec = new THREE.Vector3().subVectors(B_faceCenter, A_faceCenter_oppo);
+    let delta = 0;
+    if (axisA == 'width') delta = diffVec.x;
+    if (axisA === 'height') delta = diffVec.y;
+    if (axisA === 'depth') delta = diffVec.z;
+    delta = delta * signA;
+
+    // 遍历所有的连接关系 如果另一端有连接关系，那么delta = delta * 2，否则保持原值
+    // 如果本端有连接关系 那么就无法伸缩 报错！
+    // @TODO!!!
+    const newVal = oldVal + delta;
+    if (newVal < 0) {
+        alert('Invalid Stretch!');
+    }
+
+    updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newVal);
+
+    // // 在meshA局部里，该面法线
+    // let unitVecA_local = new THREE.Vector3(0, 0, 0);
+    // if (axisA === 'width') unitVecA_local.x = 1 * signA;
+    // if (axisA === 'height') unitVecA_local.y = 1 * signA;
+    // if (axisA === 'depth') unitVecA_local.z = 1 * signA;
+
+    // // 转到世界坐标后，做点积
+    // let unitVecA_world = unitVecA_local.clone().applyMatrix4(meshA.matrixWorld);
+    // let posA = meshA.getWorldPosition(new THREE.Vector3());
+    // unitVecA_world.sub(posA).normalize();
+
+    // let newDimension = diffVec.dot(unitVecA_world);
+
+
+
+    // if (newDimension < 0) newDimension = Math.abs(newDimension);
+
+    // // 4. 计算位移：为了保持固定面（选中面）位置不变，
+    // //    新生成的 BoxGeometry（总是中心对称）中，选中面原本应位于 sign*(newDimension/2)
+    // //    而原来固定面在局部坐标中是 sign*(oldVal/2)；
+    // //    为保持固定面位置不变，meshA 的 position 需要调整： delta = (oldVal - newDimension)/2 * signA
+    // // let delta = ((oldVal - newDimension) / 2) * signA;
+    // console.log("delta:", delta);
+    // updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newDimension, delta);
+
+    render_furniture(furnitureData, connectionData);
+
+    // *** 记录到 dimensionChangeLog
+    dimensionChangeLog.push({
+        meshName: meshA.name,
+        axis: axisA,
+        oldVal: oldVal,
+        newVal: newVal
+    });
+
+    // *** new code: 更新显示
+    renderDimensionChangeLog();
 }
 
 let firstAnchorStr = null
@@ -1208,24 +1500,90 @@ function onPointerUp(event) {
         }
     }
     else if (currentMode === 'stretch') {
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(scene.children, true);
+        // mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        // mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+        // raycaster.setFromCamera(mouse, camera);
+        // const intersects = raycaster.intersectObjects(scene.children, true);
 
         if (intersects.length > 0) {
             const hit = intersects[0];
             const hitObject = hit.object;
-            const faceIndex = hit.faceIndex;
 
             // 只有是 Mesh 且是 BoxGeometry 时才执行
             if (hitObject.isMesh && hitObject.geometry && hitObject.geometry.parameters) {
-                showStretchPanel(hitObject, faceIndex);
+                // showStretchPanel(hitObject, faceIndex);
+                if (stretchState === 0) {
+                    // 选中 A 面
+                    if (intersects.length > 0) {
+                        const hitObject = intersects[0].object;
+                        selectMesh(hitObject);
+                        stretchMeshA = hitObject;
+                        // stretchFaceIndexA = faceIndex;
+                        stretchState = 1;
+                        updateInfo();  // 更新提示
+                    } else {
+                        // 点到空白 => 无事发生
+                    }
+                }
+                else if (stretchState === 1) {
+                    if (intersects.length > 0) {
+                        const hit = intersects.find(item => item.object == stretchMeshA)
+                        if (!hit) {
+                            resetStretchProcess()
+                        } else {
+                            stretchFaceIndexA = hit.faceIndex;
+                            stretchState = 2;
+                            updateInfo();
+                        }
+                    }
+                }
+                else if (stretchState === 2) {
+                    if (intersects.length > 0) {
+                        const hitObject = intersects[0].object;
+                        if (hitObject === stretchMeshA) {
+                            resetStretchProcess();
+                        } else {
+                            clearSelectedMesh();
+                            selectMesh(hitObject);
+                            stretchMeshB = hitObject;
+                            stretchState = 3;
+                        }
+                    } else {
+                        resetStretchProcess()
+                    }
+                }
+                else if (stretchState === 3) {
+                    // 选中 B 面 => 执行对齐 => 重置
+                    if (intersects.length > 0) {
+                        const hit = intersects.find(item => item.object == stretchMeshB);
+                        if (!hit) {
+                            // console.log("11111");
+                            resetStretchProcess();
+                        } else {
+                            // console.log("222222");
+                            stretchFaceIndexB = hit.faceIndex;
+                            doStretchAlignFaceAtoFaceB(
+                                stretchMeshA,
+                                stretchFaceIndexA,
+                                stretchMeshB,
+                                stretchFaceIndexB
+                            );
+                            // 重置
+                            stretchState = 0;
+                            stretchMeshA = null;
+                            stretchFaceIndexA = -1;
+                            stretchMeshB = null;
+                            stretchFaceIndexB = -1;
+                            clearSelectedMesh()
+                            updateInfo();
+                        }
+                    } else {
+                        resetStretchProcess()
+                    }
+                }
             }
         }
     }
-
-
     updateInfo();
 }
 
@@ -1235,9 +1593,18 @@ function onPointerDown() {
     onDownTime = Date.now()
 }
 
+function switchmode(event) {
+    if (event.key === 'c' || event.key === 'C') {
+        changeConnectState()
+    } else if (event.key === 'T' || event.key === 't') {
+        changeStretchState()
+    }
+}
+
 window.addEventListener('mousedown', onPointerDown, false);
 window.addEventListener('mousemove', onPointerMove, false);
 window.addEventListener('mouseup', onPointerUp, false);
+window.addEventListener('keydown', switchmode, false);
 
 updateInfo();
 
