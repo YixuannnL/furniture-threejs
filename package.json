@@ -1,8 +1,12 @@
 {
+  "scripts": {
+    "build": "cross-env NODE_ENV=production vite build"
+  },
   "dependencies": {
     "three": "^0.174.0"
   },
   "devDependencies": {
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "cross-env": "^7.0.3"
   }
 }

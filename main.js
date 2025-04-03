@@ -6,8 +6,8 @@ import * as Utils from './utils.js';
 import jsonData from './output_2.json' assert { type: 'json' };
 import ConnData from './Table_1.json' assert { type: 'json' };
 
-const furnitureData = jsonData;
-const connectionData = ConnData;
+let furnitureData = jsonData;
+let connectionData = ConnData;
 
 let editingConnections = new Map();
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
@@ -538,9 +538,30 @@ controls.dampingFactor = 0.05;
 controls.update();
 
 // ======================
-// 一开始就渲染一遍(初始状态)
+// 本地一开始就渲染一遍(初始状态) 线上环境等待外部传入json
 // ======================
-render_furniture(furnitureData, connectionData);
+// const isProd = import.meta.env.NODE_ENV === 'production'
+const isProd = true
+if (isProd) {
+    window.addEventListener('message', (event) => {
+        if (typeof event.data !== 'string') {
+            return;
+        }
+        try {
+            const data = JSON.parse(event.data)
+            if (data.event === 'init') {
+                connectionData = JSON.parse(data.data.conn)
+                furnitureData = JSON.parse(data.data.meta)
+                render_furniture(furnitureData, connectionData);
+            }
+        } catch(err){
+            console.error('message', event, err)
+        }
+    })
+    window.parent.postMessage(JSON.stringify({event: 'ready'}), '*')
+} else {
+    render_furniture(furnitureData, connectionData);
+}
 
 // ======================
 // 以下是交互逻辑：用户交互如何“更新 data”，再“重新渲染”
