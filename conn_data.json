@@ -195,6 +195,19 @@
     ],
     "meta_data": [
         {
+            "row_headers": [
+                "",
+                "Wardrobe_Frame",
+                "Hanging_Area",
+                "Drawer_Left",
+                "Drawer_Right"
+            ],
+            "column_header": [
+                "Wardrobe_Frame",
+                "Hanging_Area",
+                "Drawer_Left",
+                "Drawer_Right"
+            ],
             "title": "table_1",
             "data": [
                 {
@@ -260,6 +273,23 @@
             ]
         },
         {
+            "row_headers": [
+                "",
+                "Back_Panel",
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Top_Panel",
+                "Bottom_Panel",
+                "Horizontal_Divide_HangingArea_Drawer_Panel"
+            ],
+            "column_header": [
+                "Back_Panel",
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Top_Panel",
+                "Bottom_Panel",
+                "Horizontal_Divide_HangingArea_Drawer_Panel"
+            ],
             "title": "table_2",
             "data": [
                 {
@@ -325,6 +355,17 @@
             ]
         },
         {
+            "row_headers": [
+                "",
+                "Hanging_Rod",
+                "Rod_Support_Left",
+                "Rod_Support_Right"
+            ],
+            "column_header": [
+                "Hanging_Rod",
+                "Rod_Support_Left",
+                "Rod_Support_Right"
+            ],
             "title": "table_3",
             "data": [
                 {
@@ -338,6 +379,21 @@
             ]
         },
         {
+            "row_headers": [
+                "",
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Side_Left",
+                "Drawer_Side_Right",
+                "Drawer_Bottom"
+            ],
+            "column_header": [
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Side_Left",
+                "Drawer_Side_Right",
+                "Drawer_Bottom"
+            ],
             "title": "table_4",
             "data": [
                 {
@@ -375,6 +431,21 @@
             ]
         },
         {
+            "row_headers": [
+                "",
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Side_Left",
+                "Drawer_Side_Right",
+                "Drawer_Bottom"
+            ],
+            "column_header": [
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Side_Left",
+                "Drawer_Side_Right",
+                "Drawer_Bottom"
+            ],
             "title": "table_5",
             "data": [
                 {

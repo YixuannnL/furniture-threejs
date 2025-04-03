@@ -1,6 +1,7 @@
 import re
 import pdb
 import json
+import sys
 
 def split_tag(tags):
     pattern = r'(<[^>]+><[^>]+>\[[^]]+\])'
@@ -157,8 +158,14 @@ def get_meta_data(txt):
 
 if __name__ == "__main__":
     
-    meta_path = 'Latest_Gemini_Data/2_Wardrobe/output_2.txt'
-    conn_path = 'Latest_Gemini_Data/2_Wardrobe/output_4.txt'
+    if len(sys.argv) != 5:
+        print("用法: python extract_data.py <output_1_path> <meta_input_path> <output_3_path> <conn_input_path>")
+        sys.exit(1)
+    
+    meta_path = sys.argv[2]
+    conn_path = sys.argv[4]       
+    # meta_path = 'Latest_Gemini_Data/2_Wardrobe/output_2.txt'
+    # conn_path = 'Latest_Gemini_Data/2_Wardrobe/output_4.txt'
     
     with open(conn_path, 'r', encoding='utf-8') as file:
         conn_text = file.read()
