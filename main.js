@@ -540,8 +540,8 @@ controls.update();
 // ======================
 // 本地一开始就渲染一遍(初始状态) 线上环境等待外部传入json
 // ======================
-// const isProd = import.meta.env.NODE_ENV === 'production'
-const isProd = true
+const isProd = import.meta.env.NODE_ENV === 'production'
+// const isProd = true
 if (isProd) {
     window.addEventListener('message', (event) => {
         if (typeof event.data !== 'string') {
