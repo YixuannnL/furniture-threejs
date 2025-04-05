@@ -715,11 +715,11 @@ if (isProd) {
                 furnitureData = JSON.parse(data.data.meta)
                 render_furniture(furnitureData, connectionData);
             }
-        } catch(err){
+        } catch (err) {
             console.error('message', event, err)
         }
     })
-    window.parent.postMessage(JSON.stringify({event: 'ready'}), '*')
+    window.parent.postMessage(JSON.stringify({ event: 'ready' }), '*')
 } else {
     render_furniture(furnitureData, connectionData);
 }
@@ -1667,14 +1667,19 @@ function detectOrientationHierarchy(meta) {
 
             // A->B
             const relAtoB = Utils.getOrientationLabels(A.box, B.box);
+            const relBtoA = Utils.getOrientationLabels(B.box, A.box);
             // B->A
             // 如果你只想记录一次，就只存 "A sees B => relAtoB"
             // 也可以存 "B sees A => relBtoA" 同时在一个记录里保存
-            // 这里演示只存一个方向: A=>B
             result.childrenOrientation.push({
                 objectA: A.name,
                 objectB: B.name,
                 relation: relAtoB
+            });
+            result.childrenOrientation.push({
+                objectA: B.name,
+                objectB: A.name,
+                relation: relBtoA
             });
         }
     }
