@@ -1781,19 +1781,23 @@ function exportAllData() {
     // 转成字符串，并且格式化一下（缩进2格）
     const jsonStr = JSON.stringify(dataToExport, null, 2);
 
-    // 创建一个 Blob 对象，类型为 JSON
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    // 生成一个临时 URL
-    const url = URL.createObjectURL(blob);
+    if (isProd) {
+        window.parent.postMessage(JSON.stringify({event: 'export', data: {json: jsonStr}}), '*')
+    } else {
+        // 创建一个 Blob 对象，类型为 JSON
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        // 生成一个临时 URL
+        const url = URL.createObjectURL(blob);
 
-    // 创建一个 <a> 标签，用于下载
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'export.json';  // 下载文件名
-    link.click();
+        // 创建一个 <a> 标签，用于下载
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'export.json';  // 下载文件名
+        link.click();
 
-    // 释放 URL 对象
-    URL.revokeObjectURL(url);
+        // 释放 URL 对象
+        URL.revokeObjectURL(url);
+    }
 }
 
 const exportBtn = document.getElementById('exportBtn');
