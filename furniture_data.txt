@@ -1,0 +1,116 @@
+```json
+{
+    "meta": {
+        "object": "Dining Bench",
+        "object_type": "group",
+        "dimensions": {
+            "width": 1500,
+            "height": 450,
+            "depth": 400
+        },
+        "children": [
+            {
+                "meta": {
+                    "object": "Seat",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 1500,
+                        "height": 30,
+                        "depth": 400
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "Base",
+                    "object_type": "group",
+                    "dimensions": {
+                        "width": 1500,
+                        "height": 420,
+                        "depth": 400
+                    },
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "Leg_Front_Left",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 100,
+                                    "height": 420,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Leg_Front_Right",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 100,
+                                    "height": 420,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Leg_Rear_Left",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 100,
+                                    "height": 420,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Leg_Rear_Right",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 100,
+                                    "height": 420,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Support_Beam_Front",
+                                "object_type": "bar",
+                                "dimensions": {
+                                    "width": 1400,
+                                    "height": 100,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Support_Beam_Rear",
+                                "object_type": "bar",
+                                "dimensions": {
+                                    "width": 1400,
+                                    "height": 100,
+                                    "depth": 100
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Support_Beam_Center",
+                                "object_type": "bar",
+                                "dimensions": {
+                                    "width": 50,
+                                    "height": 50,
+                                    "depth": 300
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+```

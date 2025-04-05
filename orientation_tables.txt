@@ -1,0 +1,21 @@
+## Orientation Tables
+
+For Dining Bench Level 1, the positional relationship matrix of its internal components should be as follows:
+
+|  | Seat | Base |
+| --- | --- | --- |
+| Seat |  | `<Bottom>` |
+| Base | `<Top>` |  |
+
+For Base Level 2, the positional relationship matrix of its internal components should be as follows:
+
+|  | Leg_Front_Left | Leg_Front_Right | Leg_Rear_Left | Leg_Rear_Right | Support_Beam_Front | Support_Beam_Rear | Support_Beam_Center |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Leg_Front_Left |  | `<Right>` | `<Back>` | `<Right>`<br>`<Back>` | `<Right>` | `<Right>`<br>`<Back>` | `<Right>`<br>`<Back>` |
+| Leg_Front_Right | `<Left>` |  | `<Left>`<br>`<Back>` | `<Back>` | `<Left>` | `<Left>`<br>`<Back>` | `<Left>`<br>`<Back>` |
+| Leg_Rear_Left | `<Front>` | `<Right>`<br>`<Front>` |  | `<Right>` | `<Right>`<br>`<Front>` | `<Right>` | `<Right>`<br>`<Front>` |
+| Leg_Rear_Right | `<Left>`<br>`<Front>` | `<Front>` | `<Left>` |  | `<Left>`<br>`<Front>` | `<Left>` | `<Left>`<br>`<Front>` |
+| Support_Beam_Front | `<Left>` | `<Right>` | `<Left>`<br>`<Back>` | `<Right>`<br>`<Back>` |  | `<Back>` | `<Right>`<br>`<Back>` |
+| Support_Beam_Rear | `<Left>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Left>` | `<Right>` | `<Front>` |  | `<Right>`<br>`<Front>` |
+| Support_Beam_Center | `<Left>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Left>`<br>`<Back>` | `<Right>`<br>`<Back>` | `<Left>`<br>`<Front>` | `<Left>`<br>`<Back>` |  |
+

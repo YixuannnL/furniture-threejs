@@ -1,0 +1,506 @@
+{
+  "furnitureData": {
+    "meta": {
+      "object": "Dining Bench",
+      "object_type": "group",
+      "dimensions": {
+        "width": 1500,
+        "height": 450,
+        "depth": 400
+      },
+      "children": [
+        {
+          "meta": {
+            "object": "Seat",
+            "object_type": "board",
+            "dimensions": {
+              "width": 1500,
+              "height": 30,
+              "depth": 400
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "Base",
+            "object_type": "group",
+            "dimensions": {
+              "width": 1500,
+              "height": 420,
+              "depth": 400
+            },
+            "children": [
+              {
+                "meta": {
+                  "object": "Leg_Front_Left",
+                  "object_type": "block",
+                  "dimensions": {
+                    "width": 100,
+                    "height": 420,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Leg_Front_Right",
+                  "object_type": "block",
+                  "dimensions": {
+                    "width": 100,
+                    "height": 420,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Leg_Rear_Left",
+                  "object_type": "block",
+                  "dimensions": {
+                    "width": 100,
+                    "height": 420,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Leg_Rear_Right",
+                  "object_type": "block",
+                  "dimensions": {
+                    "width": 100,
+                    "height": 420,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Support_Beam_Front",
+                  "object_type": "bar",
+                  "dimensions": {
+                    "width": 1400,
+                    "height": 100,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Support_Beam_Rear",
+                  "object_type": "bar",
+                  "dimensions": {
+                    "width": 1400,
+                    "height": 100,
+                    "depth": 100
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Support_Beam_Center",
+                  "object_type": "bar",
+                  "dimensions": {
+                    "width": 50,
+                    "height": 50,
+                    "depth": 300
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "connectionData": {
+    "title": "Table 1",
+    "data": [
+      {
+        "Seat": "<Seat><Board>[<BottomFace><FrontLeftCorner>]",
+        "Base": "`<Leg_Front_Left><Block>[<TopFace>]`"
+      },
+      {
+        "Seat": "<Seat><Board>[<BottomFace><FrontRightCorner>]",
+        "Base": "`<Leg_Front_Right><Block>[<TopFace>]`"
+      },
+      {
+        "Seat": "<Seat><Board>[<BottomFace><BackLeftCorner>]",
+        "Base": "`<Leg_Rear_Left><Block>[<TopFace>]`"
+      },
+      {
+        "Seat": "<Seat><Board>[<BottomFace><BackRightCorner>]",
+        "Base": "`<Leg_Rear_Right><Block>[<TopFace>]`"
+      },
+      {
+        "Support_Beam_Front": "<Support_Beam_Front><bar>[<LeftEnd>]",
+        "Leg_Front_Left": "<Leg_Front_Left><bar>[<RightFace_3/8Height_1/2Depth>]"
+      },
+      {
+        "Support_Beam_Rear": "<Support_Beam_Rear><bar>[<LeftEnd>]",
+        "Leg_Rear_Left": "<Leg_Rear_Left><bar>[<RightFace_3/8Height_1/2Depth>]"
+      },
+      {
+        "Support_Beam_Center": "<Support_Beam_Center><bar>[<FrontEnd>]",
+        "Support_Beam_Front": "<Support_Beam_Front><bar>[<BackFace_1/2Height_4/7Width>]"
+      },
+      {
+        "Leg_Front_Right": "<Leg_Front_Right><bar>[LeftFace_1/3Height_1/2Depth]",
+        "Support_Beam_Front": "<Support_Beam_Front><bar>[RightFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Leg_Rear_Right": "<Leg_Rear_Right><bar>[LeftFace_1/3Height_1/2Depth]",
+        "Support_Beam_Rear": "<Support_Beam_Rear><bar>[RightFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Support_Beam_Rear": "<Support_Beam_Rear><bar>[BackFace_0.57Height_1/2Depth]",
+        "Support_Beam_Center": "<Support_Beam_Center><bar>[FrontFace_1/2Height_1/2Depth]"
+      }
+    ]
+  },
+  "orientationData": {
+    "objectName": "Dining Bench",
+    "childrenOrientation": [
+      {
+        "objectA": "Seat",
+        "objectB": "Base",
+        "relation": [
+          "<Bottom>"
+        ]
+      },
+      {
+        "objectA": "Base",
+        "objectB": "Seat",
+        "relation": [
+          "<Top>"
+        ]
+      }
+    ],
+    "children": [
+      {
+        "objectName": "Base",
+        "childrenOrientation": [
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Left",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Leg_Front_Left",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Front_Right",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Leg_Front_Right",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Left",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Leg_Rear_Left",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Leg_Rear_Right",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Leg_Rear_Right",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Front",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Support_Beam_Front",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Rear",
+            "objectB": "Support_Beam_Center",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Support_Beam_Center",
+            "objectB": "Support_Beam_Rear",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          }
+        ],
+        "children": []
+      }
+    ]
+  }
+}
