@@ -1,0 +1,114 @@
+{
+    "meta": {
+        "object": "Kitchen_Utility_Cart",
+        "object_type": "group",
+        "dimensions": {
+            "width": 300,
+            "height": 900,
+            "depth": 400
+        },
+        "children": [
+            {
+                "meta": {
+                    "object": "Cart_Frame",
+                    "object_type": "group",
+                    "dimensions": {
+                        "width": 300,
+                        "height": 900,
+                        "depth": 400
+                    },
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "Left_Side_Panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 20,
+                                    "height": 900,
+                                    "depth": 400
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Right_Side_Panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 20,
+                                    "height": 900,
+                                    "depth": 400
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Bottom_Panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 300,
+                                    "height": 20,
+                                    "depth": 400
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "Back_Panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 300,
+                                    "height": 900,
+                                    "depth": 20
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "meta": {
+                    "object": "Countertop",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 300,
+                        "height": 20,
+                        "depth": 400
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "Shelf_1",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 300,
+                        "height": 20,
+                        "depth": 400
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "Shelf_2",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 300,
+                        "height": 20,
+                        "depth": 400
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "Shelf_3",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 300,
+                        "height": 20,
+                        "depth": 400
+                    }
+                }
+            }
+        ]
+    }
+}

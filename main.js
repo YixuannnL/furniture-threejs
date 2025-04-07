@@ -3,11 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Utils from './utils.js';
 
-import jsonData from './output_2.json' assert { type: 'json' };
-import ConnData from './Table_1.json' assert { type: 'json' };
-import { element, sign } from 'three/tsl';
-// import jsonData from './meta_data.json' assert { type: 'json' };
-// import ConnData from './conn_data.json' assert { type: 'json' };
+// import jsonData from './output_2.json' assert { type: 'json' };
+// import ConnData from './Table_1.json' assert { type: 'json' };
+import jsonData from './input_data/meta_data.json' assert { type: 'json' };
+import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 
 let furnitureData = jsonData;
 let connectionData = ConnData;
@@ -1782,7 +1781,7 @@ function exportAllData() {
     const jsonStr = JSON.stringify(dataToExport, null, 2);
 
     if (isProd) {
-        window.parent.postMessage(JSON.stringify({event: 'export', data: {json: jsonStr}}), '*')
+        window.parent.postMessage(JSON.stringify({ event: 'export', data: { json: jsonStr } }), '*')
     } else {
         // 创建一个 Blob 对象，类型为 JSON
         const blob = new Blob([jsonStr], { type: 'application/json' });
