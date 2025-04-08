@@ -5,18 +5,30 @@ import sys
 
 def sanitize_keys(obj):
     """
-    递归处理字典或列表中的所有 key，只保留英文、数字和下划线。
+    递归处理字典或列表中的所有 key.
+    对于 key:
+      - 将所有字母转换为小写
+      - 将空格替换为下划线
+      - 仅保留小写字母、数字和下划线
     """
     if isinstance(obj, dict):
         new_obj = {}
         for k, v in obj.items():
-            # 使用正则表达式清洗 key
-            new_key = re.sub(r'[^A-Za-z0-9_]', '', k)
+            # 转为小写、替换空格为下划线
+            key_lower = k.lower().replace(' ', '_')
+            # 只保留小写字母、数字和下划线
+            new_key = re.sub(r'[^a-z0-9_]', '', key_lower)
+            if new_key == 'object':
+                v_lower = v.lower().replace(' ', '_')
+                v = re.sub(r'[^a-z0-9_]', '', v_lower)
             new_obj[new_key] = sanitize_keys(v)
         return new_obj
     elif isinstance(obj, list):
         return [sanitize_keys(item) for item in obj]
     else:
+        # if isinstance(obj, str):
+        #     obj = obj.lower().replace(' ', '_')
+        #     obj = re.sub(r'[^a-z0-9_]', '', obj)
         return obj
 
 def split_tag(tags):

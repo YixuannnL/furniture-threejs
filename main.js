@@ -332,7 +332,9 @@ function parseConnectionString(str) {
         anchors = inside.split('><').map(item => item.replace(/[<>]/g, ''));
         // anchors = ["BottomFace","FrontLeftCorner"]
     }
-
+    // console.log("name:",)
+    name = name.toLowerCase().replace(/ /g, '_');
+    name = name.replace(/[^a-z0-9_]/g, '');
     return { name, type, anchors };
 }
 
@@ -351,7 +353,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
     }
 
     const { width, height, depth } = mesh.geometry.parameters;
-    const objType = Utils.getObjectType({ width, height, depth });
+    // const objType = Utils.getObjectType({ width, height, depth });
 
     // const Center = getCenterPoint(mesh);
     // let x = Center.x, y = Center.y, z = Center.z;
@@ -374,6 +376,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
     // 遍历 anchors
     anchors.forEach(anchor => {
         // 判断一些关键标签
+        console.log("nowanchor:", anchor)
         switch (anchor) {
             case 'BottomFace':
                 y = -height / 2;
@@ -397,11 +400,12 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 x = +width / 2;
                 z = -depth / 2;
                 break;
-            case 'TopEgde':
+            case 'TopEdge':
             case 'TopEdgeCenter':
                 y = +height / 2;
                 x = 0;
                 z = 0;
+                console.log("y:", y);
                 break;
             case 'BottomEdge':
             case 'BottomEdgeCenter':
@@ -431,7 +435,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
             case 'BackEdgeCenter':
                 z = -depth / 2;
                 y = 0;
-                z = 0;
+                x = 0;
                 break;
             case 'TopEnd': y = +height / 2; x = 0; z = 0; break;
             case 'BottomEnd': y = -height / 2; x = 0; z = 0; break;
@@ -581,7 +585,7 @@ function applyConnections(connectionData) {
 
         const secondLocalAnchor = calcLocalAnchorPosition(secondObj, secondConn.anchors);
         const secondWorldAnchor = secondObj.localToWorld(secondLocalAnchor.clone());
-
+        console.log("anchor:", firstConn.anchors, "local:", firstLocalAnchor)
         // 让 firstObj 的锚点贴到 secondObj 的锚点位置
         // 最简单的做法：firstObj.position += (secondWorldAnchor - firstWorldAnchor)
         // 这里假设 firstObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标

@@ -205,12 +205,12 @@ def main(path):
         
     formatted_json = json.dumps(furniture_data, indent=4, ensure_ascii=False)
     output_text = "```json\n" + formatted_json + "\n```"
-    with open("furniture_data.txt", "w", encoding="utf-8") as f:
+    with open("output_data/furniture_data.txt", "w", encoding="utf-8") as f:
         f.write(output_text)   
     # 将 connection table 和 orientation table 分别写入不同的 txt 文件
-    with open("connection_tables.txt", "w", encoding="utf-8") as f:
+    with open("output_data/connection_tables.txt", "w", encoding="utf-8") as f:
         f.write(markdown_conn)
-    with open("orientation_tables.txt", "w", encoding="utf-8") as f:
+    with open("output_data/orientation_tables.txt", "w", encoding="utf-8") as f:
         f.write(markdown_orient)
     
     print("Markdown 表格已存储在三个文件中")

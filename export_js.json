@@ -1,0 +1,553 @@
+{
+  "furnitureData": {
+    "meta": {
+      "object": "Kitchen_Utility_Cart",
+      "object_type": "group",
+      "dimensions": {
+        "width": 300,
+        "height": 900,
+        "depth": 400
+      },
+      "children": [
+        {
+          "meta": {
+            "object": "Cart_Frame",
+            "object_type": "group",
+            "dimensions": {
+              "width": 300,
+              "height": 900,
+              "depth": 400
+            },
+            "children": [
+              {
+                "meta": {
+                  "object": "Left_Side_Panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 20,
+                    "height": 900,
+                    "depth": 400
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Right_Side_Panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 20,
+                    "height": 900,
+                    "depth": 400
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Bottom_Panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 300,
+                    "height": 20,
+                    "depth": 400
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "Back_Panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 300,
+                    "height": 900,
+                    "depth": 20
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "meta": {
+            "object": "Countertop",
+            "object_type": "board",
+            "dimensions": {
+              "width": 300,
+              "height": 20,
+              "depth": 400
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "Shelf_1",
+            "object_type": "board",
+            "dimensions": {
+              "width": 300,
+              "height": 20,
+              "depth": 400
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "Shelf_2",
+            "object_type": "board",
+            "dimensions": {
+              "width": 300,
+              "height": 20,
+              "depth": 400
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "Shelf_3",
+            "object_type": "board",
+            "dimensions": {
+              "width": 300,
+              "height": 20,
+              "depth": 400
+            }
+          }
+        }
+      ]
+    }
+  },
+  "connectionData": {
+    "data": [
+      {
+        "Countertop": "<Countertop><Board>[<BottomFace>]",
+        "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Countertop": "",
+        "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Countertop": "",
+        "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_1": "<Shelf_1><Board>[<BottomFace>]",
+        "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_1": "",
+        "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_1": "",
+        "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_2": "<Shelf_2><Board>[<BottomFace>]",
+        "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_2": "",
+        "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_2": "",
+        "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_3": "<Shelf_3><Board>[<BottomFace>]",
+        "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_3": "",
+        "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Shelf_3": "",
+        "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+      },
+      {
+        "Bottom_Panel": "<Bottom_Panel><Board>[<TopEdgeLeftHalf>]",
+        "Left_Side_Panel": "<Left_Side_Panel><Board>[<LeftFace>]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><Board>[<FrontFace_Width_LeftMost>]",
+        "Left_Side_Panel": "<Left_Side_Panel><Board>[<BackFace>]"
+      },
+      {
+        "Bottom_Panel": "<Bottom_Panel><Board>[<TopEdgeRightHalf>]",
+        "Right_Side_Panel": "<Right_Side_Panel><Board>[<RightFace>]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><Board>[<FrontFace_Width_RightMost>]",
+        "Right_Side_Panel": "<Right_Side_Panel><Board>[<BackFace>]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><Board>[<FrontFace_Height_BottomMost>]",
+        "Bottom_Panel": "<Bottom_Panel><Board>[<BackEdge>]"
+      },
+      {
+        "Left_Side_Panel": "<Left_Side_Panel><board>[LeftFace_1/2Height_1/2Depth]",
+        "Right_Side_Panel": "<Right_Side_Panel><board>[RightFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><bar>[BackFace_1/2Height_1/2Depth]",
+        "Countertop": "<Countertop><board>[FrontFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><bar>[BackFace_1/2Height_1/2Depth]",
+        "Shelf_1": "<Shelf_1><board>[FrontFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><bar>[BackFace_1/2Height_1/2Depth]",
+        "Shelf_2": "<Shelf_2><board>[FrontFace_1/2Height_1/2Depth]"
+      },
+      {
+        "Back_Panel": "<Back_Panel><bar>[BackFace_1/2Height_1/2Depth]",
+        "Shelf_3": "<Shelf_3><board>[FrontFace_1/2Height_1/2Depth]"
+      }
+    ],
+    "meta_data": [
+      {
+        "row_headers": [
+          "",
+          "Cart\\_Frame",
+          "Countertop",
+          "Shelf\\_1",
+          "Shelf\\_2",
+          "Shelf\\_3"
+        ],
+        "column_header": [
+          "Cart\\_Frame",
+          "Countertop",
+          "Shelf\\_1",
+          "Shelf\\_2",
+          "Shelf\\_3"
+        ],
+        "title": "table_1",
+        "data": [
+          {
+            "Countertop": "<Countertop><Board>[<BottomFace>]",
+            "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Countertop": "",
+            "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Countertop": "",
+            "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_1": "<Shelf_1><Board>[<BottomFace>]",
+            "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_1": "",
+            "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_1": "",
+            "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_2": "<Shelf_2><Board>[<BottomFace>]",
+            "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_2": "",
+            "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_2": "",
+            "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_3": "<Shelf_3><Board>[<BottomFace>]",
+            "Cart_Frame": "<Left_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_3": "",
+            "Cart_Frame": "<Right_Side_Panel><Board>[<TopEdge>]"
+          },
+          {
+            "Shelf_3": "",
+            "Cart_Frame": "<Bottom_Panel><Board>[<TopEdge>]"
+          }
+        ]
+      },
+      {
+        "row_headers": [
+          "",
+          "Left\\_Side\\_Panel",
+          "Right\\_Side\\_Panel",
+          "Bottom\\_Panel",
+          "Back\\_Panel"
+        ],
+        "column_header": [
+          "Left\\_Side\\_Panel",
+          "Right\\_Side\\_Panel",
+          "Bottom\\_Panel",
+          "Back\\_Panel"
+        ],
+        "title": "table_2",
+        "data": [
+          {
+            "Bottom_Panel": "<Bottom_Panel><Board>[<TopEdgeLeftHalf>]",
+            "Left_Side_Panel": "<Left_Side_Panel><Board>[<LeftFace>]"
+          },
+          {
+            "Back_Panel": "<Back_Panel><Board>[<FrontFace_Width_LeftMost>]",
+            "Left_Side_Panel": "<Left_Side_Panel><Board>[<BackFace>]"
+          },
+          {
+            "Bottom_Panel": "<Bottom_Panel><Board>[<TopEdgeRightHalf>]",
+            "Right_Side_Panel": "<Right_Side_Panel><Board>[<RightFace>]"
+          },
+          {
+            "Back_Panel": "<Back_Panel><Board>[<FrontFace_Width_RightMost>]",
+            "Right_Side_Panel": "<Right_Side_Panel><Board>[<BackFace>]"
+          },
+          {
+            "Back_Panel": "<Back_Panel><Board>[<FrontFace_Height_BottomMost>]",
+            "Bottom_Panel": "<Bottom_Panel><Board>[<BackEdge>]"
+          }
+        ]
+      }
+    ]
+  },
+  "orientationData": {
+    "objectName": "Kitchen_Utility_Cart",
+    "childrenOrientation": [
+      {
+        "objectA": "Cart_Frame",
+        "objectB": "Countertop",
+        "relation": [
+          "<Encasing>"
+        ]
+      },
+      {
+        "objectA": "Countertop",
+        "objectB": "Cart_Frame",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Cart_Frame",
+        "objectB": "Shelf_1",
+        "relation": [
+          "<Encasing>"
+        ]
+      },
+      {
+        "objectA": "Shelf_1",
+        "objectB": "Cart_Frame",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Cart_Frame",
+        "objectB": "Shelf_2",
+        "relation": [
+          "<Encasing>"
+        ]
+      },
+      {
+        "objectA": "Shelf_2",
+        "objectB": "Cart_Frame",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Cart_Frame",
+        "objectB": "Shelf_3",
+        "relation": [
+          "<Encasing>"
+        ]
+      },
+      {
+        "objectA": "Shelf_3",
+        "objectB": "Cart_Frame",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Countertop",
+        "objectB": "Shelf_1",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_1",
+        "objectB": "Countertop",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Countertop",
+        "objectB": "Shelf_2",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_2",
+        "objectB": "Countertop",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Countertop",
+        "objectB": "Shelf_3",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_3",
+        "objectB": "Countertop",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_1",
+        "objectB": "Shelf_2",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_2",
+        "objectB": "Shelf_1",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_1",
+        "objectB": "Shelf_3",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_3",
+        "objectB": "Shelf_1",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_2",
+        "objectB": "Shelf_3",
+        "relation": [
+          "<Encased>"
+        ]
+      },
+      {
+        "objectA": "Shelf_3",
+        "objectB": "Shelf_2",
+        "relation": [
+          "<Encased>"
+        ]
+      }
+    ],
+    "children": [
+      {
+        "objectName": "Cart_Frame",
+        "childrenOrientation": [
+          {
+            "objectA": "Left_Side_Panel",
+            "objectB": "Right_Side_Panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Right_Side_Panel",
+            "objectB": "Left_Side_Panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Left_Side_Panel",
+            "objectB": "Bottom_Panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Bottom_Panel",
+            "objectB": "Left_Side_Panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Left_Side_Panel",
+            "objectB": "Back_Panel",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Back_Panel",
+            "objectB": "Left_Side_Panel",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Right_Side_Panel",
+            "objectB": "Bottom_Panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "Bottom_Panel",
+            "objectB": "Right_Side_Panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "Right_Side_Panel",
+            "objectB": "Back_Panel",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Back_Panel",
+            "objectB": "Right_Side_Panel",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "Bottom_Panel",
+            "objectB": "Back_Panel",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "Back_Panel",
+            "objectB": "Bottom_Panel",
+            "relation": [
+              "<Front>"
+            ]
+          }
+        ],
+        "children": []
+      }
+    ]
+  }
+}
