@@ -34,18 +34,6 @@
         },
         {
             "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
-            "bottom_shelf": ""
-        },
-        {
-            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
-            "bottom_shelf": ""
-        },
-        {
-            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
-            "bottom_shelf": "<Bottom_Shelf><Board>[<TopFace>]"
-        },
-        {
-            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
             "middle_shelf_1": ""
         },
         {

@@ -613,3 +613,99 @@ function floatToFraction(f) {
         return best;
     }
 }
+
+
+// --------------------------------------------------------------------------------------------
+// 解析 “<名称><类型>[<锚点A><锚点B>...]” 格式的字符串，并返回 { name, type, anchors:[] }
+//    比如: "<Seat><Board>[<BottomFace><FrontLeftCorner>]" -> 
+//          { name:"Seat", type:"Board", anchors:["BottomFace","FrontLeftCorner"] }
+// --------------------------------------------------------------------------------------------
+export function parseConnectionString(str) {
+    // 因为示例里有的用 "<...>"，有的用 "`<...>`"，我们先把反引号去掉，以便统一处理
+    let cleanStr = str.replace(/`/g, '');
+    // 典型格式可能是："<Seat><Board>[<BottomFace><FrontLeftCorner>]"
+    // 先用正则取出 <> 里面的东西，再取 [] 里的东西
+    // 简单做法：分两步。
+    const patternAngle = /<([^<>]+)>/g;    // 匹配 <...> 之间内容
+    const patternBracket = /\[([^(\]]+)\]/; // 匹配 [ ... ] 之间内容
+    // 1) 提取所有 <...> 部分
+    const angleMatches = cleanStr.match(patternAngle) || [];
+    //  angleMatches 可能是 ["<Seat>", "<Board>", "<BottomFace>", "<FrontLeftCorner>"]
+    //  但注意 <BottomFace><FrontLeftCorner> 实际是放在方括号里面
+    //  我们约定：第一个 <...> 是 name，第二个 <...> 是 type，后面的在方括号里才是 anchors
+    let name = '';
+    let type = '';
+    let anchors = [];
+
+    if (angleMatches.length >= 2) {
+        // 去掉左右括号
+        name = angleMatches[0].replace(/[<>]/g, '');
+        type = angleMatches[1].replace(/[<>]/g, '');
+    }
+
+    // 2) 提取 [ ... ] 里边的 `<xxx><yyy>` 这种
+    const bracketMatch = cleanStr.match(patternBracket);
+    //    bracketMatch 形如 [ "<BottomFace><FrontLeftCorner>", "BottomFace><FrontLeftCorner" ]
+    if (bracketMatch && bracketMatch.length >= 2) {
+        const inside = bracketMatch[1]; // "BottomFace><FrontLeftCorner"
+        // 按照 >< 再拆分
+        anchors = inside.split('><').map(item => item.replace(/[<>]/g, ''));
+        // anchors = ["BottomFace","FrontLeftCorner"]
+    }
+    // console.log("name:",)
+    name = name.toLowerCase().replace(/ /g, '_');
+    name = name.replace(/[^a-z0-9_]/g, '');
+    return { name, type, anchors };
+}
+
+/**
+ * 返回在 connectionData 中出现过的所有名称 (Set<string>)
+ */
+export function getAllConnectedNames(connectionData) {
+    const connectedNames = new Set();
+    if (!connectionData || !connectionData.data) return connectedNames;
+
+    for (const item of connectionData.data) {
+        // 检查每个 item 是否恰好含有两个键值对
+        const keys = Object.keys(item);
+        if (keys.length !== 2) continue;
+
+        // 检查两个键对应的值是否均不为空（包括空字符串）
+        const values = Object.values(item);
+        if (values.some(val => val === "")) continue; // 任一值为空则跳过
+
+        for (const k of keys) {
+            const str = item[k] || "";
+            // 用你已有的 parseConnectionString(str)
+            // 它返回 { name, type, anchors:[] }
+            const parsed = parseConnectionString(str);
+            if (parsed && parsed.name) {
+                connectedNames.add(parsed.name);
+            }
+        }
+    }
+    return connectedNames;
+}
+
+
+/**
+ * 计算所有已连接对象在世界坐标系下合并后的包围盒 (Box3)。
+ * 若完全没有已连接对象，则返回 null
+ */
+export function computeConnectedObjectsBoundingBox(rootObject, connectionData) {
+    const connectedNames = getAllConnectedNames(connectionData);
+    let box = new THREE.Box3();
+    let hasAny = false;
+
+    rootObject.traverse(obj => {
+        if (obj.isMesh && connectedNames.has(obj.name)) {
+            // expandByObject 可以递归包含其子，但是对于 Mesh 通常只需 expandByObject(obj)
+            // 注意：要先 updateMatrixWorld
+            obj.updateMatrixWorld(true);
+            box.expandByObject(obj);
+            hasAny = true;
+        }
+    });
+
+    return hasAny ? box : null;
+}

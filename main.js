@@ -295,48 +295,7 @@ function parseMeta(meta) {
     return currentObject;
 }
 
-// --------------------------------------------------------------------------------------------
-// 解析 “<名称><类型>[<锚点A><锚点B>...]” 格式的字符串，并返回 { name, type, anchors:[] }
-//    比如: "<Seat><Board>[<BottomFace><FrontLeftCorner>]" -> 
-//          { name:"Seat", type:"Board", anchors:["BottomFace","FrontLeftCorner"] }
-// --------------------------------------------------------------------------------------------
-function parseConnectionString(str) {
-    // 因为示例里有的用 "<...>"，有的用 "`<...>`"，我们先把反引号去掉，以便统一处理
-    let cleanStr = str.replace(/`/g, '');
-    // 典型格式可能是："<Seat><Board>[<BottomFace><FrontLeftCorner>]"
-    // 先用正则取出 <> 里面的东西，再取 [] 里的东西
-    // 简单做法：分两步。
-    const patternAngle = /<([^<>]+)>/g;    // 匹配 <...> 之间内容
-    const patternBracket = /\[([^(\]]+)\]/; // 匹配 [ ... ] 之间内容
-    // 1) 提取所有 <...> 部分
-    const angleMatches = cleanStr.match(patternAngle) || [];
-    //  angleMatches 可能是 ["<Seat>", "<Board>", "<BottomFace>", "<FrontLeftCorner>"]
-    //  但注意 <BottomFace><FrontLeftCorner> 实际是放在方括号里面
-    //  我们约定：第一个 <...> 是 name，第二个 <...> 是 type，后面的在方括号里才是 anchors
-    let name = '';
-    let type = '';
-    let anchors = [];
 
-    if (angleMatches.length >= 2) {
-        // 去掉左右括号
-        name = angleMatches[0].replace(/[<>]/g, '');
-        type = angleMatches[1].replace(/[<>]/g, '');
-    }
-
-    // 2) 提取 [ ... ] 里边的 `<xxx><yyy>` 这种
-    const bracketMatch = cleanStr.match(patternBracket);
-    //    bracketMatch 形如 [ "<BottomFace><FrontLeftCorner>", "BottomFace><FrontLeftCorner" ]
-    if (bracketMatch && bracketMatch.length >= 2) {
-        const inside = bracketMatch[1]; // "BottomFace><FrontLeftCorner"
-        // 按照 >< 再拆分
-        anchors = inside.split('><').map(item => item.replace(/[<>]/g, ''));
-        // anchors = ["BottomFace","FrontLeftCorner"]
-    }
-    // console.log("name:",)
-    name = name.toLowerCase().replace(/ /g, '_');
-    name = name.replace(/[^a-z0-9_]/g, '');
-    return { name, type, anchors };
-}
 
 // --------------------------------------------------------------------------------------------
 //  根据 anchors 列表，计算该物体在局部坐标的“锚点位置” (x, y, z)
@@ -523,6 +482,89 @@ function getAnchorDescription(mesh, localPos) {
     }
 }
 
+/**
+ * 1) 计算“已连接”对象的整体包围盒 (Box3)
+ * 2) 将所有“无连接”对象，排在 x 轴正方向，从包围盒 + margin开始，依次排列。
+ */
+function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
+    // -- 1) 先获取所有已连接对象的名称 --
+    const connectedNames = new Set();
+    if (connectionData && connectionData.data && Array.isArray(connectionData.data)) {
+        for (const item of connectionData.data) {
+            const keys = Object.keys(item);
+            for (let k of keys) {
+                const str = item[k] || "";
+                const parsed = Utils.parseConnectionString(str);
+                // 你已有的解析函数 => { name, type, anchors:[] }
+                if (parsed.name) {
+                    connectedNames.add(parsed.name);
+                }
+            }
+        }
+    }
+
+    // -- 2) 计算已连接对象的世界坐标包围盒 --
+    let connectedBox = new THREE.Box3();
+    let hasConnected = false;
+
+    rootObject.traverse(obj => {
+        if (obj.isMesh && connectedNames.has(obj.name)) {
+            obj.updateMatrixWorld(true);
+            connectedBox.expandByObject(obj);
+            hasConnected = true;
+        }
+    });
+
+    // 若完全没有已连接对象 => 此时可选择不做排布或另外处理
+    if (!hasConnected) {
+        console.warn("No connected objects found. Skip line layout or do some fallback if needed.");
+        return;
+    }
+
+    // 中心、尺寸
+    const center = new THREE.Vector3();
+    connectedBox.getCenter(center);
+    const size = new THREE.Vector3();
+    connectedBox.getSize(size);
+
+    // -- 3) 收集无连接对象 --
+    const unconnected = [];
+    rootObject.traverse(obj => {
+        if (obj.isMesh && !connectedNames.has(obj.name)) {
+            unconnected.push(obj);
+        }
+    });
+
+    if (unconnected.length === 0) {
+        return; // 没有无连接对象，直接结束
+    }
+
+    // -- 4) 在 x 轴外侧排布 --
+    // 设定一个 margin，让它们起始位置在家具整体 xMax 的再往外 margin 的地方
+    const margin = 400;
+    // 两个无连接对象之间的间距
+    const gap = 300;
+    // 已连接整体 X 最大值(中心 x + 一半宽度)
+    const xMax = center.x + size.x / 2;
+    // 起始坐标
+    let baseX = xMax + margin;
+
+    for (let i = 0; i < unconnected.length; i++) {
+        const obj = unconnected[i];
+        console.log("obj:", obj)
+        // 让它的 y、z 与已连接整体的中心保持一致
+        const y = center.y;
+        const z = center.z;
+
+        const x = baseX + i * gap + ((i > 0) ? unconnected[i - 1].geometry.parameters.width / 2 : 0) + unconnected[i].geometry.parameters.width / 2;
+        baseX += ((i > 0) ? unconnected[i - 1].geometry.parameters.width / 2 : 0) + unconnected[i].geometry.parameters.width / 2;
+
+        // 设置位置
+        obj.position.set(x, y, z);
+    }
+}
+
+
 // --------------------------------------------------------------------------------------------
 // 真正处理连接：让 ObjA 的某个 anchor 对齐到 ObjB 的某个 anchor
 //    同时确保它们在同一个 connectionGroup 里
@@ -562,8 +604,8 @@ function applyConnections(connectionData) {
         if (!firstStr || !secondStr) return;
         if (firstStr === "" || secondStr === "") return;
 
-        const firstConn = parseConnectionString(firstStr);
-        const secondConn = parseConnectionString(secondStr);
+        const firstConn = Utils.parseConnectionString(firstStr);
+        const secondConn = Utils.parseConnectionString(secondStr);
 
         // console.log("firstConn", firstConn);
         // console.log("secondConn", secondConn);
@@ -632,7 +674,8 @@ function render_furniture(meta_data, conn_data) {
     // 5) 应用连接
     applyConnections(conn_data);
 
-    //遍历一遍所有的mesh，此处排开
+    // 将无连接对象散布在 x 轴上，并放到“已连接整体”外
+    scatterUnconnectedOutsideConnectedLine(currentFurnitureRoot, conn_data);
 
     renderConnectionLog();
 
@@ -959,8 +1002,8 @@ function connectionItemHasName(connItem, meshName) {
     const keys = Object.keys(connItem);
     const firstKey = keys[0];
     const secondKey = keys[1];
-    const firstConn = parseConnectionString(connItem[firstKey] || '');
-    const secondConn = parseConnectionString(connItem[secondKey] || '');
+    const firstConn = Utils.parseConnectionString(connItem[firstKey] || '');
+    const secondConn = Utils.parseConnectionString(connItem[secondKey] || '');
     return (firstConn.name === meshName) || (secondConn.name === meshName);
 }
 
@@ -1161,7 +1204,7 @@ function saveEditingConnection(item, firstStrNew, secondStrNew) {
 }
 
 function validateConnectionStringFormat(str) {
-    const conn = parseConnectionString(str);
+    const conn = Utils.parseConnectionString(str);
     // 简单判断
     if (!conn.name || !conn.type || !Array.isArray(conn.anchors) || conn.anchors.length === 0) {
         return false;
@@ -1716,8 +1759,8 @@ function connectionExists(meshA, meshB) {
         const firstStr = item[firstKey] || '';
         const secondStr = item[secondKey] || '';
 
-        const cA = parseConnectionString(firstStr);
-        const cB = parseConnectionString(secondStr);
+        const cA = Utils.parseConnectionString(firstStr);
+        const cB = Utils.parseConnectionString(secondStr);
 
         // 判断此条连接是否包含 nameA & nameB
         const names = [cA.name, cB.name];
