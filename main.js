@@ -65,9 +65,14 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
     row.style.borderLeft = level > 0 ? '1px dashed #ccc' : 'none';
     row.style.paddingLeft = '8px';
 
+    // 在此处添加 data-mesh-name（注意：仅对有名称的有效）
+    const objName = meta.object || '(no-name)';
+    row.dataset.meshName = objName;
+    // 添加通用的CSS类名，便于以后统一选择
+    row.classList.add('tree-row');
+
     // 显示当前节点信息
     const titleSpan = document.createElement('span');
-    const objName = meta.object || '(no-name)';
     const objType = meta.object_type || '(no-type)';
     titleSpan.textContent = `${objName} (${objType})`;
     titleSpan.style.fontWeight = 'bold';
@@ -138,6 +143,25 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
             buildMetaNodeUI(child.meta, container, meta, level + 1);
         });
     }
+}
+
+/**
+ * 遍历右侧树形面板中所有 tree-row 元素，
+ * 如果 tree-row 的 data-mesh-name 与当前选中 Mesh 的 name 匹配，则高亮显示该行（例如设置背景色）。
+ */
+function updateTreeSelection() {
+    const treeRows = document.querySelectorAll('.tree-row');
+    treeRows.forEach(row => {
+        // 若当前有选中 Mesh 且名称匹配，则添加高亮样式
+        if (selectedMesh && row.dataset.meshName === selectedMesh.name) {
+            row.style.backgroundColor = '#ffd966';  // 例如浅黄色背景
+            row.style.border = '1px solid #f1c232';
+        } else {
+            // 否则清除样式
+            row.style.backgroundColor = '';
+            row.style.border = '';
+        }
+    });
 }
 
 /**
@@ -469,6 +493,10 @@ function clearAllHighlight() {
     // 也把查看连接关系的状态清理掉
     currentConnectionHighlight = null;
 
+    // 清除右侧树形面板中的高亮显示
+    updateTreeSelection();
+
+
     // 如果 UI 里还显示 “Selected Mesh: ...”，也可清掉
     const displayDiv = document.getElementById('selectedMeshDisplay');
     if (displayDiv) {
@@ -544,6 +572,9 @@ function selectMesh(mesh) {
     if (displayDiv && mesh.name) {
         displayDiv.textContent = `Selected Mesh: ${mesh.name}`;
     }
+
+    // ★ ★ ★ 新增：更新树形面板中选中行的样式 ★ ★ ★
+    updateTreeSelection();
 }
 
 
