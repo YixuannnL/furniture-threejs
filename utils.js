@@ -709,3 +709,55 @@ export function computeConnectedObjectsBoundingBox(rootObject, connectionData) {
 
     return hasAny ? box : null;
 }
+
+/**
+ * 计算盒子在本地坐标下的 8 个角点
+ * 返回一个数组 [v1, v2, ..., v8], 每个都是 THREE.Vector3
+ */
+export function computeBoxCorners(width, height, depth) {
+    const w2 = width / 2;
+    const h2 = height / 2;
+    const d2 = depth / 2;
+    // 所有 (±w/2, ±h/2, ±d/2) 的组合
+    const signCombis = [
+        [+1, +1, +1],
+        [+1, +1, -1],
+        [+1, -1, +1],
+        [+1, -1, -1],
+        [-1, +1, +1],
+        [-1, +1, -1],
+        [-1, -1, +1],
+        [-1, -1, -1],
+    ];
+    const corners = [];
+    signCombis.forEach(([sx, sy, sz]) => {
+        corners.push(new THREE.Vector3(sx * w2, sy * h2, sz * d2));
+    });
+    return corners;
+}
+
+/**
+ * 计算盒子的 12 条边线段，每条边用 { start:Vector3, end:Vector3 } 表示
+ * 入参 corners: 8 个角点坐标 (本地坐标)
+ */
+export function computeBoxEdges(corners) {
+    // 索引说明: 参考 corners 的顺序
+    // 不一定必须严格按“点的顺序”来，但需要正确拼出 12 条边
+    // 可以根据坐标关系来找共边点，这里示例直接手动写出 indices
+    const edgeIndices = [
+        [0, 1], [0, 2], [0, 4], // 以 corner 0 为起点的 3 条边
+        [1, 3], [1, 5],
+        [2, 3], [2, 6],
+        [3, 7],
+        [4, 5], [4, 6],
+        [5, 7],
+        [6, 7]
+    ];
+    const edges = edgeIndices.map(([i1, i2]) => {
+        return {
+            start: corners[i1].clone(),
+            end: corners[i2].clone()
+        };
+    });
+    return edges;
+}
