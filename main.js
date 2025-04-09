@@ -156,29 +156,44 @@ function promptAddChild(parentMeta) {
     renderTreePanel();
 }
 
-// ============== 创建一个十字叉辅助对象 ==============
-function createCrossMarker(size = 20, color = 0xff0000) {
-    const group = new THREE.Group();
+// // ============== 创建一个十字叉辅助对象 ==============
+// function createCrossMarker(size = 20, color = 0xff0000) {
+//     const group = new THREE.Group();
 
-    const material = new THREE.LineBasicMaterial({ color });
-    // 水平线段
-    const geoH = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(-size, 0, 0),
-        new THREE.Vector3(+size, 0, 0),
-    ]);
-    const lineH = new THREE.Line(geoH, material);
-    group.add(lineH);
+//     const material = new THREE.LineBasicMaterial({ color });
+//     // 水平线段
+//     const geoH = new THREE.BufferGeometry().setFromPoints([
+//         new THREE.Vector3(-size, 0, 0),
+//         new THREE.Vector3(+size, 0, 0),
+//     ]);
+//     const lineH = new THREE.Line(geoH, material);
+//     group.add(lineH);
 
-    // 垂直线段
-    const geoV = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, -size, 0),
-        new THREE.Vector3(0, +size, 0),
-    ]);
-    const lineV = new THREE.Line(geoV, material);
-    group.add(lineV);
-    // 让它在渲染时排在最后
-    group.renderOrder = 9999;
-    return group;
+//     // 垂直线段
+//     const geoV = new THREE.BufferGeometry().setFromPoints([
+//         new THREE.Vector3(0, -size, 0),
+//         new THREE.Vector3(0, +size, 0),
+//     ]);
+//     const lineV = new THREE.Line(geoV, material);
+//     group.add(lineV);
+//     // 让它在渲染时排在最后
+//     group.renderOrder = 9999;
+//     return group;
+// }
+
+// 新增一个 createMarker 函数，使用小球做标记
+function createMarker(radius = 10, color = 0xff0000) {
+    const geometry = new THREE.SphereGeometry(radius, 16, 16);
+    const material = new THREE.MeshBasicMaterial({
+        color: color,
+        transparent: true,
+        opacity: 0.7,
+        depthTest: false
+    });
+    const sphere = new THREE.Mesh(geometry, material);
+    // 让它渲染在最前
+    sphere.renderOrder = 9999;
+    return sphere;
 }
 
 // ============== highlightMesh: 让mesh始终显示在最前 + 边缘高亮 ==============
@@ -264,7 +279,89 @@ function createMesh(objectType, dimensions) {
     // 创建网格（Mesh）
     const mesh = new THREE.Mesh(geometry, material);
 
+    mesh.userData.snapPoints = computeSnapPointsForBox(width, height, depth);
+
     return mesh;
+}
+
+/**
+ * 计算出一个方盒（width, height, depth）在本地坐标系的:
+ *   - 8 个角点
+ *   - 12 条边的中点
+ * 返回: [{ pos: THREE.Vector3, type: 'corner'|'edgeMid' }, ...]
+ */
+function computeSnapPointsForBox(width, height, depth) {
+    const w2 = width / 2;
+    const h2 = height / 2;
+    const d2 = depth / 2;
+
+    let points = [];
+
+    // 8 corners
+    // x,y,z ∈ {±w2, ±h2, ±d2}
+    // 共 8 组合
+    let cornerSigns = [
+        [+1, +1, +1],
+        [+1, +1, -1],
+        [+1, -1, +1],
+        [+1, -1, -1],
+        [-1, +1, +1],
+        [-1, +1, -1],
+        [-1, -1, +1],
+        [-1, -1, -1],
+    ];
+    cornerSigns.forEach(signs => {
+        let [sx, sy, sz] = signs;
+        points.push({
+            pos: new THREE.Vector3(sx * w2, sy * h2, sz * d2),
+            type: 'corner'
+        });
+    });
+
+    // 12 edges mid
+    // 思路：一条边中有两个坐标是 ±，另一个坐标是 0
+    // x-edge: y,z ∈ {±}, x=±w2, y= ±h2, z=±d2 ...
+    // 简单做法：分别固定 axis= x / y / z
+    //   - fix x=±w2, y=±h2, z=0
+    //   - fix x=±w2, y=0, z=±d2
+    //   - fix x=0, y=±h2, z=±d2
+    // 这里可以手写也可以程序化遍历
+    // 程序化遍历如下:
+    //    edges X: x=±w2, y=±h2 or ±(-h2?), z=0 => 其实要 2*2=4 条?
+    //    直接写完整更直观
+
+    //  (±w/2, ±h/2, 0)
+    let sign2D = [+1, -1];
+    sign2D.forEach(sx => {
+        sign2D.forEach(sy => {
+            points.push({
+                pos: new THREE.Vector3(sx * w2, sy * h2, 0),
+                type: 'edgeMid'
+            });
+        });
+    });
+
+    // (±w/2, 0, ±d/2)
+    sign2D.forEach(sx => {
+        sign2D.forEach(sz => {
+            points.push({
+                pos: new THREE.Vector3(sx * w2, 0, sz * d2),
+                type: 'edgeMid'
+            });
+        });
+    });
+
+    // (0, ±h/2, ±d/2)
+    sign2D.forEach(sy => {
+        sign2D.forEach(sz => {
+            points.push({
+                pos: new THREE.Vector3(0, sy * h2, sz * d2),
+                type: 'edgeMid'
+            });
+        });
+    });
+
+    return points;
 }
 
 // 递归解析 JSON，生成 Three.js 对象
@@ -335,7 +432,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
     // 遍历 anchors
     anchors.forEach(anchor => {
         // 判断一些关键标签
-        console.log("nowanchor:", anchor)
+        // console.log("nowanchor:", anchor)
         switch (anchor) {
             case 'BottomFace':
                 y = -height / 2;
@@ -364,7 +461,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 y = +height / 2;
                 x = 0;
                 z = 0;
-                console.log("y:", y);
+                // console.log("y:", y);
                 break;
             case 'BottomEdge':
             case 'BottomEdgeCenter':
@@ -554,7 +651,7 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
 
     for (let i = 0; i < unconnected.length; i++) {
         const obj = unconnected[i];
-        console.log("obj:", obj)
+        // console.log("obj:", obj)
         // 让它的 y、z 与已连接整体的中心保持一致
         const y = center.y;
         const z = center.z;
@@ -630,7 +727,7 @@ function applyConnections(connectionData) {
 
         const secondLocalAnchor = calcLocalAnchorPosition(secondObj, secondConn.anchors);
         const secondWorldAnchor = secondObj.localToWorld(secondLocalAnchor.clone());
-        console.log("anchor:", firstConn.anchors, "local:", firstLocalAnchor)
+        // console.log("anchor:", firstConn.anchors, "local:", firstLocalAnchor)
         // 让 firstObj 的锚点贴到 secondObj 的锚点位置
         // 最简单的做法：firstObj.position += (secondWorldAnchor - firstWorldAnchor)
         // 这里假设 firstObj.parent == scene，如果父级层次更深，需要考虑 parent 的局部坐标
@@ -702,10 +799,14 @@ const camera = new THREE.PerspectiveCamera(
 camera.position.set(0, 800, 1500);
 camera.lookAt(0, 0, 0);
 
-const crossMarker = createCrossMarker(20, 0xff0000);
-scene.add(crossMarker);
-// 初始隐藏
-crossMarker.visible = false;
+// const crossMarker = createCrossMarker(20, 0xff0000);
+// scene.add(crossMarker);
+// // 初始隐藏
+// crossMarker.visible = false;
+const snappingMarker = createMarker(10, 0xff0000);
+scene.add(snappingMarker);
+snappingMarker.visible = false;
+
 
 const axesHelper = new THREE.AxesHelper(500);
 scene.add(axesHelper);
@@ -1305,41 +1406,120 @@ function findSiblingKeysFor(meshAName, meshBName) {
 
 
 function onPointerMove(event) {
-    // 如果不是“连接模式”，就隐藏十字叉，返回
+    // 如果不是“连接模式”，就隐藏标记，返回
     if (currentMode !== 'connect') {
-        crossMarker.visible = false;
+        snappingMarker.visible = false;
+        return;
+    }
+
+    // 根据 connectState 的不同，来决定是否显示球标记
+    // connectState 各阶段含义：
+    //   0 -> 尚未选第一物体
+    //   1 -> 已选第一物体，正在选择第一物体的锚点
+    //   2 -> 已选第一物体&其锚点，准备选第二物体
+    //   3 -> 已选第二物体，正在选择第二物体的锚点
+    //   (4 -> 已选完第二物体&其锚点，就要执行连接)
+
+    // 只有在 connectState=1 时，我们让用户在 firstMesh 上选锚点
+    //    在 connectState=3 时，我们让用户在 secondMesh 上选锚点
+    // 其余阶段都不显示球
+    if (connectState !== 1 && connectState !== 3) {
+        snappingMarker.visible = false;
+        return;
+    }
+
+    // 如果是 connectState=1，就说明要在 firstMesh 上选点
+    // 如果是 connectState=3，就说明要在 secondMesh 上选点
+    // 所以要知道当前需要的“目标 Mesh”是哪一个
+    let targetMesh = null;
+    if (connectState === 1 && firstMesh) {
+        targetMesh = firstMesh;
+    }
+    else if (connectState === 3 && secondMesh) {
+        targetMesh = secondMesh;
+    } else {
+        snappingMarker.visible = false;
         return;
     }
 
     // 转换鼠标坐标到标准化设备坐标(-1 ~ +1)
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
-
     raycaster.setFromCamera(mouse, camera);
+
     const intersects = raycaster.intersectObjects(scene.children, true);
 
     if (intersects.length > 0) {
-        const hit = intersects[0];
-        const hitObject = hit.object;
-        const hitPointWorld = hit.point.clone();
+        // const hit = intersects[0];
+        // const hitObject = hit.object;
+        // const hitPointWorld = hit.point.clone();
+        const hit = intersects.find(item => item.object === targetMesh);
 
-        // 将世界坐标转换到 mesh 的本地坐标
-        let localPos = hitObject.worldToLocal(hitPointWorld.clone());
+        if (!hit) {
+            snappingMarker.visible = false;
+            return;
+        }
 
-        // 吸附
-        localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
-        localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
-        localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+        // 命中了 targetMesh => 计算局部坐标
+        let localPos = targetMesh.worldToLocal(hit.point.clone());
+
+        // 1) 先尝试 corner/edgeMid 吸附
+        //   - 找到距离 localPos 最近的 snapPoint
+        let snapPoints = targetMesh.userData.snapPoints || [];
+        let minDist = Infinity;
+        let bestSnap = null;  // { pos, type }
+        for (let sp of snapPoints) {
+            let dist = localPos.distanceTo(sp.pos);
+            if (dist < minDist) {
+                minDist = dist;
+                bestSnap = sp;
+            }
+        }
+
+        // 定义阈值
+        const CORNER_SNAP_THRESHOLD = 30;   // mm
+        const EDGEMID_SNAP_THRESHOLD = 30;  // mm (也可以设成 20)
+        let snappedLocalPos = localPos.clone();
+        let snapType = 'none'; // 'corner', 'edgeMid', or 'none'
+
+        if (bestSnap && bestSnap.type === 'corner' && minDist < CORNER_SNAP_THRESHOLD) {
+            // 吸附到 corner
+            snappedLocalPos.copy(bestSnap.pos);
+            snapType = 'corner';
+        } else if (bestSnap && bestSnap.type === 'edgeMid' && minDist < EDGEMID_SNAP_THRESHOLD) {
+            // 吸附到 edge midpoint
+            snappedLocalPos.copy(bestSnap.pos);
+            snapType = 'edgeMid';
+        } else {
+            // 2) 如果离 corner/edgeMid 都大于阈值 => 使用原本的 50mm 网格吸附
+            snappedLocalPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
+            snappedLocalPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
+            snappedLocalPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+        }
 
         // 转回世界坐标
-        const snappedWorldPos = hitObject.localToWorld(localPos.clone());
+        const snappedWorldPos = targetMesh.localToWorld(snappedLocalPos.clone());
 
-        // 将十字叉标记移动到该位置，并显示
-        crossMarker.position.copy(snappedWorldPos);
-        crossMarker.visible = true;
+        // 3) 不同吸附类型 => 不同的颜色或大小
+        //    示例：corner => 绿色+大， edgeMid => 蓝色+中， none => 红色+正常
+        let markerColor = 0xff0000;
+        let markerScale = 1.0;
+        if (snapType === 'corner') {
+            markerColor = 0x00ff00;
+            markerScale = 1.5;
+        } else if (snapType === 'edgeMid') {
+            markerColor = 0x0000ff;
+            markerScale = 1.2;
+        }
+
+        // 更新小球位置、显示、颜色、大小
+        snappingMarker.position.copy(snappedWorldPos);
+        snappingMarker.visible = true;
+        snappingMarker.material.color.set(markerColor);
+        snappingMarker.scale.set(markerScale, markerScale, markerScale);
     } else {
         // 没有命中任何对象，就隐藏
-        crossMarker.visible = false;
+        snappingMarker.visible = false;
     }
 }
 
