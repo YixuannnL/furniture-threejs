@@ -480,6 +480,9 @@ function getAnchorDescription(mesh, localPos) {
             return Utils.getFaceFractionAnchor(localPos, width, height, depth);
         }
     }
+    else { // board or block
+        return Utils.getFaceFractionAnchor(localPos, width, height, depth);
+    }
 }
 
 /**
