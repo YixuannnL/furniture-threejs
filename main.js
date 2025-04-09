@@ -267,9 +267,7 @@ function selectMesh(mesh) {
 // 创建网格（Mesh）的辅助函数
 function createMesh(objectType, dimensions) {
     const { width, height, depth } = dimensions; // 直接用毫米数值
-
     const geometry = new THREE.BoxGeometry(width, height, depth);
-
     // 随机“彩虹”效果材质
     const material = new THREE.MeshNormalMaterial({
         transparent: true,
@@ -279,7 +277,12 @@ function createMesh(objectType, dimensions) {
     // 创建网格（Mesh）
     const mesh = new THREE.Mesh(geometry, material);
 
-    mesh.userData.snapPoints = computeSnapPointsForBox(width, height, depth);
+    // mesh.userData.snapPoints = computeSnapPointsForBox(width, height, depth);
+    // === 预先计算 8 个角点 ===
+    mesh.userData.corners = Utils.computeBoxCorners(width, height, depth);
+
+    // === 再计算 12 条边线段 ===
+    mesh.userData.edges = Utils.computeBoxEdges(mesh.userData.corners);
 
     return mesh;
 }
@@ -1404,6 +1407,57 @@ function findSiblingKeysFor(meshAName, meshBName) {
     }
 }
 
+/**
+ * 显示标记球，并根据 snapType 设置颜色/大小
+ * snapType: 'corner' | 'edge' | 'grid'
+ */
+function showSnappedMarker(mesh, localPos, snapType) {
+    let color = 0xff0000; // red for grid
+    let scaleFactor = 1.0;
+
+    if (snapType === 'corner') {
+        color = 0x00ff00;  // green
+        scaleFactor = 1.5;
+    } else if (snapType === 'edge') {
+        color = 0x0000ff;  // blue
+        scaleFactor = 1.2;
+    }
+    // 计算世界坐标
+    const worldPos = mesh.localToWorld(localPos.clone());
+    snappingMarker.position.copy(worldPos);
+    snappingMarker.material.color.set(color);
+    snappingMarker.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    snappingMarker.visible = true;
+}
+
+/**
+ * 点到线段的最短距离 & 最近点
+ * @param {THREE.Vector3} point 
+ * @param {THREE.Vector3} start 
+ * @param {THREE.Vector3} end 
+ * @returns { dist: number, closestPoint: THREE.Vector3 }
+ */
+function pointToSegmentDistance(point, start, end) {
+    // 线段向量
+    const segVec = new THREE.Vector3().subVectors(end, start);
+    // 点到 start 的向量
+    const ptVec = new THREE.Vector3().subVectors(point, start);
+
+    const segLenSq = segVec.lengthSq();
+    if (segLenSq < 1e-8) {
+        // degenerate edge
+        return { dist: ptVec.length(), closestPoint: start.clone() };
+    }
+    // 投影系数 = (ptVec · segVec) / (segLenSq)
+    let t = ptVec.dot(segVec) / segLenSq;
+    // clamp t to [0,1]
+    t = Math.max(0, Math.min(1, t));
+    // 最近点 = start + t * segVec
+    const closestPoint = start.clone().add(segVec.multiplyScalar(t));
+    // 距离
+    const dist = point.distanceTo(closestPoint);
+    return { dist, closestPoint };
+}
 
 function onPointerMove(event) {
     // 如果不是“连接模式”，就隐藏标记，返回
@@ -1463,60 +1517,55 @@ function onPointerMove(event) {
         // 命中了 targetMesh => 计算局部坐标
         let localPos = targetMesh.worldToLocal(hit.point.clone());
 
-        // 1) 先尝试 corner/edgeMid 吸附
-        //   - 找到距离 localPos 最近的 snapPoint
-        let snapPoints = targetMesh.userData.snapPoints || [];
-        let minDist = Infinity;
-        let bestSnap = null;  // { pos, type }
-        for (let sp of snapPoints) {
-            let dist = localPos.distanceTo(sp.pos);
-            if (dist < minDist) {
-                minDist = dist;
-                bestSnap = sp;
+
+
+
+        // =============== 1) Corner 吸附检测 ===============
+        const CORNER_THRESHOLD = 30;  // mm
+        let bestCornerDist = Infinity;
+        let bestCornerPos = null;
+        const corners = targetMesh.userData.corners || [];
+        for (let c of corners) {
+            const dist = localPos.distanceTo(c);
+            if (dist < bestCornerDist) {
+                bestCornerDist = dist;
+                bestCornerPos = c;
             }
         }
-
-        // 定义阈值
-        const CORNER_SNAP_THRESHOLD = 30;   // mm
-        const EDGEMID_SNAP_THRESHOLD = 30;  // mm (也可以设成 20)
-        let snappedLocalPos = localPos.clone();
-        let snapType = 'none'; // 'corner', 'edgeMid', or 'none'
-
-        if (bestSnap && bestSnap.type === 'corner' && minDist < CORNER_SNAP_THRESHOLD) {
-            // 吸附到 corner
-            snappedLocalPos.copy(bestSnap.pos);
-            snapType = 'corner';
-        } else if (bestSnap && bestSnap.type === 'edgeMid' && minDist < EDGEMID_SNAP_THRESHOLD) {
-            // 吸附到 edge midpoint
-            snappedLocalPos.copy(bestSnap.pos);
-            snapType = 'edgeMid';
-        } else {
-            // 2) 如果离 corner/edgeMid 都大于阈值 => 使用原本的 50mm 网格吸附
-            snappedLocalPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
-            snappedLocalPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
-            snappedLocalPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+        if (bestCornerDist < CORNER_THRESHOLD) {
+            // 如果最近角点在阈值范围内，吸附到角点
+            showSnappedMarker(targetMesh, bestCornerPos, 'corner');
+            return; // 直接结束，不再检查边/网格
         }
 
-        // 转回世界坐标
-        const snappedWorldPos = targetMesh.localToWorld(snappedLocalPos.clone());
-
-        // 3) 不同吸附类型 => 不同的颜色或大小
-        //    示例：corner => 绿色+大， edgeMid => 蓝色+中， none => 红色+正常
-        let markerColor = 0xff0000;
-        let markerScale = 1.0;
-        if (snapType === 'corner') {
-            markerColor = 0x00ff00;
-            markerScale = 1.5;
-        } else if (snapType === 'edgeMid') {
-            markerColor = 0x0000ff;
-            markerScale = 1.2;
+        // =============== 2) Edge 吸附检测 ===============
+        // 目标：找最近的“线段上投影点” + 距离
+        // 如果距离 < 阈值 => 吸附到那条边
+        const EDGE_THRESHOLD = 30;  // mm
+        let bestEdgeDist = Infinity;
+        let bestEdgePoint = null;
+        const edges = targetMesh.userData.edges || [];
+        for (let e of edges) {
+            // 最近点 = 点对线段投影
+            const { closestPoint, dist } = pointToSegmentDistance(localPos, e.start, e.end);
+            if (dist < bestEdgeDist) {
+                bestEdgeDist = dist;
+                bestEdgePoint = closestPoint;
+            }
+        }
+        if (bestEdgeDist < EDGE_THRESHOLD) {
+            // 吸附到该边最近点
+            showSnappedMarker(targetMesh, bestEdgePoint, 'edge');
+            return; // 结束，不再检查网格
         }
 
-        // 更新小球位置、显示、颜色、大小
-        snappingMarker.position.copy(snappedWorldPos);
-        snappingMarker.visible = true;
-        snappingMarker.material.color.set(markerColor);
-        snappingMarker.scale.set(markerScale, markerScale, markerScale);
+        // =============== 3) 50mm 网格吸附 ===============
+        // 如果不在 corner / edge 的范围，就做原先的 50mm 吸附
+        localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
+        localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
+        localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+
+        showSnappedMarker(targetMesh, localPos, 'grid');
     } else {
         // 没有命中任何对象，就隐藏
         snappingMarker.visible = false;
