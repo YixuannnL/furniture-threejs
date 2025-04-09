@@ -9,7 +9,9 @@ import jsonData from './input_data/meta_data.json' assert { type: 'json' };
 import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 
 let furnitureData = jsonData;
-let connectionData = ConnData;
+let connectionData = Utils.filterConnData(ConnData);
+
+// console.log("NOW:", connectionData);
 
 let editingConnections = new Map();
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
@@ -22,6 +24,17 @@ let objectsByName = {};
 
 // 存储所有拉伸变更的日志记录
 let dimensionChangeLog = [];
+
+/** 
+ * 全局变量，用来管理“当前是否在查看连接关系”，以及“以谁为基准查看连接” 
+ * 若为 null，表示当前没有在查看连接关系
+ * 若非 null，表示 { baseMesh: Mesh, connectedMeshes: Mesh[], allHighlighted: boolean }
+ */
+let currentConnectionHighlight = null;
+// 用于存储场景中所有 Mesh 的“原材质”或者“变淡材质”，以便随时切换
+// 也可以不存，直接重新 render_furniture 也行，但可能会破坏用户的中间编辑状态
+let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean, isHighlighted:boolean }
+
 
 // ==================== 新增：处理家具树形结构的增删操作 ====================
 
@@ -60,12 +73,32 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
     titleSpan.style.fontWeight = 'bold';
     row.appendChild(titleSpan);
 
+    // ============= [点击行 => 选中并高亮对应Mesh] =============
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', (e) => {
+        e.stopPropagation(); // 避免冒泡；如果还有别的监听
+
+        // 找到对应的 THREE.Object3D
+        const mesh = objectsByName[objName];
+        if (mesh && mesh.isMesh) {
+            // 先取消任何当前高亮
+            clearConnectionHighlight();
+            selectMesh(mesh); // 让它 edges + renderOnTop
+        } else {
+            // 也可能是group
+            clearConnectionHighlight();
+            console.log(`Clicked a group or no mesh: ${objName}`);
+        }
+    });
+
+
     // 如果不是根节点，可以显示「删除」按钮
     if (parentMeta) {
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Delete';
         delBtn.style.marginLeft = '8px';
-        delBtn.addEventListener('click', () => {
+        delBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 不要触发行的点击
             const yes = confirm(`Are you sure to delete ${objName}?`);
             if (!yes) return;
             removeChildMeta(parentMeta, meta);
@@ -78,10 +111,23 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
         const addBtn = document.createElement('button');
         addBtn.textContent = 'Add Child';
         addBtn.style.marginLeft = '4px';
-        addBtn.addEventListener('click', () => {
+        addBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             promptAddChild(meta);
         });
         row.appendChild(addBtn);
+    }
+
+    // ============= 新增一个 [Show Connection] 按钮 ============
+    if (objName && objName !== '(no-name)') {
+        const showConnBtn = document.createElement('button');
+        showConnBtn.textContent = 'Show Connection';
+        showConnBtn.style.marginLeft = '4px';
+        showConnBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onShowConnectionFor(objName);
+        });
+        row.appendChild(showConnBtn);
     }
 
     container.appendChild(row);
@@ -91,6 +137,185 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
         meta.children.forEach(child => {
             buildMetaNodeUI(child.meta, container, meta, level + 1);
         });
+    }
+}
+
+/**
+ * 当点击“Show Connection”按钮时：
+ *  1) 找到该对象对应的 Mesh
+ *  2) 从 connectionData 中找到所有与之有连接关系的对象
+ *  3) 高亮自己 & 这些对象
+ *  4) 让其他对象变淡
+ */
+function onShowConnectionFor(objName) {
+    // 先从 scene 中找 objName 对应 Mesh
+    const baseMesh = objectsByName[objName];
+    if (!baseMesh || !baseMesh.isMesh) {
+        alert(`No mesh found for: ${objName}`);
+        return;
+    }
+
+    // 找到所有与之连接的 Mesh
+    const connectedMeshes = findConnectedMeshes(baseMesh);
+
+    // 更新 global state
+    currentConnectionHighlight = {
+        baseMesh,
+        connectedMeshes,
+        allHighlighted: true
+    };
+
+    // 执行“变淡+加亮”
+    setHighlightWithFade(baseMesh, connectedMeshes);
+}
+
+/**
+ * 找到与某个 mesh 有连接关系的所有对象
+ */
+function findConnectedMeshes(mesh) {
+    if (!mesh || !mesh.name) return [];
+    const meshName = mesh.name;
+    const result = [];
+
+    // 遍历 connectionData
+    connectionData.data.forEach((connItem) => {
+        // connItem 形如 { "Seat":"<Seat>...", "Base":"<Leg_Front_Left>..." }
+        // 取 key => val
+        const keys = Object.keys(connItem);
+        if (keys.length < 2) return;
+        const aKey = keys[0];
+        const bKey = keys[1];
+        const aStr = connItem[aKey];
+        const bStr = connItem[bKey];
+        // 解析
+        const aConn = Utils.parseConnectionString(aStr);
+        const bConn = Utils.parseConnectionString(bStr);
+
+        // 如果 aConn.name === meshName，则 bConn.name 就是它的对端
+        if (aConn.name === meshName) {
+            const otherMesh = objectsByName[bConn.name];
+            if (otherMesh && otherMesh.isMesh) {
+                if (!result.includes(otherMesh)) {
+                    result.push(otherMesh);
+                }
+            }
+        }
+        // 反之如果 bConn.name === meshName，则 aConn.name 是对端
+        else if (bConn.name === meshName) {
+            const otherMesh = objectsByName[aConn.name];
+            if (otherMesh && otherMesh.isMesh) {
+                if (!result.includes(otherMesh)) {
+                    result.push(otherMesh);
+                }
+            }
+        }
+    });
+
+    return result;
+}
+
+// --------------------------------------------------------------------------------------------
+// 2) 扩充高亮逻辑：
+//    setHighlightWithFade(baseMesh, connectedMeshes)
+//    => 把 scene 中所有 Mesh 都先变淡，再把 baseMesh + connectedMeshes 恢复亮度/高亮
+// --------------------------------------------------------------------------------------------
+function setHighlightWithFade(baseMesh, connectedMeshes) {
+    // 收集所有 Mesh
+    const allMeshes = [];
+    currentFurnitureRoot.traverse(obj => {
+        if (obj.isMesh) allMeshes.push(obj);
+    });
+
+    // 1) 通通先变淡
+    allMeshes.forEach(m => {
+        fadeMesh(m, 0.1); // 0.1不透明
+    });
+
+    // 2) baseMesh + connectedMeshes 高亮
+    highlightMeshWithStrongerColor(baseMesh);
+    connectedMeshes.forEach(m => highlightMeshWithStrongerColor(m));
+}
+
+/**
+ * 将某个mesh变淡(低不透明度)
+ */
+function fadeMesh(mesh, opacityVal = 0.1) {
+    // 记录/恢复用
+    if (!originalMaterialMap.has(mesh)) {
+        originalMaterialMap.set(mesh, {
+            material: mesh.material,
+            isDimmed: false,
+            isHighlighted: false
+        });
+    }
+
+    // 若原材质是数组，需要逐个改
+    if (Array.isArray(mesh.material)) {
+        mesh.material.forEach(mat => {
+            mat.transparent = true;
+            mat.opacity = opacityVal;
+            mat.depthTest = true; // 允许深度测试
+        });
+    } else {
+        mesh.material.transparent = true;
+        mesh.material.opacity = opacityVal;
+        mesh.material.depthTest = true;
+    }
+
+    mesh.renderOrder = 0;
+
+    // 如果之前加了 edges，要移除；否则会依然显示边线
+    if (mesh.userData.highlightEdges) {
+        mesh.remove(mesh.userData.highlightEdges);
+        mesh.userData.highlightEdges.geometry.dispose();
+        mesh.userData.highlightEdges = null;
+    }
+
+    const record = originalMaterialMap.get(mesh);
+    record.isDimmed = true;
+    record.isHighlighted = false;
+}
+
+/**
+ * 高亮 mesh: 更高不透明度+渲染在前+Edges(可选)
+ */
+function highlightMeshWithStrongerColor(mesh) {
+    // 先恢复到正常不透明
+    if (Array.isArray(mesh.material)) {
+        mesh.material.forEach(mat => {
+            mat.transparent = true;
+            mat.opacity = 1.0;
+            mat.depthTest = false;  // 不参与深度测试 => 永远在前
+        });
+    } else {
+        mesh.material.transparent = true;
+        mesh.material.opacity = 1.0;
+        mesh.material.depthTest = false;
+    }
+    mesh.renderOrder = 9999;
+
+    const edgesGeo = new THREE.EdgesGeometry(mesh.geometry);
+    const edgesMat = new THREE.LineBasicMaterial({
+        color: 0xffff00,
+        linewidth: 2,
+        depthTest: false
+    });
+    const edges = new THREE.LineSegments(edgesGeo, edgesMat);
+    edges.renderOrder = 10000;
+    mesh.add(edges);
+    mesh.userData.highlightEdges = edges;
+
+    // 记录
+    if (!originalMaterialMap.has(mesh)) {
+        originalMaterialMap.set(mesh, {
+            material: mesh.material,
+            isDimmed: false,
+            isHighlighted: true
+        });
+    } else {
+        const rec = originalMaterialMap.get(mesh);
+        rec.isDimmed = false;
+        rec.isHighlighted = true;
     }
 }
 
@@ -196,6 +421,61 @@ function createMarker(radius = 10, color = 0xff0000) {
     return sphere;
 }
 
+// -------------- 新的：让单个 Mesh 高亮 --------------
+function highlightSingleMesh(mesh) {
+    // 1) 先遍历所有 mesh，让它们 opacity = 0.1(淡化)
+    if (currentFurnitureRoot) {
+        currentFurnitureRoot.traverse(obj => {
+            if (obj.isMesh && obj !== mesh) {
+                fadeMesh(obj, 0.1);
+            }
+        });
+    }
+
+    // 2) 自己 -> 强调
+    highlightMeshWithStrongerColor(mesh);
+}
+
+function clearAllHighlight() {
+    // 让场景中的所有 Mesh 变回正常 (opacity=1, depthTest=true, 移除 edges)
+    if (!currentFurnitureRoot) return;
+    currentFurnitureRoot.traverse(obj => {
+        if (obj.isMesh) {
+            // 恢复
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => {
+                    m.transparent = true;
+                    m.opacity = 1.0;
+                    m.depthTest = true;
+                });
+            } else {
+                obj.material.transparent = true;
+                obj.material.opacity = 1.0;
+                obj.material.depthTest = true;
+            }
+            obj.renderOrder = 0;
+
+            // 如果之前给它加了 edges，也去掉
+            if (obj.userData.highlightEdges) {
+                obj.remove(obj.userData.highlightEdges);
+                obj.userData.highlightEdges.geometry.dispose();
+                obj.userData.highlightEdges = null;
+            }
+        }
+    });
+
+    // 若你需要的话，可以还原 selectedMesh = null
+    selectedMesh = null;
+    // 也把查看连接关系的状态清理掉
+    currentConnectionHighlight = null;
+
+    // 如果 UI 里还显示 “Selected Mesh: ...”，也可清掉
+    const displayDiv = document.getElementById('selectedMeshDisplay');
+    if (displayDiv) {
+        displayDiv.textContent = 'No mesh selected';
+    }
+}
+
 // ============== highlightMesh: 让mesh始终显示在最前 + 边缘高亮 ==============
 function highlightMesh(mesh) {
     mesh.renderOrder = 9998;
@@ -220,49 +500,52 @@ function highlightMesh(mesh) {
 }
 
 // ============== clearSelectedMesh: 取消之前选中的高亮效果 ==============
-function clearSelectedMesh() {
-    if (selectedMesh) {
-        // 恢复 depthTest
-        if (Array.isArray(selectedMesh.material)) {
-            selectedMesh.material.forEach(m => {
-                m.depthTest = true;
-            });
-        } else {
-            selectedMesh.material.depthTest = true;
-        }
-        selectedMesh.renderOrder = 0;
+// function clearSelectedMesh() {
+//     if (selectedMesh) {
+//         // 恢复 depthTest
+//         if (Array.isArray(selectedMesh.material)) {
+//             selectedMesh.material.forEach(m => {
+//                 m.depthTest = true;
+//             });
+//         } else {
+//             selectedMesh.material.depthTest = true;
+//         }
+//         selectedMesh.renderOrder = 0;
 
-        if (selectedEdges && selectedEdges.parent) {
-            selectedEdges.parent.remove(selectedEdges);
-            selectedEdges.geometry.dispose();
-        }
-    }
-    selectedMesh = null;
-    selectedEdges = null;
+//         if (selectedEdges && selectedEdges.parent) {
+//             selectedEdges.parent.remove(selectedEdges);
+//             selectedEdges.geometry.dispose();
+//         }
+//     }
+//     selectedMesh = null;
+//     selectedEdges = null;
 
-    // 新增：恢复显示区域
-    const displayDiv = document.getElementById('selectedMeshDisplay');
-    if (displayDiv) {
-        displayDiv.textContent = "No mesh selected";
-    }
-}
+//     // 新增：恢复显示区域
+//     const displayDiv = document.getElementById('selectedMeshDisplay');
+//     if (displayDiv) {
+//         displayDiv.textContent = "No mesh selected";
+//     }
+// }
 
 // ============== selectMesh: 高亮新的 Mesh，取消之前的 ==============
 function selectMesh(mesh) {
-    clearSelectedMesh();
+    // （1）先清除一切高亮
+    clearAllHighlight();
+
+    // （2）给这个 mesh 做“单选高亮”
+    highlightSingleMesh(mesh);
+
+    // （3）若需要记录“当前选中哪一个”，可以保留 selectedMesh = mesh
+    //      这跟后续交互逻辑（如显示UI）有关
     selectedMesh = mesh;
-    selectedEdges = highlightMesh(mesh);
 
-    // 如果当前模式是 'connect'，则在Connections面板里把相关连接排到最前
-    if (currentMode === 'connect' && mesh && mesh.name) {
-        renderConnectionLog();
-    }
-
+    // （4）更新 UI 显示
     const displayDiv = document.getElementById('selectedMeshDisplay');
     if (displayDiv && mesh.name) {
         displayDiv.textContent = `Selected Mesh: ${mesh.name}`;
     }
 }
+
 
 // 创建网格（Mesh）的辅助函数
 function createMesh(objectType, dimensions) {
@@ -784,6 +1067,9 @@ function render_furniture(meta_data, conn_data) {
 
     renderTreePanel();
 
+    // 渲染完后清除上一轮“查看连接关系”模式
+    clearAllHighlight();
+
     return furniture_object;
 }
 
@@ -1057,7 +1343,7 @@ function updateInfo() {
 
 function changeConnectState() {
     currentMode = 'connect';
-    clearSelectedMesh();
+    clearAllHighlight();
     updateInfo();
     // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
     var divElement = document.getElementById("dimensionChanges");
@@ -1074,7 +1360,7 @@ function changeConnectState() {
 function changeStretchState() {
     currentMode = 'stretch';
     stretchState = 0;
-    clearSelectedMesh();
+    clearAllHighlight();
     updateInfo();
     // 获取目标 div 元素（假设 div 的 id 是 "myDiv"）
     var divElement = document.getElementById("connectionLog");
@@ -1339,7 +1625,7 @@ function resetConnectProcess() {
     connectState = 0;
     firstMesh = null;
     secondMesh = null;
-    clearSelectedMesh();
+    clearAllHighlight();
     updateInfo();
 }
 
@@ -1349,7 +1635,7 @@ function resetStretchProcess() {
     stretchFaceIndexA = -1;
     stretchMeshB = null;
     stretchFaceIndexB = -1;
-    clearSelectedMesh();
+    clearAllHighlight();
     updateInfo();
 }
 
@@ -1405,6 +1691,70 @@ function findSiblingKeysFor(meshAName, meshBName) {
             keyB: lastB.object
         };
     }
+}
+
+/**
+ * 根据两个 meshName 删除 connectionData.data 里对应的那条连接关系
+ * 注：可能一对 mesh 之间有多条连接，需要都删或只删一条？此处简单做“都删”
+ */
+function removeConnectionBetweenTwoMeshes(nameA, nameB) {
+    const newData = [];
+    connectionData.data.forEach(item => {
+        const keys = Object.keys(item);
+        if (keys.length < 2) {
+            newData.push(item);
+            return;
+        }
+        const aStr = item[keys[0]];
+        const bStr = item[keys[1]];
+        const cA = Utils.parseConnectionString(aStr);
+        const cB = Utils.parseConnectionString(bStr);
+
+        // 如果 cA.name/cB.name 刚好是一对 (nameA, nameB)，则跳过（不加到 newData）
+        // 注意还有 (nameB, nameA) 也算
+        const pairSet = new Set([cA.name, cB.name]);
+        if (pairSet.has(nameA) && pairSet.has(nameB)) {
+            // 跳过
+        } else {
+            newData.push(item);
+        }
+    });
+    connectionData.data = newData;
+}
+
+// --------------------------------------------------------------------------------------------
+// 4) 当我们点击别的物体或重新渲染时，应该清除“查看连接关系”模式
+// --------------------------------------------------------------------------------------------
+function clearConnectionHighlight() {
+    // 恢复所有 mesh 的 depthTest / material.opacity = 1
+    const allMeshes = [];
+    currentFurnitureRoot.traverse(obj => {
+        if (obj.isMesh) allMeshes.push(obj);
+    });
+    allMeshes.forEach(m => {
+        // 恢复
+        if (Array.isArray(m.material)) {
+            m.material.forEach(mat => {
+                mat.transparent = true;
+                mat.opacity = 1.0;
+                mat.depthTest = true;
+            });
+        } else {
+            m.material.transparent = true;
+            m.material.opacity = 1.0;
+            m.material.depthTest = true;
+        }
+        m.renderOrder = 0;
+
+        // 若之前加过 edges, 则移除
+        if (m.userData.highlightEdges) {
+            m.remove(m.userData.highlightEdges);
+            m.userData.highlightEdges.geometry.dispose();
+            m.userData.highlightEdges = null;
+        }
+    });
+
+    currentConnectionHighlight = null;
 }
 
 /**
@@ -1625,31 +1975,6 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
 
     updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newVal);
 
-    // // 在meshA局部里，该面法线
-    // let unitVecA_local = new THREE.Vector3(0, 0, 0);
-    // if (axisA === 'width') unitVecA_local.x = 1 * signA;
-    // if (axisA === 'height') unitVecA_local.y = 1 * signA;
-    // if (axisA === 'depth') unitVecA_local.z = 1 * signA;
-
-    // // 转到世界坐标后，做点积
-    // let unitVecA_world = unitVecA_local.clone().applyMatrix4(meshA.matrixWorld);
-    // let posA = meshA.getWorldPosition(new THREE.Vector3());
-    // unitVecA_world.sub(posA).normalize();
-
-    // let newDimension = diffVec.dot(unitVecA_world);
-
-
-
-    // if (newDimension < 0) newDimension = Math.abs(newDimension);
-
-    // // 4. 计算位移：为了保持固定面（选中面）位置不变，
-    // //    新生成的 BoxGeometry（总是中心对称）中，选中面原本应位于 sign*(newDimension/2)
-    // //    而原来固定面在局部坐标中是 sign*(oldVal/2)；
-    // //    为保持固定面位置不变，meshA 的 position 需要调整： delta = (oldVal - newDimension)/2 * signA
-    // // let delta = ((oldVal - newDimension) / 2) * signA;
-    // console.log("delta:", delta);
-    // updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newDimension, delta);
-
     render_furniture(furnitureData, connectionData);
 
     // *** 记录到 dimensionChangeLog
@@ -1686,6 +2011,26 @@ function onPointerUp(event) {
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(scene.children, true);
+
+    if (currentConnectionHighlight && currentConnectionHighlight.allHighlighted) {
+        if (intersects.length > 0) {
+            const hit = intersects[0];
+            const hitObject = hit.object;
+            // 如果点到了“连接对端” => 提示是否要删除
+            if (currentConnectionHighlight.connectedMeshes.includes(hitObject)) {
+                // 弹出提示
+                const yes = confirm(
+                    `Do you want to remove connection between "${currentConnectionHighlight.baseMesh.name}" and "${hitObject.name}"?`
+                );
+                if (yes) {
+                    removeConnectionBetweenTwoMeshes(currentConnectionHighlight.baseMesh.name, hitObject.name);
+                    // 重新渲染 + 重置高亮
+                    render_furniture(furnitureData, connectionData);
+                    clearConnectionHighlight();
+                }
+            }
+        }
+    }
 
     if (currentMode === 'connect') {
         // 根据 connectState 分情况
@@ -1741,7 +2086,7 @@ function onPointerUp(event) {
                     resetConnectProcess();
                 } else {
                     // 选中了第二个物体
-                    clearSelectedMesh()
+                    clearAllHighlight();
                     selectMesh(hitObject);
                     secondMesh = hitObject;
                     connectState = 3; // 等待在第二物体上选 anchor
@@ -1790,7 +2135,7 @@ function onPointerUp(event) {
                     firstAnchorStr = null
                     firstMeshType = null
 
-                    clearSelectedMesh()
+                    clearAllHighlight();
                 }
             } else {
                 // 点到空白 => 回到 state2 or reset
@@ -1842,7 +2187,7 @@ function onPointerUp(event) {
                         if (hitObject === stretchMeshA) {
                             resetStretchProcess();
                         } else {
-                            clearSelectedMesh();
+                            clearAllHighlight();
                             selectMesh(hitObject);
                             stretchMeshB = hitObject;
                             stretchState = 3;
@@ -1873,7 +2218,7 @@ function onPointerUp(event) {
                             stretchFaceIndexA = -1;
                             stretchMeshB = null;
                             stretchFaceIndexB = -1;
-                            clearSelectedMesh()
+                            clearAllHighlight();
                             updateInfo();
                         }
                     } else {
@@ -1883,6 +2228,19 @@ function onPointerUp(event) {
             }
         }
     }
+
+    // 最后，如果既不在 connect 或 stretch 中间步骤，也没点到任何对象 => 清除所有高亮
+    // 先判断 intersects.length === 0 => 说明点空白
+    if (intersects.length === 0) {
+        // 再判断是否不在 connect / stretch 的选择中
+        // 这里要看你的逻辑：当 connectState=0 / stretchState=0 才算空闲？
+        // 简单做法：只要 connectState===0 && stretchState===0 就清理
+
+        if (connectState === 0 && stretchState === 0) {
+            clearAllHighlight();
+        }
+    }
+
     updateInfo();
 }
 

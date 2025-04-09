@@ -155,18 +155,18 @@ export function getObjectType(dimensions) {
     const mid = sorted[1];
     const large = sorted[2];
 
-    //    判断 bar
-    //    如果 "最大值" 大于 "中值" 的 3 倍 (阈值3可调),
-    //    说明一个维度特别长 => bar(长条)
-    if (large >= mid * 3) {
-        return 'bar';
-    }
-
     //    判断 board
     //    如果 "中值" 大于 "最小值" 的 5 倍 (阈值5可调),
     //    说明最小值很小(板很薄), 另两个较大 => board(板材)
     if (mid >= small * 5) {
         return 'board';
+    }
+
+    //    判断 bar
+    //    如果 "最大值" 大于 "中值" 的 3 倍 (阈值3可调),
+    //    说明一个维度特别长 => bar(长条)
+    if (large >= mid * 3) {
+        return 'bar';
     }
 
     // 其余都归类为 block(块)
@@ -760,4 +760,12 @@ export function computeBoxEdges(corners) {
         };
     });
     return edges;
+}
+
+// 将原始conn data中的无用连接数据过滤掉
+export function filterConnData(conn_data) {
+    conn_data.data = conn_data.data.filter(item => {
+        return Object.values(item).every(value => value != "");
+    });
+    return conn_data;
 }
