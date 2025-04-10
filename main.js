@@ -11,7 +11,9 @@ import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 let furnitureData = jsonData;
 let connectionData = Utils.filterConnData(ConnData);
 
-// console.log("NOW:", connectionData);
+
+// 全局变量，保证仅初始渲染时显示一次提示
+let initialOverlappingChecked = false;
 
 // 用来记录：当前是否在按住某个键做拉伸，拉伸的是哪个轴
 let scalingAxis = null;        // 取值 'width' | 'height' | 'depth' | null
@@ -44,6 +46,62 @@ let currentConnectionHighlight = null;
 // 用于存储场景中所有 Mesh 的“原材质”或者“变淡材质”，以便随时切换
 // 也可以不存，直接重新 render_furniture 也行，但可能会破坏用户的中间编辑状态
 let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean, isHighlighted:boolean }
+
+// 辅助：计算 THREE.Box3 的体积
+function computeBoxVolume(box) {
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    return size.x * size.y * size.z;
+}
+
+// 检测并更新页面显示重叠严重的 Mesh 提示
+function detectAndDisplayOverlap() {
+    const overlapListDiv = document.getElementById('overlapList');
+    if (!overlapListDiv || !currentFurnitureRoot) return;
+
+    // 收集场景中所有 Mesh 对象
+    let meshes = [];
+    currentFurnitureRoot.traverse(obj => {
+        if (obj.isMesh) {
+            meshes.push(obj);
+        }
+    });
+
+    const threshold = 0.75; // 当交集体积占较小 Mesh 的体积超过 75% 时认为重叠严重
+    let messages = [];
+
+    // 两两比较
+    for (let i = 0; i < meshes.length; i++) {
+        // 为每个 Mesh 计算包围盒（世界坐标）
+        let boxA = new THREE.Box3().setFromObject(meshes[i]);
+        let volA = computeBoxVolume(boxA);
+        for (let j = i + 1; j < meshes.length; j++) {
+            let boxB = new THREE.Box3().setFromObject(meshes[j]);
+            let volB = computeBoxVolume(boxB);
+            // 若两个包围盒不相交，则不考虑
+            if (!boxA.intersectsBox(boxB)) continue;
+
+            // 计算两者交集区域
+            let intersectionBox = boxA.clone().intersect(boxB);
+            // 若交集为空，则跳过
+            if (intersectionBox.isEmpty()) continue;
+
+            let interVol = computeBoxVolume(intersectionBox);
+            // 取较小的体积来计算重叠比例
+            let ratio = interVol / Math.min(volA, volB);
+            if (ratio > threshold) {
+                let percentage = (ratio * 100).toFixed(0);
+                messages.push(`${meshes[i].name} 与 ${meshes[j].name} 重叠 ${percentage}%`);
+            }
+        }
+    }
+
+    if (messages.length === 0) {
+        overlapListDiv.innerHTML = "未检测到严重重叠的 Mesh。";
+    } else {
+        overlapListDiv.innerHTML = messages.join("<br>");
+    }
+}
 
 
 // ==================== 新增：处理家具树形结构的增删操作 ====================
@@ -1137,6 +1195,10 @@ function render_furniture(meta_data, conn_data) {
 
     // 渲染完后清除上一轮“查看连接关系”模式
     clearAllHighlight();
+
+    // ★★ 新增调用：检测并显示重叠 Mesh 的提示 ★★
+    detectAndDisplayOverlap();
+
 
     return furniture_object;
 }

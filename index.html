@@ -58,6 +58,19 @@
 			max-height: 150px;
 			overflow-y: auto;
 		}
+
+		#overlapHint {
+			position: absolute;
+			bottom: 10px;
+			right: 10px;
+			width: 300px;
+			background-color: rgba(255, 255, 255, 0.7);
+			border: 1px solid #888;
+			padding: 10px;
+			font-family: sans-serif;
+			font-size: 14px;
+			z-index: 9999;
+		}
 	</style>
 </head>
 
@@ -108,20 +121,25 @@
 	</div>
 
 	<div id="treePanel" style="
-    position:absolute; 
-    top:10px; 
-    right:10px; 
-    width:300px; 
-    max-height:400px;
-    overflow:auto; 
-    background:rgba(255,255,255,0.7);
-    border:1px solid #999; 
-    padding:10px; 
-    font-size:14px;">
+		position:absolute; 
+		top:10px; 
+		right:10px; 
+		width:300px; 
+		max-height:400px;
+		overflow:auto; 
+		background:rgba(255,255,255,0.7);
+		border:1px solid #999; 
+		padding:10px; 
+		font-size:14px;">
 		<!-- 这里将由JS脚本生成树结构列表 -->
 	</div>
 
-	<button id="exportBtn" style="position:absolute; bottom:40px; right:10px;">Export Connections</button>
+	<div id="overlapHint">
+		<strong>Overlapping Meshes:</strong>
+		<div id="overlapList">检测中……</div>
+	</div>
+
+	<button id="exportBtn" style="position:absolute; bottom:40px; right:360px;">Export Connections</button>
 
 	<script type="module" src="main.js"></script>
 
