@@ -15,7 +15,6 @@ let connectionData = Utils.filterConnData(ConnData);
 
 let editingConnections = new Map();
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
-let selectedEdges = null;    // 用于边缘高亮的 lineSegments
 
 // 用来存储“当前家具根对象”
 let currentFurnitureRoot = null;
@@ -358,43 +357,58 @@ function removeChildMeta(parentMeta, childMeta) {
     }
 }
 
-/**
- * 弹窗让用户输入新节点信息，然后插入到 parentMeta.children
- */
 function promptAddChild(parentMeta) {
-    const objName = prompt('New Object Name (e.g. "Back_Rest")');
-    if (!objName) return; // 用户取消
-    const objType = prompt('New Object Type (group / board / block / bar)');
-    if (!objType) return;
-
-    // 如果 objType != group，需要让用户输入尺寸
-    // 如果 objType == group，可以给默认尺寸(或者也可以让用户输)
-    let width = 0, height = 0, depth = 0;
-    if (objType === 'group') {
-        // 给一个默认体积(或者也可不写)
-        width = 1000; height = 1000; depth = 1000;
-    } else {
-        // 让用户输入具体尺寸
-        width = parseFloat(prompt('width (mm)', '500')) || 500;
-        height = parseFloat(prompt('height (mm)', '100')) || 100;
-        depth = parseFloat(prompt('depth (mm)', '300')) || 300;
+    // 先让用户选方式
+    const choice = prompt(`Add child in 2 ways:
+        1) copy from an existing mesh
+        2) create a new mesh (default size)
+        Please enter "1" or "2": `);
+    if (!choice) return; // 用户取消
+    if (choice !== "1" && choice !== "2") {
+        alert("Invalid choice!");
+        return;
     }
 
-    // 构造一个新的 child
+    if (choice === "1") {
+        // ============ 方式1: 从现有某个mesh拷贝 ============
+        copyFromExisting(parentMeta);
+    } else {
+        // ============ 方式2: 新建默认尺寸 ============
+        createWithDefaultSize(parentMeta);
+    }
+}
+
+function copyFromExisting(parentMeta) {
+    // 让用户输入想复制的对象名称
+    const sourceName = prompt('Please enter the name of an existing mesh to copy:');
+    if (!sourceName) return;
+
+    // 在 furnitureData 里找到对应meta (或者在 scene 中找到对应mesh 也行)
+    const sourceMeta = Utils.findMetaByName(furnitureData.meta, sourceName);
+    if (!sourceMeta) {
+        alert("No meta found for: " + sourceName);
+        return;
+    }
+    // 让用户输入新对象名称
+    const newName = prompt('New Object Name for the copy:');
+    if (!newName) return;
+
+    // 复制
+    // 这里仅示意：复制 object_type 和 dimensions
+    // 如果要复制 children，也可进一步复制
     const newChild = {
-        "meta": {
-            "object": objName,
-            "object_type": objType,
-            "dimensions": {
-                "width": width,
-                "height": height,
-                "depth": depth
+        meta: {
+            object: newName,
+            object_type: sourceMeta.object_type,
+            dimensions: {
+                width: sourceMeta.dimensions?.width || 300,
+                height: sourceMeta.dimensions?.height || 300,
+                depth: sourceMeta.dimensions?.depth || 300
             }
-            // children: [] // 一般不需要显式加, group时如果你想初始就有children可加
         }
     };
 
-    // 如果 parentMeta 没有 children，就先创建
+    // 添加到 parentMeta.children
     if (!parentMeta.children) {
         parentMeta.children = [];
     }
@@ -405,30 +419,42 @@ function promptAddChild(parentMeta) {
     renderTreePanel();
 }
 
-// // ============== 创建一个十字叉辅助对象 ==============
-// function createCrossMarker(size = 20, color = 0xff0000) {
-//     const group = new THREE.Group();
+function createWithDefaultSize(parentMeta) {
+    const newName = prompt('New Object Name (e.g. "Back_Rest")');
+    if (!newName) return;
+    const newType = prompt('New Object Type (group / board / block / bar)', 'block');
+    if (!newType) return;
 
-//     const material = new THREE.LineBasicMaterial({ color });
-//     // 水平线段
-//     const geoH = new THREE.BufferGeometry().setFromPoints([
-//         new THREE.Vector3(-size, 0, 0),
-//         new THREE.Vector3(+size, 0, 0),
-//     ]);
-//     const lineH = new THREE.Line(geoH, material);
-//     group.add(lineH);
+    // 默认尺寸
+    const DEFAULT_W = 300;
+    const DEFAULT_H = 300;
+    const DEFAULT_D = 300;
 
-//     // 垂直线段
-//     const geoV = new THREE.BufferGeometry().setFromPoints([
-//         new THREE.Vector3(0, -size, 0),
-//         new THREE.Vector3(0, +size, 0),
-//     ]);
-//     const lineV = new THREE.Line(geoV, material);
-//     group.add(lineV);
-//     // 让它在渲染时排在最后
-//     group.renderOrder = 9999;
-//     return group;
-// }
+    // 构造一个新的 child
+    const newChild = {
+        meta: {
+            object: newName,
+            object_type: newType,
+            dimensions: {
+                width: DEFAULT_W,
+                height: DEFAULT_H,
+                depth: DEFAULT_D
+            }
+        }
+    };
+
+    if (!parentMeta.children) {
+        parentMeta.children = [];
+    }
+    parentMeta.children.push(newChild);
+
+    // 重新渲染
+    render_furniture(furnitureData, connectionData);
+    renderTreePanel();
+
+    alert('Created a new child with default size 300x300x300!\nNow you can use "stretch mode" or the new keyboard scaling to adjust its dimensions.');
+}
+
 
 // 新增一个 createMarker 函数，使用小球做标记
 function createMarker(radius = 10, color = 0xff0000) {
@@ -1241,6 +1267,27 @@ const applyStretchBtn = document.getElementById('applyStretchBtn');
 let mouseDown = false;
 let lastMousePos = { x: 0, y: 0 }; // 记录拖动前坐标
 
+function setMeshDimension(meshName, axis, newVal) {
+    if (newVal < 1) newVal = 1; // 不允许小于1
+    // 找到旧值
+    const mesh = objectsByName[meshName];
+    if (!mesh || !mesh.geometry?.parameters) return;
+    const oldVal = mesh.geometry.parameters[axis];
+
+    // 写入 dimensionChangeLog
+    dimensionChangeLog.push({
+        meshName: meshName,
+        axis: axis,
+        oldVal: oldVal,
+        newVal: newVal
+    });
+    // 在 furnitureData.meta 里找到这个mesh的 meta 并更新
+    updateDimensionAndOffsetInMeta(furnitureData.meta, meshName, axis, newVal);
+    // 然后重新渲染
+    render_furniture(furnitureData, connectionData);
+    renderDimensionChangeLog(); // 刷新维度变更面板
+}
+
 // ============== 新增：更新 dimensions 与 offset 的辅助函数 ==============
 function updateDimensionAndOffsetInMeta(rootMeta, targetName, axis, newVal) {
     function recurse(meta) {
@@ -1257,61 +1304,6 @@ function updateDimensionAndOffsetInMeta(rootMeta, targetName, axis, newVal) {
     }
     recurse(rootMeta);
 }
-
-// =============================
-// 当用户点击某个面时，显示面板并填入数据
-// =============================
-// function showStretchPanel(mesh, faceIndex) {
-//     if (!mesh.geometry || !mesh.geometry.parameters) return;
-
-//     const { width, height, depth } = mesh.geometry.parameters;
-//     const { axis, sign } = Utils.getFaceAxisByIndex(faceIndex);
-
-//     // 如果找不到轴，就不显示面板
-//     if (!axis) {
-//         stretchPanel.style.display = 'none';
-//         return;
-//     }
-
-//     // 记录
-//     pickedMeshForStretch = mesh;
-//     pickedFaceIndex = faceIndex;
-//     pickedFaceAxis = axis;
-
-//     // 根据 axis，取当前尺寸
-//     let currentVal = 0;
-//     if (axis === 'width') currentVal = width;
-//     if (axis === 'height') currentVal = height;
-//     if (axis === 'depth') currentVal = depth;
-
-//     // 更新面板UI
-//     stretchObjectNameSpan.innerText = mesh.name || '(unnamed)';
-//     stretchFaceAxisSpan.innerText = axis.toUpperCase();
-//     stretchCurrentSizeSpan.innerText = currentVal.toFixed(1);
-//     stretchSizeInput.value = currentVal.toFixed(1);
-
-//     // 显示面板
-//     stretchPanel.style.display = 'block';
-// }
-
-// =============================
-// 用户点击 "Apply" 按钮时，更新几何
-// =============================
-// applyStretchBtn.addEventListener('click', () => {
-//     if (!pickedMeshForStretch || !pickedFaceAxis) return;
-
-//     // 从输入框取新的尺寸
-//     const newVal = parseFloat(stretchSizeInput.value);
-//     if (isNaN(newVal) || newVal <= 0) {
-//         alert('Invalid number');
-//         return;
-//     }
-//     // 在 metaData 里找这个mesh对应的 objectName，更新其 axis
-//     updateDimensionInMeta(furnitureData.meta, pickedMeshForStretch.name, pickedFaceAxis, newVal);
-//     // 然后重新渲染
-//     render_furniture(furnitureData, connectionData);
-//     alert('Dimension updated and re-rendered!');
-// });
 
 
 // 更新显示文字
@@ -2283,9 +2275,53 @@ function onPointerDown() {
 
 function switchmode(event) {
     if (event.key === 'c' || event.key === 'C') {
-        changeConnectState()
+        changeConnectState();
+        return;
     } else if (event.key === 'T' || event.key === 't') {
         changeStretchState()
+        return;
+    }
+
+    if (selectedMesh && ['x', 'X', 'y', 'Y', 'z', 'Z'].includes(event.key)) {
+        let axis = null;
+        let delta = 0;
+        const STEP = 10; // 每次变化 10mm，可根据需求调整
+        switch (event.key) {
+            case 'x':
+                axis = 'width';
+                delta = +STEP;
+                break;
+            case 'X':
+                axis = 'width';
+                delta = -STEP;
+                break;
+            case 'y':
+                axis = 'height';
+                delta = +STEP;
+                break;
+            case 'Y':
+                axis = 'height';
+                delta = -STEP;
+                break;
+            case 'z':
+                axis = 'depth';
+                delta = +STEP;
+                break;
+            case 'Z':
+                axis = 'depth';
+                delta = -STEP;
+                break;
+            default:
+                break;
+        }
+        // 如果当前选中对象没有可调整的几何数据，则不执行
+        if (!selectedMesh.geometry || !selectedMesh.geometry.parameters) {
+            console.warn("Selected object is not a valid mesh with dimensions.");
+            return;
+        }
+        const oldVal = selectedMesh.geometry.parameters[axis];
+        const newVal = Math.max(oldVal + delta, 1); // 保证尺寸不小于1mm
+        setMeshDimension(selectedMesh.name, axis, newVal);
     }
 }
 

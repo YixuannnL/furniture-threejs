@@ -769,3 +769,21 @@ export function filterConnData(conn_data) {
     });
     return conn_data;
 }
+
+
+/**
+ * 在 furnitureData.meta 中递归找到名为 targetName 的 meta
+ * @return {Object|null} 找不到则返回 null
+ */
+export function findMetaByName(rootMeta, targetName) {
+    if (rootMeta.object === targetName) {
+        return rootMeta;
+    }
+    if (rootMeta.children && Array.isArray(rootMeta.children)) {
+        for (const child of rootMeta.children) {
+            const r = findMetaByName(child.meta, targetName);
+            if (r) return r;
+        }
+    }
+    return null;
+}
