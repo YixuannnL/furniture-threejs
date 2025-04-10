@@ -67,39 +67,82 @@ function detectAndDisplayOverlap() {
         }
     });
 
-    const threshold = 0.75; // 当交集体积占较小 Mesh 的体积超过 75% 时认为重叠严重
-    let messages = [];
+    const threshold = 0.75; // 超过 75% 认为严重重叠
+    let overlapItems = [];
 
     // 两两比较
     for (let i = 0; i < meshes.length; i++) {
-        // 为每个 Mesh 计算包围盒（世界坐标）
         let boxA = new THREE.Box3().setFromObject(meshes[i]);
         let volA = computeBoxVolume(boxA);
         for (let j = i + 1; j < meshes.length; j++) {
             let boxB = new THREE.Box3().setFromObject(meshes[j]);
             let volB = computeBoxVolume(boxB);
-            // 若两个包围盒不相交，则不考虑
             if (!boxA.intersectsBox(boxB)) continue;
 
-            // 计算两者交集区域
             let intersectionBox = boxA.clone().intersect(boxB);
-            // 若交集为空，则跳过
             if (intersectionBox.isEmpty()) continue;
 
             let interVol = computeBoxVolume(intersectionBox);
-            // 取较小的体积来计算重叠比例
             let ratio = interVol / Math.min(volA, volB);
             if (ratio > threshold) {
-                let percentage = (ratio * 100).toFixed(0);
-                messages.push(`${meshes[i].name} 与 ${meshes[j].name} 重叠 ${percentage}%`);
+                overlapItems.push({
+                    meshA: meshes[i].name,
+                    meshB: meshes[j].name,
+                    ratio: ratio
+                });
             }
         }
     }
 
-    if (messages.length === 0) {
-        overlapListDiv.innerHTML = "未检测到严重重叠的 Mesh。";
+    // 清空现有显示内容
+    overlapListDiv.innerHTML = "";
+
+    if (overlapItems.length === 0) {
+        const p = document.createElement("p");
+        p.textContent = "未检测到严重重叠的 Mesh。";
+        overlapListDiv.appendChild(p);
     } else {
-        overlapListDiv.innerHTML = messages.join("<br>");
+        overlapItems.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "overlap-item";
+
+            // 创建 meshA 对应的 clickable span
+            const spanA = document.createElement("span");
+            spanA.textContent = item.meshA;
+            spanA.style.color = "blue";
+            spanA.style.cursor = "pointer";
+            spanA.style.textDecoration = "underline";
+            spanA.addEventListener("click", () => {
+                const meshObj = objectsByName[item.meshA];
+                if (meshObj) {
+                    selectMesh(meshObj);
+                }
+            });
+
+            // 创建 meshB 对应的 clickable span
+            const spanB = document.createElement("span");
+            spanB.textContent = item.meshB;
+            spanB.style.color = "blue";
+            spanB.style.cursor = "pointer";
+            spanB.style.textDecoration = "underline";
+            spanB.addEventListener("click", () => {
+                const meshObj = objectsByName[item.meshB];
+                if (meshObj) {
+                    selectMesh(meshObj);
+                }
+            });
+
+            // 组装提示文本
+            const textNode = document.createTextNode(" 与 ");
+            const textNode2 = document.createTextNode(" 重叠 " + (item.ratio * 100).toFixed(0) + "%");
+
+            div.appendChild(spanA);
+            div.appendChild(textNode);
+            div.appendChild(spanB);
+            div.appendChild(textNode2);
+
+            overlapListDiv.appendChild(div);
+        });
     }
 }
 
