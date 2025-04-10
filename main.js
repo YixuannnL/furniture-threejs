@@ -1980,29 +1980,14 @@ function onPointerMove(event) {
     }
 }
 
-// 计算“meshA在axis方向需要变成多长，才能让A的这个面平齐到meshB那面”
-// 原理：
-//   - 拿到A面在世界空间的“对侧面”点 planeA_oppo
-//   - 拿到B面在世界空间的planeB
-//   - distance = 投影到axis方向(planeB - planeA_oppo)
-//   - A.dimensions[axis] = distance
+/**
+ * 让 meshA 的 faceIndexA 这面，移动过去对齐 meshB 的 faceIndexB；
+ * 效果：meshA 只在那一面进行伸缩，A的对侧面保持在原世界坐标不动。
+ */
 function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
-    // 1) 找出A的 axisA, signA
-    const { axis: axisA, sign: signA } = Utils.getFaceAxisAndSign(meshA, faceIndexA); // 这个函数没有问题
-    if (!axisA) return;
-    // console.log("axisA:", axisA, signA);
-    // 保存 oldVal
-    const oldVal = meshA.geometry.parameters[axisA];
-
-    // 2) 找出B的世界空间“中心点” planeB_center
-    //    同理 A面与对侧面各自中心点 planeA_center / planeA_oppo_center
-    //    这里用 boundingBox 或者用 geometry顶点来算中心
-    meshA.updateMatrixWorld(true);
-    meshB.updateMatrixWorld(true);
-
-    // =========== 获取某个面的中心(世界坐标) ===========
-    function getFaceCenterWorld(mesh, rawFaceIndex) {
-        const { axis, sign } = Utils.getFaceAxisAndSign(mesh, rawFaceIndex);
+    console.log("test:", faceIndexA, faceIndexB);
+    function getFaceCenterWorld(mesh, rawFaceIndex, eor = false) {
+        const { axis, sign } = Utils.getFaceAxisAndSign(mesh, rawFaceIndex, eor);
         const half = mesh.geometry.parameters[axis] * 0.5;
         let centerLocal = new THREE.Vector3(0, 0, 0);
         if (axis === 'width') centerLocal.x = sign * half;
@@ -2011,39 +1996,90 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
         return mesh.localToWorld(centerLocal.clone());
     }
 
-    const A_faceCenter_oppo = getFaceCenterWorld(meshA, faceIndexA ^ 1);
-    const B_faceCenter = getFaceCenterWorld(meshB, faceIndexB);
+    // 1) 识别 A 的面对应的轴 + 正负号
+    //    注意你已有的 getFaceAxisAndSign(mesh, faceIndex) 函数
+    const { axis: axisA, sign: signA } = Utils.getFaceAxisAndSign(meshA, faceIndexA);
 
-    console.log("face_center", A_faceCenter_oppo, B_faceCenter);
-
-    let diffVec = new THREE.Vector3().subVectors(B_faceCenter, A_faceCenter_oppo);
-    let delta = 0;
-    if (axisA == 'width') delta = diffVec.x;
-    if (axisA === 'height') delta = diffVec.y;
-    if (axisA === 'depth') delta = diffVec.z;
-    delta = delta * signA;
-
-    // 遍历所有的连接关系 如果另一端有连接关系，那么delta = delta * 2，否则保持原值
-    // 如果本端有连接关系 那么就无法伸缩 报错！
-    // @TODO!!!
-    const newVal = oldVal + delta;
-    if (newVal < 0) {
-        alert('Invalid Stretch!');
+    // 如果取不到 axis，说明 faceIndex 有误
+    if (!axisA) {
+        console.warn('Cannot detect axis from faceIndexA, skip');
+        return;
     }
 
+    // 2) 在世界坐标下，拿到 A 的 [chosen 面] 与 [anchor 面] 的中心
+    //    chosen 面 = faceIndexA
+    //    anchor 面 = faceIndexA ^ 1 (对侧面)
+    const chosenFaceCenter_before = getFaceCenterWorld(meshA, faceIndexA);
+    const anchorFaceCenter_before = getFaceCenterWorld(meshA, faceIndexA, true);
+
+    // 3) B 的那面中心
+    const targetFaceCenter = getFaceCenterWorld(meshB, faceIndexB);
+
+    // 4) oldVal = A 在 axisA 方向的现有长度
+    const oldVal = meshA.geometry.parameters[axisA];
+
+    // 5) 计算 newVal:
+    //    核心思路：anchor 点保持不动 -> chosen 面移动到 target
+    //    => newVal = distance( anchorFaceCenter_before → targetFaceCenter ) 在 axisA 方向上的分量
+    //    具体要考虑 signA(如果 chosen 面是 + 号那侧，计算 delta = (target - anchor).dot(axisDirection)；
+    //    如果是 - 号那侧，也可加以区分，但常用绝对值来保证长度是正。
+
+    // 这里假设场景没旋转或都对齐，仅需看 x/y/z 分量
+    // 如果有任意旋转，需要更复杂的 localAxis 变换，这里先简化处理
+    let deltaVec = new THREE.Vector3().subVectors(targetFaceCenter, chosenFaceCenter_before);
+    let axisDir = new THREE.Vector3(0, 0, 0);
+    if (axisA === 'width') axisDir.set(1, 0, 0);   // x
+    if (axisA === 'height') axisDir.set(0, 1, 0);   // y
+    if (axisA === 'depth') axisDir.set(0, 0, 1);   // z
+
+    // dot 可以得出在 axisDir 上的投影长度
+    let delta = deltaVec.dot(axisDir);
+    // 最终长度
+    let newVal = oldVal + (delta * signA);  // signA 通常是 +1 或 -1
+    if (newVal < 1) {
+        newVal = 1; // 做个最小值限制，避免出现负数或太小
+    }
+
+    // 6) 更新 geometry.parameters[axisA] 并刷新 furnitureData 里的值
     updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newVal);
 
+    // 7) 重新渲染一次，让 meshA 几何尺寸更新
+    //    注意：render_furniture(...) 会 recreate Mesh，所以需要先记录 anchorFaceCenter_before
+    //    再 render 后，需要再拿到新的 meshA
+    // console.log("before:", objectsByName[meshA.name]);
     render_furniture(furnitureData, connectionData);
 
-    // *** 记录到 dimensionChangeLog
+
+    // 现在，从 objectsByName 里重新获取新的 meshA
+    const newMeshA = objectsByName[meshA.name];
+
+    // console.log("after:", objectsByName[meshA.name]);
+    if (!newMeshA) return;
+
+    newMeshA.updateMatrixWorld(true);
+
+    // 8) 现在 newMeshA 具有新的尺寸，但它的 center 依然在(0,0,0)；chosen/anchor 都会一起移动
+    //    => 我们要把 anchor 面移回原先 anchorFaceCenter_before
+    //    => 先计算 anchor 面 (faceIndexA ^ 1) 在此刻新的世界坐标 anchorFaceCenter_after
+    const anchorFaceCenter_after = getFaceCenterWorld(newMeshA, faceIndexA, true);
+    // console.log("index:", faceIndexA, faceIndexA ^ 1);
+    console.log("newmeshA:", newMeshA);
+    console.log("before:", anchorFaceCenter_before);
+    console.log("after:", anchorFaceCenter_after);
+
+    // offset = before - after
+    const offset = new THREE.Vector3().subVectors(anchorFaceCenter_before, anchorFaceCenter_after);
+
+    // 让 newMeshA 整体平移
+    newMeshA.position.add(offset);
+
+    // 记录到 dimensionChangeLog
     dimensionChangeLog.push({
-        meshName: meshA.name,
+        meshName: newMeshA.name,
         axis: axisA,
         oldVal: oldVal,
         newVal: newVal
     });
-
-    // *** new code: 更新显示
     renderDimensionChangeLog();
 }
 

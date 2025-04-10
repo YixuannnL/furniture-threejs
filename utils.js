@@ -174,10 +174,13 @@ export function getObjectType(dimensions) {
 }
 
 // 帮助函数：根据 (faceIndex // 2) 找拉伸轴 axis + 正负号 sign
-export function getFaceAxisAndSign(mesh, rawFaceIndex) {
+export function getFaceAxisAndSign(mesh, rawFaceIndex, eor = false) {
     // 先把faceIndex 归一化到0~5
-    console.log("HERE");
-    const faceIndex = Math.floor(rawFaceIndex / 2);
+    // console.log("HERE");
+    let faceIndex = Math.floor(rawFaceIndex / 2);
+    if (eor) {
+        faceIndex = faceIndex ^ 1;
+    }
 
     // 0和1 => +/- X
     // 2和3 => +/- Y
@@ -185,7 +188,7 @@ export function getFaceAxisAndSign(mesh, rawFaceIndex) {
     // 你也可以沿用自己已经写的 getFaceAxisByIndex() 来取 axis, sign
     let axis = null;
     let sign = null;
-    console.log("faceindex", faceIndex);
+    // console.log("faceindex", faceIndex);
     if (faceIndex === 0) { axis = 'width'; sign = +1; }
     else if (faceIndex === 1) { axis = 'width'; sign = -1; }
     else if (faceIndex === 2) { axis = 'height'; sign = +1; }
