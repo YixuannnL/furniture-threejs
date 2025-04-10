@@ -13,6 +13,17 @@ let connectionData = Utils.filterConnData(ConnData);
 
 // console.log("NOW:", connectionData);
 
+// 用来记录：当前是否在按住某个键做拉伸，拉伸的是哪个轴
+let scalingAxis = null;        // 取值 'width' | 'height' | 'depth' | null
+let scalingStartDim = 0;       // 该轴的初始尺寸
+let scalingStartMouseX = 0;    // 按下键时的鼠标 X
+let scalingMeshName = null;    // 正在被缩放的 mesh 名称
+
+// 存一下最近一次 mousemove 的位置，给按下键时初始化用
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+
 let editingConnections = new Map();
 let selectedMesh = null;     // 当前选中的 mesh（高亮+前置）
 
@@ -1832,7 +1843,31 @@ function pointToSegmentDistance(point, start, end) {
     return { dist, closestPoint };
 }
 
+function setMeshDimensionNoLog(meshName, axis, newVal) {
+    updateDimensionAndOffsetInMeta(furnitureData.meta, meshName, axis, newVal);
+    render_furniture(furnitureData, connectionData);
+}
+
+
 function onPointerMove(event) {
+
+    // 记录当前鼠标位置（方便 keydown 时用）
+    lastMouseX = event.clientX;
+    lastMouseY = event.clientY;
+
+    // 如果处于拉伸状态，则实时更新尺寸
+    if (scalingAxis !== null && scalingMeshName) {
+        // 计算从按下到当前的鼠标水平位移
+        const dx = event.clientX - scalingStartMouseX;
+        // 假设 1 像素 = 1 mm（可根据需要加缩放系数 如下）
+        const scaleFactor = 1; // 表示鼠标移动1px => 1mm
+        let newVal = scalingStartDim + dx * scaleFactor;
+        if (newVal < 1) newVal = 1; // 避免小于 1mm
+        setMeshDimensionNoLog(scalingMeshName, scalingAxis, newVal);
+        // 在拉伸状态下，不执行其他逻辑
+        return;
+    }
+
     // 如果不是“连接模式”，就隐藏标记，返回
     if (currentMode !== 'connect') {
         snappingMarker.visible = false;
@@ -2276,52 +2311,74 @@ function onPointerDown() {
 function switchmode(event) {
     if (event.key === 'c' || event.key === 'C') {
         changeConnectState();
-        return;
     } else if (event.key === 'T' || event.key === 't') {
         changeStretchState()
+    }
+    else {
+        const key = event.key.toLowerCase();
+        if (['x', 'y', 'z'].includes(key)) {
+            // 必须已经选中了某个 Mesh，否则不操作
+            if (!selectedMesh) return;
+            // 如果已经在进行拉伸操作，忽略重复触发
+            if (scalingAxis) return;
+            let axis = null;
+            if (key === 'x') axis = 'width';
+            if (key === 'y') axis = 'height';
+            if (key === 'z') axis = 'depth';
+
+            // 如果不是 x/y/z，则不处理
+            if (!axis) return;
+            scalingAxis = key === 'x' ? 'width' : key === 'y' ? 'height' : 'depth';
+
+            // 判断选中对象是否有 BoxGeometry
+            const geom = selectedMesh.geometry;
+            if (!geom || !geom.parameters) {
+                console.warn('Selected object is not a Mesh with BoxGeometry; cannot scale by axis.');
+                return;
+            }
+            // 记录状态
+            scalingAxis = axis;
+            scalingStartDim = geom.parameters[axis];  // 该轴当前尺寸
+            scalingStartMouseX = lastMouseX;          // 记下当前鼠标X
+            scalingMeshName = selectedMesh.name;      // 记录 mesh 名
+        }
+    }
+}
+
+function onKeyUp(event) {
+    // 若当前并未处于缩放状态，或按的键并不是 x/y/z，就不做事
+    if (!scalingAxis) return;
+
+    const key = event.key.toLowerCase();
+    if (key !== 'x' && key !== 'y' && key !== 'z') {
         return;
     }
+    // 只有当松开的键与 scalingAxis 对应时，才结束
+    // 比如 scalingAxis='width' 对应 'x'
+    if ((scalingAxis === 'width' && key === 'x') ||
+        (scalingAxis === 'height' && key === 'y') ||
+        (scalingAxis === 'depth' && key === 'z')) {
 
-    if (selectedMesh && ['x', 'X', 'y', 'Y', 'z', 'Z'].includes(event.key)) {
-        let axis = null;
-        let delta = 0;
-        const STEP = 10; // 每次变化 10mm，可根据需求调整
-        switch (event.key) {
-            case 'x':
-                axis = 'width';
-                delta = +STEP;
-                break;
-            case 'X':
-                axis = 'width';
-                delta = -STEP;
-                break;
-            case 'y':
-                axis = 'height';
-                delta = +STEP;
-                break;
-            case 'Y':
-                axis = 'height';
-                delta = -STEP;
-                break;
-            case 'z':
-                axis = 'depth';
-                delta = +STEP;
-                break;
-            case 'Z':
-                axis = 'depth';
-                delta = -STEP;
-                break;
-            default:
-                break;
+        // 在此时可以做一次「最终尺寸」的变更日志记录
+        const mesh = objectsByName[scalingMeshName];
+        if (mesh && mesh.geometry && mesh.geometry.parameters) {
+            const finalDim = mesh.geometry.parameters[scalingAxis];
+            // 写日志
+            dimensionChangeLog.push({
+                meshName: scalingMeshName,
+                axis: scalingAxis,
+                oldVal: scalingStartDim,   // 初始大小
+                newVal: finalDim          // 最终大小
+            });
+            renderDimensionChangeLog();
         }
-        // 如果当前选中对象没有可调整的几何数据，则不执行
-        if (!selectedMesh.geometry || !selectedMesh.geometry.parameters) {
-            console.warn("Selected object is not a valid mesh with dimensions.");
-            return;
-        }
-        const oldVal = selectedMesh.geometry.parameters[axis];
-        const newVal = Math.max(oldVal + delta, 1); // 保证尺寸不小于1mm
-        setMeshDimension(selectedMesh.name, axis, newVal);
+
+        // 结束缩放状态
+        // console.log(`End scaling on axis=${scalingAxis}`);
+        scalingAxis = null;
+        scalingMeshName = null;
+        scalingStartDim = 0;
+        scalingStartMouseX = 0;
     }
 }
 
@@ -2329,6 +2386,7 @@ window.addEventListener('mousedown', onPointerDown, false);
 window.addEventListener('mousemove', onPointerMove, false);
 window.addEventListener('mouseup', onPointerUp, false);
 window.addEventListener('keydown', switchmode, false);
+window.addEventListener('keyup', onKeyUp, false);
 
 updateInfo();
 
