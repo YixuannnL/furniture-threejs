@@ -1552,12 +1552,48 @@ function renderDimensionChangeLog() {
     const container = document.getElementById('dimensionLogInner');
     if (!container) return;
     container.innerHTML = '';
+
     dimensionChangeLog.forEach((record, idx) => {
-        const line = document.createElement('div');
-        line.textContent = `[${idx + 1}] Mesh "${record.meshName}" axis "${record.axis}" changed from ${record.oldVal.toFixed(2)} to ${record.newVal.toFixed(2)}`;
-        container.appendChild(line);
+        // 创建一行
+        const row = document.createElement('div');
+
+        // 显示文字
+        const textSpan = document.createElement('span');
+        textSpan.textContent = `[${idx + 1}] Mesh "${record.meshName}" axis "${record.axis}" changed from ${record.oldVal.toFixed(2)} to ${record.newVal.toFixed(2)}`;
+        row.appendChild(textSpan);
+
+        // ★★★ 新增: 删除按钮 ★★★
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.style.marginLeft = '8px';
+        removeBtn.addEventListener('click', () => {
+            removeDimensionChangeLogItem(idx);
+        });
+        row.appendChild(removeBtn);
+
+        container.appendChild(row);
     });
 }
+
+// ★★★ 新增：删除dimensionChangeLog里某一项，并恢复Meta数据 ★★★
+function removeDimensionChangeLogItem(index) {
+    const record = dimensionChangeLog[index];
+    if (!record) return; // 防御
+
+    // 1) 恢复此记录对应的oldVal
+    updateDimensionAndOffsetInMeta(furnitureData.meta, record.meshName, record.axis, record.oldVal);
+
+    // 2) 从数组中移除这条变更记录
+    dimensionChangeLog.splice(index, 1);
+
+    // 3) 重新渲染场景
+    render_furniture(furnitureData, connectionData);
+
+    // 4) 重新刷新日志面板
+    renderDimensionChangeLog();
+}
+
+
 
 
 // ===============================
