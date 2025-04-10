@@ -12,6 +12,10 @@ let furnitureData = jsonData;
 let connectionData = Utils.filterConnData(ConnData);
 
 
+
+// 用来暂存 pointermove 中算出的“吸附后位置”
+let tempSnappedLocalPos = null;
+let tempSnappedMesh = null;
 // 全局变量，保证仅初始渲染时显示一次提示
 let initialOverlappingChecked = false;
 
@@ -1976,6 +1980,8 @@ function onPointerMove(event) {
     // 如果不是“连接模式”，就隐藏标记，返回
     if (currentMode !== 'connect') {
         snappingMarker.visible = false;
+        tempSnappedLocalPos = null;
+        tempSnappedMesh = null;
         return;
     }
 
@@ -1992,6 +1998,8 @@ function onPointerMove(event) {
     // 其余阶段都不显示球
     if (connectState !== 1 && connectState !== 3) {
         snappingMarker.visible = false;
+        tempSnappedLocalPos = null;
+        tempSnappedMesh = null;
         return;
     }
 
@@ -2006,6 +2014,8 @@ function onPointerMove(event) {
         targetMesh = secondMesh;
     } else {
         snappingMarker.visible = false;
+        tempSnappedLocalPos = null;
+        tempSnappedMesh = null;
         return;
     }
 
@@ -2013,7 +2023,6 @@ function onPointerMove(event) {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
-
     const intersects = raycaster.intersectObjects(scene.children, true);
 
     if (intersects.length > 0) {
@@ -2024,6 +2033,8 @@ function onPointerMove(event) {
 
         if (!hit) {
             snappingMarker.visible = false;
+            tempSnappedLocalPos = null;
+            tempSnappedMesh = null;
             return;
         }
 
@@ -2048,6 +2059,8 @@ function onPointerMove(event) {
         if (bestCornerDist < CORNER_THRESHOLD) {
             // 如果最近角点在阈值范围内，吸附到角点
             showSnappedMarker(targetMesh, bestCornerPos, 'corner');
+            tempSnappedLocalPos = bestCornerPos.clone();
+            tempSnappedMesh = targetMesh;
             return; // 直接结束，不再检查边/网格
         }
 
@@ -2069,6 +2082,8 @@ function onPointerMove(event) {
         if (bestEdgeDist < EDGE_THRESHOLD) {
             // 吸附到该边最近点
             showSnappedMarker(targetMesh, bestEdgePoint, 'edge');
+            tempSnappedLocalPos = bestEdgePoint.clone();
+            tempSnappedMesh = targetMesh;
             return; // 结束，不再检查网格
         }
 
@@ -2077,11 +2092,14 @@ function onPointerMove(event) {
         localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
         localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
         localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
-
         showSnappedMarker(targetMesh, localPos, 'grid');
+        tempSnappedLocalPos = localPos.clone();
+        tempSnappedMesh = targetMesh;
     } else {
         // 没有命中任何对象，就隐藏
         snappingMarker.visible = false;
+        tempSnappedLocalPos = null;
+        tempSnappedMesh = null;
     }
 }
 
@@ -2254,20 +2272,19 @@ function onPointerUp(event) {
                 // 如果点到别的物体 或 空白
                 // if (hitObject !== firstMesh) {
                 const hit = intersects.find(item => item.object == firstMesh)
-                if (!hit) {
+                if (!tempSnappedLocalPos || tempSnappedMesh !== firstMesh) {
                     // 取消选中 & 重置
                     resetConnectProcess();
                 } else {
                     // 点到 firstMesh => 这是 anchor
-                    const hitPoint = hit.point.clone();
-                    // 吸附
-                    let localPos = firstMesh.worldToLocal(hitPoint);
-                    localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
-                    localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
-                    localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+                    // const hitPoint = hit.point.clone();
+                    // // 吸附
+                    // let localPos = firstMesh.worldToLocal(hitPoint);
+
+                    const localPos = tempSnappedLocalPos.clone();
+                    firstAnchor.copy(firstMesh.localToWorld(localPos.clone()));
                     firstAnchorStr = getAnchorDescription(firstMesh, localPos); //这个函数有问题
                     firstMeshType = Utils.getObjectType({ width: firstMesh.geometry.parameters.width, height: firstMesh.geometry.parameters.height, depth: firstMesh.geometry.parameters.depth })
-                    firstAnchor.copy(firstMesh.localToWorld(localPos.clone()));
 
                     connectState = 2; // 等待选第二物体
                 }
@@ -2301,18 +2318,19 @@ function onPointerUp(event) {
             if (intersects.length > 0) {
                 // const hitObject = intersects[0].object;
                 const hit = intersects.find(item => item.object == secondMesh)
-                if (!hit) {
+                if (!tempSnappedLocalPos || tempSnappedMesh !== secondMesh) {
                     resetConnectProcess();
                 } else {
                     // 点到 secondMesh => anchor
-                    const hitPoint = hit.point.clone();
-                    let localPos = secondMesh.worldToLocal(hitPoint);
-                    localPos.x = SNAP_STEP * Math.round(localPos.x / SNAP_STEP);
-                    localPos.y = SNAP_STEP * Math.round(localPos.y / SNAP_STEP);
-                    localPos.z = SNAP_STEP * Math.round(localPos.z / SNAP_STEP);
+                    // const hitPoint = hit.point.clone();
+                    // let localPos = secondMesh.worldToLocal(hitPoint);
+
+                    const localPos = tempSnappedLocalPos.clone();
+                    secondAnchor.copy(secondMesh.localToWorld(localPos.clone()));
+
                     let secondAnchorStr = getAnchorDescription(secondMesh, localPos);
                     let secondMeshType = Utils.getObjectType({ width: secondMesh.geometry.parameters.width, height: secondMesh.geometry.parameters.height, depth: secondMesh.geometry.parameters.depth })
-                    secondAnchor.copy(secondMesh.localToWorld(localPos.clone()));
+
 
                     const firstConnStr = `<${firstMesh.name}><${firstMeshType}>[${firstAnchorStr}]`
                     const secondConnStr = `<${secondMesh.name}><${secondMeshType}>[${secondAnchorStr}]`
