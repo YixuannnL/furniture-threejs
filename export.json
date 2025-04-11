@@ -1,0 +1,871 @@
+{
+  "furnitureData": {
+    "meta": {
+      "object": "bookcase",
+      "object_type": "group",
+      "dimensions": {
+        "width": 900,
+        "height": 1800,
+        "depth": 420
+      },
+      "children": [
+        {
+          "meta": {
+            "object": "bookcase_frame",
+            "object_type": "group",
+            "dimensions": {
+              "width": 900,
+              "height": 1800,
+              "depth": 420
+            },
+            "children": [
+              {
+                "meta": {
+                  "object": "back_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 900,
+                    "height": 1800,
+                    "depth": 3
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "left_side_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 3,
+                    "height": 1800,
+                    "depth": 420
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "right_side_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 3,
+                    "height": 1800,
+                    "depth": 420
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "top_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 900,
+                    "height": 3,
+                    "depth": 420
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "bottom_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 900,
+                    "height": 3,
+                    "depth": 420
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "horizontal_divide_shelf_cabinet_panel",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 900,
+                    "height": 3,
+                    "depth": 420
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "meta": {
+            "object": "bookcase_base",
+            "object_type": "board",
+            "dimensions": {
+              "width": 900,
+              "height": 3,
+              "depth": 420
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "bookcase_shelves",
+            "object_type": "group",
+            "children": [
+              {
+                "meta": {
+                  "object": "uppermost_shelf",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 894,
+                    "height": 3,
+                    "depth": 414
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "adjustable_shelf_1",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 894,
+                    "height": 3,
+                    "depth": 414
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "adjustable_shelf_2",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 894,
+                    "height": 3,
+                    "depth": 414
+                  }
+                }
+              },
+              {
+                "meta": {
+                  "object": "adjustable_shelf_3",
+                  "object_type": "board",
+                  "dimensions": {
+                    "width": 894,
+                    "height": 3,
+                    "depth": 414
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "meta": {
+            "object": "cabinet_door_left",
+            "object_type": "board",
+            "dimensions": {
+              "width": 446,
+              "height": 594,
+              "depth": 18
+            }
+          }
+        },
+        {
+          "meta": {
+            "object": "cabinet_door_right",
+            "object_type": "board",
+            "dimensions": {
+              "width": 446,
+              "height": 594,
+              "depth": 18
+            }
+          }
+        }
+      ]
+    }
+  },
+  "connectionData": {
+    "data": [
+      {
+        "bookcase_shelves": "<Adjustable_Shelf_3><Board>[<LeftFace>]",
+        "bookcase_frame": "<Back_Panel><Board>[<RightFace>]"
+      },
+      {
+        "left_side_panel": "<Left_Side_Panel><Board>[<BackFace>]",
+        "back_panel": "<Back_Panel><Board>[<LeftFace>]"
+      },
+      {
+        "right_side_panel": "<Right_Side_Panel><Board>[<BackFace>]",
+        "back_panel": "<Back_Panel><Board>[<RightFace>]"
+      },
+      {
+        "top_panel": "<Top_Panel><Board>[<BackFace>]",
+        "back_panel": "<Back_Panel><Board>[<TopFace>]"
+      },
+      {
+        "bottom_panel": "<Bottom_Panel><Board>[<BackFace>]",
+        "back_panel": "<Back_Panel><Board>[<BottomFace>]"
+      },
+      {
+        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]",
+        "back_panel": "<Back_Panel><Board>[<FrontFace>]"
+      },
+      {
+        "top_panel": "<Top_Panel><Board>[<LeftFace>]",
+        "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
+      },
+      {
+        "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
+        "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
+      },
+      {
+        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]",
+        "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
+      },
+      {
+        "top_panel": "<Top_Panel><Board>[<RightFace>]",
+        "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
+      },
+      {
+        "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
+        "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
+      },
+      {
+        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]",
+        "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
+      },
+      {
+        "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<BottomFace>]",
+        "uppermost_shelf": "<Uppermost_Shelf><Board>[<TopFace>]"
+      },
+      {
+        "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<BottomFace>]",
+        "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<TopFace>]"
+      },
+      {
+        "adjustable_shelf_3": "<Adjustable_Shelf_3><Board>[<BottomFace>]",
+        "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<TopFace>]"
+      },
+      {
+        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "uppermost_shelf": "<uppermost_shelf><board>[LeftFace_1/2Height_1/2Depth]"
+      },
+      {
+        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "adjustable_shelf_1": "<adjustable_shelf_1><board>[LeftFace_1/2Height_1/2Depth]"
+      },
+      {
+        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "adjustable_shelf_2": "<adjustable_shelf_2><board>[LeftFace_1/2Height_1/2Depth]"
+      },
+      {
+        "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_0Height_1/4Depth]",
+        "adjustable_shelf_2": "<adjustable_shelf_2><board>[LeftFace_1Height_3/4Depth]"
+      },
+      {
+        "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_1/2Height_1/4Depth]",
+        "adjustable_shelf_3": "<adjustable_shelf_3><board>[LeftFace_1/2Height_3/4Depth]"
+      }
+    ],
+    "meta_data": [
+      {
+        "row_headers": [
+          "",
+          "Bookcase_Frame",
+          "Bookcase_Base",
+          "Bookcase_Shelves",
+          "Cabinet_Door_Left",
+          "Cabinet_Door_Right"
+        ],
+        "column_header": [
+          "Bookcase_Frame",
+          "Bookcase_Frame",
+          "Bookcase_Frame",
+          "Bookcase_Frame",
+          "Bookcase_Base",
+          "Bookcase_Shelves",
+          "Cabinet_Door_Left",
+          "Cabinet_Door_Right"
+        ],
+        "title": "table_1",
+        "data": [
+          {
+            "bookcase_shelves": "<Adjustable_Shelf_3><Board>[<LeftFace>]",
+            "bookcase_frame": "<Back_Panel><Board>[<RightFace>]"
+          },
+          {
+            "bookcase_frame": "<Bottom_Panel><Board>[<TopFace>]",
+            "bookcase_base": ""
+          },
+          {
+            "bookcase_frame": "<Left_Side_Panel><Board>[<RightFace>]",
+            "cabinet_door_left": ""
+          },
+          {
+            "bookcase_frame": "<Right_Side_Panel><Board>[<LeftFace>]",
+            "cabinet_door_right": ""
+          }
+        ]
+      },
+      {
+        "row_headers": [
+          "",
+          "Back_Panel",
+          "Left_Side_Panel",
+          "Right_Side_Panel",
+          "Top_Panel",
+          "Bottom_Panel",
+          "Horizontal_Divide_Shelf_Cabinet_Panel"
+        ],
+        "column_header": [
+          "Back_Panel",
+          "Left_Side_Panel",
+          "Right_Side_Panel",
+          "Top_Panel",
+          "Bottom_Panel",
+          "Horizontal_Divide_Shelf_Cabinet_Panel"
+        ],
+        "title": "table_2",
+        "data": [
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<BackFace>]",
+            "back_panel": "<Back_Panel><Board>[<LeftFace>]"
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<BackFace>]",
+            "back_panel": "<Back_Panel><Board>[<RightFace>]"
+          },
+          {
+            "top_panel": "<Top_Panel><Board>[<BackFace>]",
+            "back_panel": "<Back_Panel><Board>[<TopFace>]"
+          },
+          {
+            "bottom_panel": "<Bottom_Panel><Board>[<BackFace>]",
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]"
+          },
+          {
+            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]",
+            "back_panel": "<Back_Panel><Board>[<FrontFace>]"
+          },
+          {
+            "top_panel": "<Top_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
+          },
+          {
+            "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
+          },
+          {
+            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
+          },
+          {
+            "top_panel": "<Top_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
+          },
+          {
+            "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
+          },
+          {
+            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
+          }
+        ]
+      },
+      {
+        "row_headers": [
+          "",
+          "Uppermost_Shelf",
+          "Adjustable_Shelf_1",
+          "Adjustable_Shelf_2",
+          "Adjustable_Shelf_3"
+        ],
+        "column_header": [
+          "Uppermost_Shelf",
+          "Adjustable_Shelf_1",
+          "Adjustable_Shelf_2",
+          "Adjustable_Shelf_3"
+        ],
+        "title": "table_3",
+        "data": [
+          {
+            "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<BottomFace>]",
+            "uppermost_shelf": "<Uppermost_Shelf><Board>[<TopFace>]"
+          },
+          {
+            "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<BottomFace>]",
+            "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<TopFace>]"
+          },
+          {
+            "adjustable_shelf_3": "<Adjustable_Shelf_3><Board>[<BottomFace>]",
+            "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<TopFace>]"
+          }
+        ]
+      }
+    ]
+  },
+  "orientationData": {
+    "objectName": "bookcase",
+    "childrenOrientation": [
+      {
+        "objectA": "bookcase_frame",
+        "objectB": "bookcase_base",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "bookcase_base",
+        "objectB": "bookcase_frame",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_frame",
+        "objectB": "bookcase_shelves",
+        "relation": [
+          "<Right>",
+          "<Back>"
+        ]
+      },
+      {
+        "objectA": "bookcase_shelves",
+        "objectB": "bookcase_frame",
+        "relation": [
+          "<Left>",
+          "<Front>"
+        ]
+      },
+      {
+        "objectA": "bookcase_frame",
+        "objectB": "cabinet_door_left",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_left",
+        "objectB": "bookcase_frame",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_frame",
+        "objectB": "cabinet_door_right",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_right",
+        "objectB": "bookcase_frame",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_base",
+        "objectB": "bookcase_shelves",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_shelves",
+        "objectB": "bookcase_base",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "bookcase_base",
+        "objectB": "cabinet_door_left",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_left",
+        "objectB": "bookcase_base",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_base",
+        "objectB": "cabinet_door_right",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_right",
+        "objectB": "bookcase_base",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_shelves",
+        "objectB": "cabinet_door_left",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_left",
+        "objectB": "bookcase_shelves",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "bookcase_shelves",
+        "objectB": "cabinet_door_right",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_right",
+        "objectB": "bookcase_shelves",
+        "relation": [
+          "<Left>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_left",
+        "objectB": "cabinet_door_right",
+        "relation": [
+          "<Right>"
+        ]
+      },
+      {
+        "objectA": "cabinet_door_right",
+        "objectB": "cabinet_door_left",
+        "relation": [
+          "<Left>"
+        ]
+      }
+    ],
+    "children": [
+      {
+        "objectName": "bookcase_frame",
+        "childrenOrientation": [
+          {
+            "objectA": "back_panel",
+            "objectB": "left_side_panel",
+            "relation": [
+              "<Left>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "left_side_panel",
+            "objectB": "back_panel",
+            "relation": [
+              "<Right>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "back_panel",
+            "objectB": "right_side_panel",
+            "relation": [
+              "<Right>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "right_side_panel",
+            "objectB": "back_panel",
+            "relation": [
+              "<Left>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "back_panel",
+            "objectB": "top_panel",
+            "relation": [
+              "<Top>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "top_panel",
+            "objectB": "back_panel",
+            "relation": [
+              "<Bottom>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "back_panel",
+            "objectB": "bottom_panel",
+            "relation": [
+              "<Bottom>",
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "bottom_panel",
+            "objectB": "back_panel",
+            "relation": [
+              "<Top>",
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "back_panel",
+            "objectB": "horizontal_divide_shelf_cabinet_panel",
+            "relation": [
+              "<Front>"
+            ]
+          },
+          {
+            "objectA": "horizontal_divide_shelf_cabinet_panel",
+            "objectB": "back_panel",
+            "relation": [
+              "<Back>"
+            ]
+          },
+          {
+            "objectA": "left_side_panel",
+            "objectB": "right_side_panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "right_side_panel",
+            "objectB": "left_side_panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "left_side_panel",
+            "objectB": "top_panel",
+            "relation": [
+              "<Right>",
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "top_panel",
+            "objectB": "left_side_panel",
+            "relation": [
+              "<Left>",
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "left_side_panel",
+            "objectB": "bottom_panel",
+            "relation": [
+              "<Right>",
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "bottom_panel",
+            "objectB": "left_side_panel",
+            "relation": [
+              "<Left>",
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "left_side_panel",
+            "objectB": "horizontal_divide_shelf_cabinet_panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "horizontal_divide_shelf_cabinet_panel",
+            "objectB": "left_side_panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "right_side_panel",
+            "objectB": "top_panel",
+            "relation": [
+              "<Left>",
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "top_panel",
+            "objectB": "right_side_panel",
+            "relation": [
+              "<Right>",
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "right_side_panel",
+            "objectB": "bottom_panel",
+            "relation": [
+              "<Left>",
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "bottom_panel",
+            "objectB": "right_side_panel",
+            "relation": [
+              "<Right>",
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "right_side_panel",
+            "objectB": "horizontal_divide_shelf_cabinet_panel",
+            "relation": [
+              "<Left>"
+            ]
+          },
+          {
+            "objectA": "horizontal_divide_shelf_cabinet_panel",
+            "objectB": "right_side_panel",
+            "relation": [
+              "<Right>"
+            ]
+          },
+          {
+            "objectA": "top_panel",
+            "objectB": "bottom_panel",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "bottom_panel",
+            "objectB": "top_panel",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "top_panel",
+            "objectB": "horizontal_divide_shelf_cabinet_panel",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "horizontal_divide_shelf_cabinet_panel",
+            "objectB": "top_panel",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "bottom_panel",
+            "objectB": "horizontal_divide_shelf_cabinet_panel",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "horizontal_divide_shelf_cabinet_panel",
+            "objectB": "bottom_panel",
+            "relation": [
+              "<Bottom>"
+            ]
+          }
+        ],
+        "children": []
+      },
+      {
+        "objectName": "bookcase_shelves",
+        "childrenOrientation": [
+          {
+            "objectA": "uppermost_shelf",
+            "objectB": "adjustable_shelf_1",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_1",
+            "objectB": "uppermost_shelf",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "uppermost_shelf",
+            "objectB": "adjustable_shelf_2",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_2",
+            "objectB": "uppermost_shelf",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "uppermost_shelf",
+            "objectB": "adjustable_shelf_3",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_3",
+            "objectB": "uppermost_shelf",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_1",
+            "objectB": "adjustable_shelf_2",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_2",
+            "objectB": "adjustable_shelf_1",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_1",
+            "objectB": "adjustable_shelf_3",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_3",
+            "objectB": "adjustable_shelf_1",
+            "relation": [
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_2",
+            "objectB": "adjustable_shelf_3",
+            "relation": [
+              "<Top>"
+            ]
+          },
+          {
+            "objectA": "adjustable_shelf_3",
+            "objectB": "adjustable_shelf_2",
+            "relation": [
+              "<Bottom>"
+            ]
+          }
+        ],
+        "children": []
+      }
+    ]
+  }
+}

@@ -2211,13 +2211,13 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
 
     // dot 可以得出在 axisDir 上的投影长度
     let delta = deltaVec.dot(axisDir);
-    console.log("delta:", delta);
+    // console.log("delta:", delta);
     // 最终长度
     let newVal = oldVal + (delta * signA);  // signA 通常是 +1 或 -1
     if (newVal < 1) {
         newVal = 1; // 做个最小值限制，避免出现负数或太小
     }
-    console.log("newval:", newVal);
+    // console.log("newval:", newVal);
 
     // 6) 更新 geometry.parameters[axisA] 并刷新 furnitureData 里的值
     updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newVal);
@@ -2242,12 +2242,12 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
     //    => 先计算 anchor 面 (faceIndexA ^ 1) 在此刻新的世界坐标 anchorFaceCenter_after
     const anchorFaceCenter_after = getFaceCenterWorld(newMeshA, faceIndexA, true);
     // console.log("index:", faceIndexA, faceIndexA ^ 1);
-    console.log("newmeshA:", newMeshA);
-    console.log("before:", anchorFaceCenter_before);
-    console.log("after:", anchorFaceCenter_after);
+    // console.log("newmeshA:", newMeshA);
+    // console.log("before:", anchorFaceCenter_before);
+    // console.log("after:", anchorFaceCenter_after);
 
     let offset = delta.clone()
-    console.log("offset:", offset);
+    // console.log("offset:", offset);
     offset.divideScalar(2);
     // 让 newMeshA 整体平移
     newMeshA.position.add(offset);
@@ -2393,6 +2393,7 @@ function onPointerUp(event) {
 
                     // 获取lowest siblings name
                     const { keyA, keyB } = findSiblingKeysFor(firstMesh.name, secondMesh.name);
+                    console.log("FirstMesh:", firstMesh, "SecondMesh:", secondMesh, "keyA:", keyA, "keyB:", keyB);
 
                     connectionData.data.push({
                         [keyA]: firstConnStr,
@@ -2474,10 +2475,8 @@ function onPointerUp(event) {
                     if (intersects.length > 0) {
                         const hit = intersects.find(item => item.object == stretchMeshB);
                         if (!hit) {
-                            // console.log("11111");
                             resetStretchProcess();
                         } else {
-                            // console.log("222222");
                             stretchFaceIndexB = hit.faceIndex;
                             doStretchAlignFaceAtoFaceB(
                                 stretchMeshA,
@@ -2590,7 +2589,6 @@ function onKeyUp(event) {
         }
 
         // 结束缩放状态
-        // console.log(`End scaling on axis=${scalingAxis}`);
         scalingAxis = null;
         scalingMeshName = null;
         scalingStartDim = 0;
