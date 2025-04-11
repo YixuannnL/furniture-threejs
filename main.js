@@ -23,6 +23,7 @@ let initialOverlappingChecked = false;
 let scalingAxis = null;        // 取值 'width' | 'height' | 'depth' | null
 let scalingStartDim = 0;       // 该轴的初始尺寸
 let scalingStartMouseX = 0;    // 按下键时的鼠标 X
+let scalingStartMouseY = 0;
 let scalingMeshName = null;    // 正在被缩放的 mesh 名称
 
 // 存一下最近一次 mousemove 的位置，给按下键时初始化用
@@ -2002,15 +2003,32 @@ function onPointerMove(event) {
 
     // 如果处于拉伸状态，则实时更新尺寸
     if (scalingAxis !== null && scalingMeshName) {
-        // 计算从按下到当前的鼠标水平位移
-        const dx = event.clientX - scalingStartMouseX;
+        const mesh = objectsByName[scalingMeshName];
+        if (!mesh) return;
+
         // 假设 1 像素 = 1 mm（可根据需要加缩放系数 如下）
         const scaleFactor = 1; // 表示鼠标移动1px => 1mm
-        let newVal = scalingStartDim + dx * scaleFactor;
-        if (newVal < 1) newVal = 1; // 避免小于 1mm
+        let delta = 0;
+        if (scalingAxis === 'width') {
+            // left/right 移动 => 取 dx
+            const dx = event.clientX - scalingStartMouseX;
+            delta = dx; // 正负决定增/减
+        } else if (scalingAxis === 'height') {
+            // up/down 移动 => 取 dy
+            // 由于屏幕坐标是从上往下增大，所以想要“鼠标向上 => 数值变大”，要反过来减一下
+            const dy = scalingStartMouseY - event.clientY;
+            delta = dy;
+        } else if (scalingAxis === 'depth') {
+            // 决定用 dx 或 dy —— 此处决定同 width 一样 用 dx
+            const dx = event.clientX - scalingStartMouseX;
+            delta = dx;
+        }
+
+
+        let newVal = scalingStartDim + delta * scaleFactor;
+        if (newVal < 1) newVal = 1; // // 避免变成0或负值
         setMeshDimensionNoLog(scalingMeshName, scalingAxis, newVal);
         // 在拉伸状态下，不执行其他逻辑
-        return;
     }
 
     // 如果不是“连接模式”，就隐藏标记，返回
@@ -2536,7 +2554,8 @@ function switchmode(event) {
             // 记录状态
             scalingAxis = axis;
             scalingStartDim = geom.parameters[axis];  // 该轴当前尺寸
-            scalingStartMouseX = lastMouseX;          // 记下当前鼠标X
+            scalingStartMouseX = lastMouseX;
+            scalingStartMouseY = lastMouseY;       // 记下当前鼠标X
             scalingMeshName = selectedMesh.name;      // 记录 mesh 名
         }
     }
@@ -2576,6 +2595,7 @@ function onKeyUp(event) {
         scalingMeshName = null;
         scalingStartDim = 0;
         scalingStartMouseX = 0;
+        scalingStartMouseY = 0;
     }
 }
 
