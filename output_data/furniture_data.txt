@@ -1,0 +1,179 @@
+```json
+{
+    "meta": {
+        "object": "bookcase",
+        "object_type": "group",
+        "dimensions": {
+            "width": 900,
+            "height": 1800,
+            "depth": 420
+        },
+        "children": [
+            {
+                "meta": {
+                    "object": "bookcase_frame",
+                    "object_type": "group",
+                    "dimensions": {
+                        "width": 900,
+                        "height": 1800,
+                        "depth": 420
+                    },
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "back_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 900,
+                                    "height": 1800,
+                                    "depth": 3
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "left_side_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 3,
+                                    "height": 1800,
+                                    "depth": 420
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "right_side_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 3,
+                                    "height": 1800,
+                                    "depth": 420
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "top_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 900,
+                                    "height": 3,
+                                    "depth": 420
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "bottom_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 900,
+                                    "height": 3,
+                                    "depth": 420
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "horizontal_divide_shelf_cabinet_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 900,
+                                    "height": 3,
+                                    "depth": 420
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "meta": {
+                    "object": "bookcase_base",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 900,
+                        "height": 3,
+                        "depth": 420
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "bookcase_shelves",
+                    "object_type": "group",
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "uppermost_shelf",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 894,
+                                    "height": 3,
+                                    "depth": 414
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "adjustable_shelf_1",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 894,
+                                    "height": 3,
+                                    "depth": 414
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "adjustable_shelf_2",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 894,
+                                    "height": 3,
+                                    "depth": 414
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "adjustable_shelf_3",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 894,
+                                    "height": 3,
+                                    "depth": 414
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "meta": {
+                    "object": "cabinet_door_left",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 446,
+                        "height": 594,
+                        "depth": 18
+                    }
+                }
+            },
+            {
+                "meta": {
+                    "object": "cabinet_door_right",
+                    "object_type": "board",
+                    "dimensions": {
+                        "width": 446,
+                        "height": 594,
+                        "depth": 18
+                    }
+                }
+            }
+        ]
+    }
+}
+```

@@ -239,24 +239,24 @@
         "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<TopFace>]"
       },
       {
-        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
-        "uppermost_shelf": "<uppermost_shelf><board>[LeftFace_1/2Height_1/2Depth]"
+        "bookcase_frame": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "bookcase_shelves": "<uppermost_shelf><board>[LeftFace_1/2Height_1/2Depth]"
       },
       {
-        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
-        "adjustable_shelf_1": "<adjustable_shelf_1><board>[LeftFace_1/2Height_1/2Depth]"
+        "bookcase_frame": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "bookcase_shelves": "<adjustable_shelf_1><board>[LeftFace_1/2Height_1/2Depth]"
       },
       {
-        "back_panel": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
-        "adjustable_shelf_2": "<adjustable_shelf_2><board>[LeftFace_1/2Height_1/2Depth]"
+        "bookcase_frame": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
+        "bookcase_shelves": "<adjustable_shelf_2><board>[LeftFace_1/2Height_1/2Depth]"
       },
       {
-        "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_0Height_1/4Depth]",
-        "adjustable_shelf_2": "<adjustable_shelf_2><board>[LeftFace_1Height_3/4Depth]"
+        "bookcase_frame": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_0Height_1/4Depth]",
+        "bookcase_shelves": "<adjustable_shelf_2><board>[LeftFace_1Height_3/4Depth]"
       },
       {
-        "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_1/2Height_1/4Depth]",
-        "adjustable_shelf_3": "<adjustable_shelf_3><board>[LeftFace_1/2Height_3/4Depth]"
+        "bookcase_frame": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_1/2Height_1/4Depth]",
+        "bookcase_shelves": "<adjustable_shelf_3><board>[LeftFace_1/2Height_3/4Depth]"
       }
     ],
     "meta_data": [

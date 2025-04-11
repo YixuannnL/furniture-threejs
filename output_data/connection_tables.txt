@@ -1,0 +1,32 @@
+## Connection Tables
+
+For bookcase Level 1, the connection relationship matrix of its internal components should be as follows:
+
+|  | bookcase_frame | bookcase_base | bookcase_shelves | cabinet_door_left | cabinet_door_right |
+| --- | --- | --- | --- | --- | --- |
+| bookcase_frame |  |  | `<Adjustable_Shelf_3><Board>[<LeftFace>]`<br>`<uppermost_shelf><board>[LeftFace_1/2Height_1/2Depth]`<br>`<adjustable_shelf_1><board>[LeftFace_1/2Height_1/2Depth]`<br>`<adjustable_shelf_2><board>[LeftFace_1/2Height_1/2Depth]`<br>`<adjustable_shelf_2><board>[LeftFace_1Height_3/4Depth]`<br>`<adjustable_shelf_3><board>[LeftFace_1/2Height_3/4Depth]` |  |  |
+| bookcase_base |  |  |  |  |  |
+| bookcase_shelves | `<Back_Panel><Board>[<RightFace>]`<br>`<back_panel><board>[RightFace_1/2Height_1/2Depth]`<br>`<back_panel><board>[RightFace_1/2Height_1/2Depth]`<br>`<back_panel><board>[RightFace_1/2Height_1/2Depth]`<br>`<horizontal_divide_shelf_cabinet_panel><board>[RightFace_0Height_1/4Depth]`<br>`<horizontal_divide_shelf_cabinet_panel><board>[RightFace_1/2Height_1/4Depth]` |  |  |  |  |
+| cabinet_door_left |  |  |  |  |  |
+| cabinet_door_right |  |  |  |  |  |
+
+For bookcase_frame Level 2, the connection relationship matrix of its internal components should be as follows:
+
+|  | back_panel | left_side_panel | right_side_panel | top_panel | bottom_panel | horizontal_divide_shelf_cabinet_panel |
+| --- | --- | --- | --- | --- | --- | --- |
+| back_panel |  | `<Left_Side_Panel><Board>[<BackFace>]` | `<Right_Side_Panel><Board>[<BackFace>]` | `<Top_Panel><Board>[<BackFace>]` | `<Bottom_Panel><Board>[<BackFace>]` | `<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]` |
+| left_side_panel | `<Back_Panel><Board>[<LeftFace>]` |  |  | `<Top_Panel><Board>[<LeftFace>]` | `<Bottom_Panel><Board>[<LeftFace>]` | `<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]` |
+| right_side_panel | `<Back_Panel><Board>[<RightFace>]` |  |  | `<Top_Panel><Board>[<RightFace>]` | `<Bottom_Panel><Board>[<RightFace>]` | `<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]` |
+| top_panel | `<Back_Panel><Board>[<TopFace>]` | `<Left_Side_Panel><Board>[<TopFace>]` | `<Right_Side_Panel><Board>[<TopFace>]` |  |  |  |
+| bottom_panel | `<Back_Panel><Board>[<BottomFace>]` | `<Left_Side_Panel><Board>[<BottomFace>]` | `<Right_Side_Panel><Board>[<BottomFace>]` |  |  |  |
+| horizontal_divide_shelf_cabinet_panel | `<Back_Panel><Board>[<FrontFace>]` | `<Left_Side_Panel><Board>[<RightFace>]` | `<Right_Side_Panel><Board>[<LeftFace>]` |  |  |  |
+
+For bookcase_shelves Level 2, the connection relationship matrix of its internal components should be as follows:
+
+|  | uppermost_shelf | adjustable_shelf_1 | adjustable_shelf_2 | adjustable_shelf_3 |
+| --- | --- | --- | --- | --- |
+| uppermost_shelf |  | `<Adjustable_Shelf_1><Board>[<BottomFace>]` |  |  |
+| adjustable_shelf_1 | `<Uppermost_Shelf><Board>[<TopFace>]` |  | `<Adjustable_Shelf_2><Board>[<BottomFace>]` |  |
+| adjustable_shelf_2 |  | `<Adjustable_Shelf_1><Board>[<TopFace>]` |  | `<Adjustable_Shelf_3><Board>[<BottomFace>]` |
+| adjustable_shelf_3 |  |  | `<Adjustable_Shelf_2><Board>[<TopFace>]` |  |
+

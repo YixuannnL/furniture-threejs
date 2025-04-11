@@ -1,0 +1,32 @@
+## Orientation Tables
+
+For bookcase Level 1, the positional relationship matrix of its internal components should be as follows:
+
+|  | bookcase_frame | bookcase_base | bookcase_shelves | cabinet_door_left | cabinet_door_right |
+| --- | --- | --- | --- | --- | --- |
+| bookcase_frame |  | `<Right>` | `<Right>`<br>`<Back>` | `<Right>` | `<Right>` |
+| bookcase_base | `<Left>` |  | `<Left>` | `<Right>` | `<Right>` |
+| bookcase_shelves | `<Left>`<br>`<Front>` | `<Right>` |  | `<Right>` | `<Right>` |
+| cabinet_door_left | `<Left>` | `<Left>` | `<Left>` |  | `<Right>` |
+| cabinet_door_right | `<Left>` | `<Left>` | `<Left>` | `<Left>` |  |
+
+For bookcase_frame Level 2, the positional relationship matrix of its internal components should be as follows:
+
+|  | back_panel | left_side_panel | right_side_panel | top_panel | bottom_panel | horizontal_divide_shelf_cabinet_panel |
+| --- | --- | --- | --- | --- | --- | --- |
+| back_panel |  | `<Left>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Top>`<br>`<Front>` | `<Bottom>`<br>`<Front>` | `<Front>` |
+| left_side_panel | `<Right>`<br>`<Back>` |  | `<Right>` | `<Right>`<br>`<Top>` | `<Right>`<br>`<Bottom>` | `<Right>` |
+| right_side_panel | `<Left>`<br>`<Back>` | `<Left>` |  | `<Left>`<br>`<Top>` | `<Left>`<br>`<Bottom>` | `<Left>` |
+| top_panel | `<Bottom>`<br>`<Back>` | `<Left>`<br>`<Bottom>` | `<Right>`<br>`<Bottom>` |  | `<Bottom>` | `<Bottom>` |
+| bottom_panel | `<Top>`<br>`<Back>` | `<Left>`<br>`<Top>` | `<Right>`<br>`<Top>` | `<Top>` |  | `<Top>` |
+| horizontal_divide_shelf_cabinet_panel | `<Back>` | `<Left>` | `<Right>` | `<Top>` | `<Bottom>` |  |
+
+For bookcase_shelves Level 2, the positional relationship matrix of its internal components should be as follows:
+
+|  | uppermost_shelf | adjustable_shelf_1 | adjustable_shelf_2 | adjustable_shelf_3 |
+| --- | --- | --- | --- | --- |
+| uppermost_shelf |  | `<Top>` | `<Top>` | `<Top>` |
+| adjustable_shelf_1 | `<Bottom>` |  | `<Top>` | `<Top>` |
+| adjustable_shelf_2 | `<Bottom>` | `<Bottom>` |  | `<Top>` |
+| adjustable_shelf_3 | `<Bottom>` | `<Bottom>` | `<Bottom>` |  |
+

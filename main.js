@@ -2724,10 +2724,9 @@ function detectAndAddConnections() {
                 const anchorA = Utils.guessAnchorFromContact(meshA, contactInfo.contactAxis, contactInfo.contactPointA);
                 const anchorB = Utils.guessAnchorFromContact(meshB, contactInfo.contactAxis, contactInfo.contactPointB);
                 // 4) 写入 connectionData
-                // 这里为了和你现有结构兼容，我们依然写 "Seat" & "Base"。
-                //   - 如果 meshA.name.includes('Seat') 就把它当Seat，否则当Base；你也可以更灵活判断。
-                const keyA = meshA.name
-                const keyB = meshB.name
+                const { keyA, keyB } = findSiblingKeysFor(meshA.name, meshB.name);
+                // const keyA = meshA.name
+                // const keyB = meshB.name
                 // -------------- 简易写法：--------------
                 const connItem = {};
                 connItem[keyA] = `<${meshA.name}><${Utils.getObjectType({ width: meshA.geometry.parameters.width, height: meshA.geometry.parameters.height, depth: meshA.geometry.parameters.depth })}>[${anchorA}]`;
