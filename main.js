@@ -1426,6 +1426,21 @@ function updateDimensionAndOffsetInMeta(rootMeta, targetName, axis, newVal) {
     recurse(rootMeta);
 }
 
+// 定义数字到字符串的映射对象
+const faceMapping = {
+    0: "Right Face",
+    1: "Right Face",
+    2: "Left Face",
+    3: "Left Face",
+    4: "Top Face",
+    5: "Top Face",
+    6: "Bottom Face",
+    7: "Bottom Face",
+    8: "Front Face",
+    9: "Front Face",
+    10: "Back Face",
+    11: "Back Face",
+};
 
 // 更新显示文字
 function updateInfo() {
@@ -1467,18 +1482,23 @@ function updateInfo() {
         } else if (stretchState === 1) {
             text += `<div>Now you choose the object: ${stretchMeshA.name}. Please choose a face to  to stretch this object. </div>`;
         } else if (stretchState === 2) {
+            const faceDescriptionA = faceMapping[stretchFaceIndexA] || "Unknown Face";
             text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
-            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>The Face you choose is (${faceDescriptionA})</div>`
             text += `<div>Please Choose the referece object.</div>`
         } else if (stretchState === 3) {
+            const faceDescriptionA = faceMapping[stretchFaceIndexA] || "Unknown Face";
             text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
-            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>The Face you choose is (${faceDescriptionA})</div>`
             text += `<div>Please Choose the referece object ${stretchMeshB.name}, please choose a face on it.</div>`
         } else {
+            const faceDescriptionA = faceMapping[stretchFaceIndexA] || "Unknown Face";
+            // 如果第二个对象的面索引是 stretchFaceIndexB
+            const faceDescriptionB = faceMapping[stretchFaceIndexB] || "Unknown Face";
             text += `<div>Now you choose the object: ${stretchMeshA.name}.</div>`
-            text += `<div>The Face you choose is (${stretchFaceIndexA})</div>`
+            text += `<div>The Face you choose is (${faceDescriptionA})</div>`
             text += `<div>Please Choose the referece object ${stretchMeshB.name}, please choose a face on it.</div>`
-            text += `<div>The Face you choose on reference object is (${stretchFaceIndexA})</div>`
+            text += `<div>The Face you choose on reference object is (${faceDescriptionB})</div>`
         }
     }
 
