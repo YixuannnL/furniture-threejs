@@ -2144,7 +2144,7 @@ function onPointerMove(event) {
  * 效果：meshA 只在那一面进行伸缩，A的对侧面保持在原世界坐标不动。
  */
 function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
-    console.log("test:", faceIndexA, faceIndexB);
+    // console.log("test:", faceIndexA, faceIndexB);
     function getFaceCenterWorld(mesh, rawFaceIndex, eor = false) {
         const { axis, sign } = Utils.getFaceAxisAndSign(mesh, rawFaceIndex, eor);
         const half = mesh.geometry.parameters[axis] * 0.5;
@@ -2193,11 +2193,13 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
 
     // dot 可以得出在 axisDir 上的投影长度
     let delta = deltaVec.dot(axisDir);
+    console.log("delta:", delta);
     // 最终长度
     let newVal = oldVal + (delta * signA);  // signA 通常是 +1 或 -1
     if (newVal < 1) {
         newVal = 1; // 做个最小值限制，避免出现负数或太小
     }
+    console.log("newval:", newVal);
 
     // 6) 更新 geometry.parameters[axisA] 并刷新 furnitureData 里的值
     updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, axisA, newVal);
@@ -2226,9 +2228,9 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
     console.log("before:", anchorFaceCenter_before);
     console.log("after:", anchorFaceCenter_after);
 
-    // offset = before - after
-    const offset = new THREE.Vector3().subVectors(anchorFaceCenter_before, anchorFaceCenter_after);
-
+    let offset = delta.clone()
+    console.log("offset:", offset);
+    offset.divideScalar(2);
     // 让 newMeshA 整体平移
     newMeshA.position.add(offset);
 
