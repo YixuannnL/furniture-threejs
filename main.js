@@ -12,12 +12,12 @@ let furnitureData = jsonData;
 let connectionData = Utils.filterConnData(ConnData);
 
 
-
+// 拷贝一份初始状态
+const initialFurnitureData = JSON.parse(JSON.stringify(furnitureData));
+const initialConnectionData = JSON.parse(JSON.stringify(connectionData));
 // 用来暂存 pointermove 中算出的“吸附后位置”
 let tempSnappedLocalPos = null;
 let tempSnappedMesh = null;
-// 全局变量，保证仅初始渲染时显示一次提示
-let initialOverlappingChecked = false;
 
 // 用来记录：当前是否在按住某个键做拉伸，拉伸的是哪个轴
 let scalingAxis = null;        // 取值 'width' | 'height' | 'depth' | null
@@ -2841,6 +2841,30 @@ function exportAllData() {
         URL.revokeObjectURL(url);
     }
 }
+
+const resetBtn = document.getElementById('resetBtn');
+resetBtn.addEventListener('click', () => {
+    // 1) 恢复为初始数据
+    furnitureData = JSON.parse(JSON.stringify(initialFurnitureData));
+    connectionData = JSON.parse(JSON.stringify(initialConnectionData));
+
+    // 2) 清空日志 / 编辑状态 / 交互状态
+    dimensionChangeLog = [];     // 若你有其他变动日志，也可清空
+    editingConnections.clear();  // 编辑连接的临时Map
+
+    // 根据你自己的逻辑，若有 connectMode / stretchMode 等，需要重置一下
+    currentMode = 'connect';
+    resetConnectProcess();
+    resetStretchProcess();
+    clearAllHighlight();
+
+    // 3) 重新渲染
+    render_furniture(furnitureData, connectionData);
+    renderTreePanel();
+
+    console.log('Reset to initial state done!');
+});
+
 
 const exportBtn = document.getElementById('exportBtn');
 exportBtn.addEventListener('click', () => {
