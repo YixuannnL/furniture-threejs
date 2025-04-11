@@ -790,3 +790,26 @@ export function findMetaByName(rootMeta, targetName) {
     }
     return null;
 }
+
+
+/**
+ * 收集某个 meta 节点（包括其所有子节点）的名称列表
+ * @param {Object} meta - 家具结构节点
+ * @returns {string[]} names - 该节点及子节点的 meta.object 名称
+ */
+export function collectAllMeshNames(meta) {
+    let results = [];
+    if (meta.object) {
+        results.push(meta.object);
+    }
+
+    if (meta.children && Array.isArray(meta.children)) {
+        meta.children.forEach(child => {
+            // 注意：这里 child 可能是 { meta: {...} }，也可能直接就是 meta  
+            let childMeta = child.meta ? child.meta : child;
+            results = results.concat(collectAllMeshNames(childMeta));
+        });
+    }
+
+    return results;
+}

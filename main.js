@@ -459,16 +459,63 @@ function highlightMeshWithStrongerColor(mesh) {
     }
 }
 
+
+/**
+ * 从 connectionData.data 中删除所有引用到某个 meshName 的连接条目
+ * @param {string} meshName 
+ */
+function removeAllConnectionsOfMesh(meshName) {
+    // 过滤掉凡是包含 meshName 的条目
+    connectionData.data = connectionData.data.filter(connItem => {
+        const keys = Object.keys(connItem);
+        if (keys.length < 2) return true; // 容错：不符合预期结构就保留
+
+        const firstStr = connItem[keys[0]];
+        const secondStr = connItem[keys[1]];
+
+        const cA = Utils.parseConnectionString(firstStr);
+        const cB = Utils.parseConnectionString(secondStr);
+
+        // 若此连接条目中，包含了被删除的 meshName，则跳过（不保留）
+        if (cA.name === meshName || cB.name === meshName) {
+            return false;
+        }
+        return true;
+    });
+}
+
 /**
  * 删除操作：从 parentMeta.children 中移除指定 childMeta
  */
 function removeChildMeta(parentMeta, childMeta) {
     if (!parentMeta.children) return;
+
+    // 查找时同时支持包装对象和纯 meta 对象
+    const idx = parentMeta.children.findIndex(c => {
+        if (c.meta) {
+            return c.meta === childMeta;
+        } else {
+            return c === childMeta;
+        }
+    });
     // 在 parentMeta.children 中找到 childMeta 对应的 index
-    const idx = parentMeta.children.findIndex(c => c.meta === childMeta);
+    // const idx = parentMeta.children.findIndex(c => c.meta === childMeta);
     if (idx >= 0) {
+        // 1) 先收集整个子树包含的所有 mesh 名称
+        // console.log()
+        // 如果 childMeta 包装了 meta，则取 c.meta，否则直接用 childMeta  
+        const metaToRemove = childMeta.meta ? childMeta.meta : childMeta;
+        const removedNames = Utils.collectAllMeshNames(metaToRemove);
+
+        // 2) 从 parentMeta.children 中删除这个节点
         parentMeta.children.splice(idx, 1);
-        // 重新渲染
+
+        // 3) 在 connectionData 中，删除所有引用到这些名称的连接
+        removedNames.forEach(name => {
+            removeAllConnectionsOfMesh(name);
+        });
+
+        // 4) 重新渲染
         render_furniture(furnitureData, connectionData);
         renderTreePanel();
     }

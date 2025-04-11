@@ -12,14 +12,13 @@ For bookcase Level 1, the positional relationship matrix of its internal compone
 
 For bookcase_frame Level 2, the positional relationship matrix of its internal components should be as follows:
 
-|  | back_panel | left_side_panel | right_side_panel | top_panel | bottom_panel | horizontal_divide_shelf_cabinet_panel |
-| --- | --- | --- | --- | --- | --- | --- |
-| back_panel |  | `<Left>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Top>`<br>`<Front>` | `<Bottom>`<br>`<Front>` | `<Front>` |
-| left_side_panel | `<Right>`<br>`<Back>` |  | `<Right>` | `<Right>`<br>`<Top>` | `<Right>`<br>`<Bottom>` | `<Right>` |
-| right_side_panel | `<Left>`<br>`<Back>` | `<Left>` |  | `<Left>`<br>`<Top>` | `<Left>`<br>`<Bottom>` | `<Left>` |
-| top_panel | `<Bottom>`<br>`<Back>` | `<Left>`<br>`<Bottom>` | `<Right>`<br>`<Bottom>` |  | `<Bottom>` | `<Bottom>` |
-| bottom_panel | `<Top>`<br>`<Back>` | `<Left>`<br>`<Top>` | `<Right>`<br>`<Top>` | `<Top>` |  | `<Top>` |
-| horizontal_divide_shelf_cabinet_panel | `<Back>` | `<Left>` | `<Right>` | `<Top>` | `<Bottom>` |  |
+|  | back_panel | left_side_panel | right_side_panel | top_panel | bottom_panel |
+| --- | --- | --- | --- | --- | --- |
+| back_panel |  | `<Left>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Top>`<br>`<Front>` | `<Bottom>`<br>`<Front>` |
+| left_side_panel | `<Right>`<br>`<Back>` |  | `<Right>` | `<Right>`<br>`<Top>` | `<Right>`<br>`<Bottom>` |
+| right_side_panel | `<Left>`<br>`<Back>` | `<Left>` |  | `<Left>`<br>`<Top>` | `<Left>`<br>`<Bottom>` |
+| top_panel | `<Bottom>`<br>`<Back>` | `<Left>`<br>`<Bottom>` | `<Right>`<br>`<Bottom>` |  | `<Bottom>` |
+| bottom_panel | `<Top>`<br>`<Back>` | `<Left>`<br>`<Top>` | `<Right>`<br>`<Top>` | `<Top>` |  |
 
 For bookcase_shelves Level 2, the positional relationship matrix of its internal components should be as follows:
 

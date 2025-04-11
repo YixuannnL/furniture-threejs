@@ -73,17 +73,6 @@
                     "depth": 420
                   }
                 }
-              },
-              {
-                "meta": {
-                  "object": "horizontal_divide_shelf_cabinet_panel",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 900,
-                    "height": 3,
-                    "depth": 420
-                  }
-                }
               }
             ]
           }
@@ -199,10 +188,6 @@
         "back_panel": "<Back_Panel><Board>[<BottomFace>]"
       },
       {
-        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]",
-        "back_panel": "<Back_Panel><Board>[<FrontFace>]"
-      },
-      {
         "top_panel": "<Top_Panel><Board>[<LeftFace>]",
         "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
       },
@@ -211,20 +196,12 @@
         "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
       },
       {
-        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]",
-        "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
-      },
-      {
         "top_panel": "<Top_Panel><Board>[<RightFace>]",
         "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
       },
       {
         "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
         "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
-      },
-      {
-        "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]",
-        "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
       },
       {
         "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<BottomFace>]",
@@ -249,14 +226,6 @@
       {
         "bookcase_frame": "<back_panel><board>[RightFace_1/2Height_1/2Depth]",
         "bookcase_shelves": "<adjustable_shelf_2><board>[LeftFace_1/2Height_1/2Depth]"
-      },
-      {
-        "bookcase_frame": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_0Height_1/4Depth]",
-        "bookcase_shelves": "<adjustable_shelf_2><board>[LeftFace_1Height_3/4Depth]"
-      },
-      {
-        "bookcase_frame": "<horizontal_divide_shelf_cabinet_panel><board>[RightFace_1/2Height_1/4Depth]",
-        "bookcase_shelves": "<adjustable_shelf_3><board>[LeftFace_1/2Height_3/4Depth]"
       }
     ],
     "meta_data": [
@@ -612,20 +581,6 @@
             ]
           },
           {
-            "objectA": "back_panel",
-            "objectB": "horizontal_divide_shelf_cabinet_panel",
-            "relation": [
-              "<Front>"
-            ]
-          },
-          {
-            "objectA": "horizontal_divide_shelf_cabinet_panel",
-            "objectB": "back_panel",
-            "relation": [
-              "<Back>"
-            ]
-          },
-          {
             "objectA": "left_side_panel",
             "objectB": "right_side_panel",
             "relation": [
@@ -672,20 +627,6 @@
             ]
           },
           {
-            "objectA": "left_side_panel",
-            "objectB": "horizontal_divide_shelf_cabinet_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "horizontal_divide_shelf_cabinet_panel",
-            "objectB": "left_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
             "objectA": "right_side_panel",
             "objectB": "top_panel",
             "relation": [
@@ -718,20 +659,6 @@
             ]
           },
           {
-            "objectA": "right_side_panel",
-            "objectB": "horizontal_divide_shelf_cabinet_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "horizontal_divide_shelf_cabinet_panel",
-            "objectB": "right_side_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
             "objectA": "top_panel",
             "objectB": "bottom_panel",
             "relation": [
@@ -743,34 +670,6 @@
             "objectB": "top_panel",
             "relation": [
               "<Top>"
-            ]
-          },
-          {
-            "objectA": "top_panel",
-            "objectB": "horizontal_divide_shelf_cabinet_panel",
-            "relation": [
-              "<Bottom>"
-            ]
-          },
-          {
-            "objectA": "horizontal_divide_shelf_cabinet_panel",
-            "objectB": "top_panel",
-            "relation": [
-              "<Top>"
-            ]
-          },
-          {
-            "objectA": "bottom_panel",
-            "objectB": "horizontal_divide_shelf_cabinet_panel",
-            "relation": [
-              "<Top>"
-            ]
-          },
-          {
-            "objectA": "horizontal_divide_shelf_cabinet_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Bottom>"
             ]
           }
         ],

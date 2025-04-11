@@ -73,17 +73,6 @@
                                     "depth": 420
                                 }
                             }
-                        },
-                        {
-                            "meta": {
-                                "object": "horizontal_divide_shelf_cabinet_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 900,
-                                    "height": 3,
-                                    "depth": 420
-                                }
-                            }
                         }
                     ]
                 }
