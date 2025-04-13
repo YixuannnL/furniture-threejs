@@ -166,6 +166,81 @@ function renderTreePanel() {
     treePanel.appendChild(rootContainer);
 }
 
+function toggleCollapse(row, toggleBtn) {
+    const currentState = row.dataset.collapsed === 'true';
+    // 如果当前 collapsed='true'，说明是折叠状态，此次点击就是要展开；反之亦然
+    const newState = !currentState;
+    row.dataset.collapsed = newState ? 'true' : 'false';
+
+    // 按钮文本显示
+    toggleBtn.textContent = newState ? '+' : '-';
+
+    // 拿到当前行的缩进层级
+    const indent = parseInt(row.style.marginLeft) || 0;
+    const thisLevel = indent / 20;
+
+    // 遍历同一个 container 里的后续行，只要它们层级比 thisLevel 更深，就隐藏/显示
+    const container = row.parentNode;
+    if (!container) return;
+    const allRows = Array.from(container.querySelectorAll('.tree-row'));
+    const rowIndex = allRows.indexOf(row);
+    if (rowIndex < 0) return;
+
+    for (let i = rowIndex + 1; i < allRows.length; i++) {
+        const testIndent = parseInt(allRows[i].style.marginLeft) || 0;
+        const testLevel = testIndent / 20;
+        if (testLevel <= thisLevel) {
+            // 表示已经到了兄弟或父层 => 停止
+            break;
+        }
+        // 如果我们是要折叠，则隐藏；要展开，则显示
+        // 注意：如果中间子节点本身也处于折叠状态，则展开时要根据它自己的 collapsed 状态决定是否再进一步隐藏它的孙子节点
+        if (newState) {
+            // newState=true => 正在折叠 => 全部直接隐藏
+            allRows[i].style.display = 'none';
+        } else {
+            // newState=false => 正在展开
+            // 需要判断它的祖先是否都展开了
+            // 简化策略：当前节点展开 => 只要它本身不处于 collapsed='true'，就显示
+            // 还要检查它的父节点链路
+            const ancestorCollapsed = hasAncestorCollapsed(allRows[i], allRows, thisLevel);
+            if (!ancestorCollapsed && allRows[i].dataset.collapsed !== 'true') {
+                allRows[i].style.display = '';
+            }
+        }
+    }
+}
+
+/**
+ * 用来判断：某行 row 是否在展开过程中有祖先折叠 => 即便父级展开，我们也看父级的父级...
+ */
+function hasAncestorCollapsed(row, allRows, parentLevel) {
+    const rowIndex = allRows.indexOf(row);
+    if (rowIndex < 0) return false;
+    const indent = parseInt(row.style.marginLeft) || 0;
+    let level = indent / 20;
+
+    // 逐级向上寻找比自身 level 小的行 => parent
+    for (let i = rowIndex - 1; i >= 0; i--) {
+        const testIndent = parseInt(allRows[i].style.marginLeft) || 0;
+        const testLevel = testIndent / 20;
+        if (testLevel < level) {
+            // 这是 row 的一个父级
+            // 若它 collapsed='true'，则 row 应该保持隐藏
+            if (allRows[i].dataset.collapsed === 'true') {
+                return true;
+            }
+            level = testLevel;
+        }
+        if (testLevel <= parentLevel) {
+            // 回到当前 fold/unfold 触发行之上的级别 => 可以停止
+            break;
+        }
+    }
+    return false;
+}
+
+
 /**
  * 递归构建某个 meta 节点的 UI
  * @param {Object} meta  - 当前节点的 meta
@@ -186,6 +261,8 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
     row.dataset.meshName = objName;
     // 添加通用的CSS类名，便于以后统一选择
     row.classList.add('tree-row');
+    // 新增：默认展开
+    row.dataset.collapsed = 'false';
 
     // 显示当前节点信息
     const titleSpan = document.createElement('span');
@@ -193,6 +270,19 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
     titleSpan.textContent = `${objName} (${objType})`;
     titleSpan.style.fontWeight = 'bold';
     row.appendChild(titleSpan);
+
+    // 如果有子节点 => 插入折叠/展开按钮
+    let toggleBtn = null;
+    if (meta.children && meta.children.length > 0) {
+        toggleBtn = document.createElement('button');
+        toggleBtn.textContent = '-'; // 初始为展开状态 => 显示 "-"
+        toggleBtn.style.marginLeft = '6px';
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();  // 防止与行点击冲突
+            toggleCollapse(row, toggleBtn);
+        });
+        row.appendChild(toggleBtn);
+    }
 
     // ============= [点击行 => 选中并高亮对应Mesh] =============
     row.style.cursor = 'pointer';
