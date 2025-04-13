@@ -3,19 +3,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as Utils from './utils.js';
 
-// import jsonData from './output_2.json' assert { type: 'json' };
+// import JsonData from './output_2.json' assert { type: 'json' };
 // import ConnData from './Table_1.json' assert { type: 'json' };
-import jsonData from './input_data/meta_data.json' assert { type: 'json' };
+import JsonData from './input_data/meta_data.json' assert { type: 'json' };
 import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 
-let furnitureData = jsonData;
-let connectionData = Utils.filterConnData(ConnData);
-
-// 引入 / 定义 furnitureData, connectionData 后，先进行尺寸放大
-scaleFurnitureIfTooSmall(furnitureData);
-// 拷贝一份初始状态
-const initialFurnitureData = JSON.parse(JSON.stringify(furnitureData));
-const initialConnectionData = JSON.parse(JSON.stringify(connectionData));
 // 用来暂存 pointermove 中算出的“吸附后位置”
 let tempSnappedLocalPos = null;
 let tempSnappedMesh = null;
@@ -1497,6 +1489,8 @@ function applyConnections(connectionData) {
     });
 }
 
+const scene = new THREE.Scene();
+
 // ======================
 //      整体渲染函数 (核心！)
 //      1) 清理旧的家具对象
@@ -1541,10 +1535,53 @@ function render_furniture(meta_data, conn_data) {
     return furniture_object;
 }
 
+
+// ======================
+// 本地一开始就渲染一遍(初始状态) 线上环境等待外部传入json
+// ======================
+let furnitureData = JsonData;
+let connectionData = ConnData;
+let initialConnectionData;
+let initialFurnitureData;
+
+function handle_two_data() {
+    connectionData = Utils.filterConnData(connectionData);
+    // 引入 / 定义 furnitureData, connectionData 后，先进行尺寸放大
+    scaleFurnitureIfTooSmall(furnitureData);
+    // 拷贝一份初始状态
+
+    initialFurnitureData = JSON.parse(JSON.stringify(furnitureData));
+    initialConnectionData = JSON.parse(JSON.stringify(connectionData));
+}
+
+const isProd = import.meta.env.PROD
+// const isProd = true
+if (isProd) {
+    window.addEventListener('message', (event) => {
+        if (typeof event.data !== 'string') {
+            return;
+        }
+        try {
+            const data = JSON.parse(event.data)
+            if (data.event === 'init') {
+                connectionData = JSON.parse(data.data.conn)
+                furnitureData = JSON.parse(data.data.meta)
+                handle_two_data()
+                render_furniture(furnitureData, connectionData);
+            }
+        } catch (err) {
+            console.error('message', event, err)
+        }
+    })
+    window.parent.postMessage(JSON.stringify({ event: 'ready' }), '*')
+} else {
+    handle_two_data()
+    render_furniture(furnitureData, connectionData);
+}
+
 // ===========================
 // Three.js 初始化
 // ===========================
-const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xffffff);
 
 const camera = new THREE.PerspectiveCamera(
@@ -1609,32 +1646,6 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.update();
-
-// ======================
-// 本地一开始就渲染一遍(初始状态) 线上环境等待外部传入json
-// ======================
-const isProd = import.meta.env.PROD
-// const isProd = true
-if (isProd) {
-    window.addEventListener('message', (event) => {
-        if (typeof event.data !== 'string') {
-            return;
-        }
-        try {
-            const data = JSON.parse(event.data)
-            if (data.event === 'init') {
-                connectionData = JSON.parse(data.data.conn)
-                furnitureData = JSON.parse(data.data.meta)
-                render_furniture(furnitureData, connectionData);
-            }
-        } catch (err) {
-            console.error('message', event, err)
-        }
-    })
-    window.parent.postMessage(JSON.stringify({ event: 'ready' }), '*')
-} else {
-    render_furniture(furnitureData, connectionData);
-}
 
 // ======================
 // 以下是交互逻辑：用户交互如何“更新 data”，再“重新渲染”
