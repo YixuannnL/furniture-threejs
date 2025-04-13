@@ -455,6 +455,11 @@ function updateTreeSelection() {
             row.style.border = '1px solid #f1c232';
             // 调用移动函数，把它移到同级最前
             moveRowToTopWithinSameParent(row);
+            // 自动滚动到可视区域
+            row.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest'
+            });
         } else {
             // 否则清除样式
             row.style.backgroundColor = '';
