@@ -262,6 +262,97 @@ function buildMetaNodeUI(meta, container, parentMeta, level) {
 }
 
 /**
+ * 将选中行 row 在其父层级里移到最上面（不修改数据结构，仅操作DOM顺序）。
+ * 假设 row.style.marginLeft = indent + 'px'，其中 indent/20 = 当前层级深度。
+ */
+function moveRowToTopWithinSameParent(row) {
+    const container = row.parentNode;
+    if (!container) return;
+
+    // 读取当前行缩进（等级）
+    const indent = parseInt(row.style.marginLeft) || 0;
+    const thisLevel = indent / 20;
+
+    // 收集 container.children 到一个数组
+    const allRows = Array.from(container.querySelectorAll('.tree-row'));
+    // 在 allRows 里找 row 的索引
+    const rowIndex = allRows.indexOf(row);
+    if (rowIndex < 0) return;  // 理论上不会
+
+    // 1) 从 rowIndex 向上找到“父层级”的 rowIndex 或到 0 为止。
+    //    其实我们这里用不到父层级行本身，只要判断不和别的同级或更高级混在一起即可；
+    //    所以简单做法：直接从 rowIndex 向上，看有没有比 thisLevel 小的 (出现则停止)
+    let startIndex = rowIndex;
+    for (let i = rowIndex - 1; i >= 0; i--) {
+        const testIndent = parseInt(allRows[i].style.marginLeft) || 0;
+        const testLevel = testIndent / 20;
+        if (testLevel < thisLevel) {
+            // 遇到更浅层（父）了，就停止
+            break;
+        }
+        startIndex = i;
+    }
+
+    // 2) 从 rowIndex 向下找到同级块结束位置
+    //    一旦遇到 testLevel < thisLevel，说明离开本级了
+    let endIndex = rowIndex;
+    for (let i = rowIndex + 1; i < allRows.length; i++) {
+        const testIndent = parseInt(allRows[i].style.marginLeft) || 0;
+        const testLevel = testIndent / 20;
+        if (testLevel < thisLevel) {
+            // 遇到父级了 => 本级范围结束
+            break;
+        }
+        endIndex = i;
+    }
+
+    // 至此 [startIndex .. endIndex] 都是“同一个父层级”。
+    // 提取这段行
+    const sameLevelRows = allRows.slice(startIndex, endIndex + 1);
+
+    // 3) 在这段行里，把选中的 row 移到最前（但保持其他行的相对顺序不变）
+    const newOrder = [row, ...sameLevelRows.filter(r => r !== row)];
+
+    // 4) 真正修改 DOM 顺序：先把 oldRows 都从 container 里移除，再按 newOrder 依次插回 container
+    //   （这样做最简单，当然也可以做更细的 insertBefore）
+    sameLevelRows.forEach(r => container.removeChild(r));
+    // 这里要找到插入位置：插回到 startIndex 之前
+    // container 里实际上还有其他行（可能是上级），我们要将 newOrder 插入到 container.children 中的第 idx = startIndex 处
+    // 但 startIndex 是在 allRows 中的索引，需要计算在 container.children 里的对应位置
+    // 简化做法：我们直接让它们插到 rowIndex 原先位置也行
+    // 但 rowIndex 在 allRows 是全局索引，容器当前 children 结构已经发生变化，需要重新找一下
+
+    // 我们可这么做：找一下 allRows[startIndex] 在 container.children 里的位置:
+    let anchor = null;
+    if (startIndex < allRows.length) {
+        anchor = allRows[startIndex];
+    }
+    // 如果 anchor 不在 DOM 了(被移除)，我们就找它的前一个还在 DOM 的兄弟
+    while (anchor && !anchor.parentNode) {
+        const anchorIndex = allRows.indexOf(anchor);
+        if (anchorIndex > 0) {
+            anchor = allRows[anchorIndex - 1];
+        } else {
+            // 说明已经到头了
+            anchor = null;
+            break;
+        }
+    }
+
+    // 现在 anchor 若有效，就在 anchor 之后插入，否则直接 append
+    newOrder.forEach(r => {
+        if (anchor && anchor.parentNode === container) {
+            container.insertBefore(r, anchor.nextSibling);
+            anchor = r; // 让下一个插在当前插入行后面
+        } else {
+            container.appendChild(r);
+            anchor = r;
+        }
+    });
+}
+
+
+/**
  * 遍历右侧树形面板中所有 tree-row 元素，
  * 如果 tree-row 的 data-mesh-name 与当前选中 Mesh 的 name 匹配，则高亮显示该行（例如设置背景色）。
  */
@@ -272,6 +363,8 @@ function updateTreeSelection() {
         if (selectedMesh && row.dataset.meshName === selectedMesh.name) {
             row.style.backgroundColor = '#ffd966';  // 例如浅黄色背景
             row.style.border = '1px solid #f1c232';
+            // 调用移动函数，把它移到同级最前
+            moveRowToTopWithinSameParent(row);
         } else {
             // 否则清除样式
             row.style.backgroundColor = '';
