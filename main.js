@@ -692,6 +692,9 @@ function clearAllHighlight() {
     if (displayDiv) {
         displayDiv.textContent = 'No mesh selected';
     }
+
+    // ★ 关键点：重新渲染 ConnectionLog（此时 selectedMesh 为 null，列表不再高亮）
+    renderConnectionLog();
 }
 
 // ============== highlightMesh: 让mesh始终显示在最前 + 边缘高亮 ==============
