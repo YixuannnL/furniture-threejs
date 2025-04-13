@@ -1,31 +1,31 @@
 {
     "meta": {
-        "object": "bookcase",
+        "object": "nightstand",
         "object_type": "group",
         "dimensions": {
-            "width": 900,
-            "height": 1800,
-            "depth": 420
+            "width": 45,
+            "height": 60,
+            "depth": 40
         },
         "children": [
             {
                 "meta": {
-                    "object": "bookcase_frame",
+                    "object": "nightstand_frame",
                     "object_type": "group",
                     "dimensions": {
-                        "width": 900,
-                        "height": 1800,
-                        "depth": 420
+                        "width": 45,
+                        "height": 60,
+                        "depth": 40
                     },
                     "children": [
                         {
                             "meta": {
-                                "object": "back_panel",
+                                "object": "top_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 900,
-                                    "height": 1800,
-                                    "depth": 3
+                                    "width": 45,
+                                    "height": 3,
+                                    "depth": 40
                                 }
                             }
                         },
@@ -35,8 +35,8 @@
                                 "object_type": "board",
                                 "dimensions": {
                                     "width": 3,
-                                    "height": 1800,
-                                    "depth": 420
+                                    "height": 57,
+                                    "depth": 40
                                 }
                             }
                         },
@@ -46,19 +46,8 @@
                                 "object_type": "board",
                                 "dimensions": {
                                     "width": 3,
-                                    "height": 1800,
-                                    "depth": 420
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "top_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 900,
-                                    "height": 3,
-                                    "depth": 420
+                                    "height": 57,
+                                    "depth": 40
                                 }
                             }
                         },
@@ -67,20 +56,31 @@
                                 "object": "bottom_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 900,
+                                    "width": 45,
                                     "height": 3,
-                                    "depth": 420
+                                    "depth": 40
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "horizontal_divide_shelf_cabinet_panel",
+                                "object": "shelf_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 900,
+                                    "width": 45,
                                     "height": 3,
-                                    "depth": 420
+                                    "depth": 40
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "back_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 45,
+                                    "height": 57,
+                                    "depth": 3
                                 }
                             }
                         }
@@ -89,61 +89,66 @@
             },
             {
                 "meta": {
-                    "object": "bookcase_base",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 900,
-                        "height": 3,
-                        "depth": 420
-                    }
-                }
-            },
-            {
-                "meta": {
-                    "object": "bookcase_shelves",
+                    "object": "nightstand_drawer",
                     "object_type": "group",
+                    "dimensions": {
+                        "width": 42,
+                        "height": 15,
+                        "depth": 37
+                    },
                     "children": [
                         {
                             "meta": {
-                                "object": "uppermost_shelf",
+                                "object": "drawer_front",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 894,
-                                    "height": 3,
-                                    "depth": 414
+                                    "width": 42,
+                                    "height": 15,
+                                    "depth": 2
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "adjustable_shelf_1",
+                                "object": "drawer_back",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 894,
-                                    "height": 3,
-                                    "depth": 414
+                                    "width": 42,
+                                    "height": 15,
+                                    "depth": 2
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "adjustable_shelf_2",
+                                "object": "drawer_left",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 894,
-                                    "height": 3,
-                                    "depth": 414
+                                    "width": 2,
+                                    "height": 15,
+                                    "depth": 37
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "adjustable_shelf_3",
+                                "object": "drawer_right",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 894,
-                                    "height": 3,
-                                    "depth": 414
+                                    "width": 2,
+                                    "height": 15,
+                                    "depth": 37
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "drawer_bottom",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 42,
+                                    "height": 2,
+                                    "depth": 37
                                 }
                             }
                         }
@@ -152,24 +157,37 @@
             },
             {
                 "meta": {
-                    "object": "cabinet_door_left",
-                    "object_type": "board",
+                    "object": "charging_station",
+                    "object_type": "group",
                     "dimensions": {
-                        "width": 446,
-                        "height": 594,
-                        "depth": 18
-                    }
-                }
-            },
-            {
-                "meta": {
-                    "object": "cabinet_door_right",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 446,
-                        "height": 594,
-                        "depth": 18
-                    }
+                        "width": 10,
+                        "height": 2,
+                        "depth": 15
+                    },
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "usb_ports",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 3,
+                                    "height": 1,
+                                    "depth": 1
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "wireless_charging_pad",
+                                "object_type": "block",
+                                "dimensions": {
+                                    "width": 8,
+                                    "height": 1,
+                                    "depth": 8
+                                }
+                            }
+                        }
+                    ]
                 }
             }
         ]

@@ -1,211 +1,195 @@
 {
     "data": [
         {
-            "bookcase_shelves": "<Adjustable_Shelf_3><Board>[<LeftFace>]",
-            "bookcase_frame": "<Back_Panel><Board>[<RightFace>]"
+            "nightstand_frame": ""
         },
         {
-            "bookcase_frame": "<Bottom_Panel><Board>[<TopFace>]",
-            "bookcase_base": ""
+            "nightstand_frame": "<Drawer_Back><Board>[<FrontFace>]",
+            "nightstand_drawer": ""
         },
         {
-            "bookcase_frame": "<Left_Side_Panel><Board>[<RightFace>]",
-            "cabinet_door_left": ""
+            "nightstand_frame": "<Wireless_Charging_Pad><Block>[<BottomFace>]",
+            "charging_station": ""
         },
         {
-            "bookcase_frame": "<Right_Side_Panel><Board>[<LeftFace>]",
-            "cabinet_door_right": ""
+            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]",
+            "top_panel": ""
         },
         {
-            "left_side_panel": "<Left_Side_Panel><Board>[<BackFace>]",
-            "back_panel": "<Back_Panel><Board>[<LeftFace>]"
+            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]",
+            "top_panel": ""
         },
         {
-            "right_side_panel": "<Right_Side_Panel><Board>[<BackFace>]",
-            "back_panel": "<Back_Panel><Board>[<RightFace>]"
+            "shelf_panel": "<Shelf_Panel><Board>[<LeftFace>]",
+            "left_side_panel": ""
         },
         {
-            "top_panel": "<Top_Panel><Board>[<BackFace>]",
-            "back_panel": "<Back_Panel><Board>[<TopFace>]"
+            "shelf_panel": "<Shelf_Panel><Board>[<RightFace>]",
+            "right_side_panel": ""
         },
         {
-            "bottom_panel": "<Bottom_Panel><Board>[<BackFace>]",
-            "back_panel": "<Back_Panel><Board>[<BottomFace>]"
+            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]",
+            "bottom_panel": ""
         },
         {
-            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]",
-            "back_panel": "<Back_Panel><Board>[<FrontFace>]"
+            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]",
+            "bottom_panel": ""
         },
         {
-            "top_panel": "<Top_Panel><Board>[<LeftFace>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
+            "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]",
+            "shelf_panel": ""
         },
         {
-            "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
+            "back_panel": ""
         },
         {
-            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
-        },
-        {
-            "top_panel": "<Top_Panel><Board>[<RightFace>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
-        },
-        {
-            "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
-        },
-        {
-            "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
-        },
-        {
-            "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<BottomFace>]",
-            "uppermost_shelf": "<Uppermost_Shelf><Board>[<TopFace>]"
-        },
-        {
-            "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<BottomFace>]",
-            "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<TopFace>]"
-        },
-        {
-            "adjustable_shelf_3": "<Adjustable_Shelf_3><Board>[<BottomFace>]",
-            "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<TopFace>]"
+            "wireless_charging_pad": "<Wireless_Charging_Pad><Block>[<LeftFace>]",
+            "usb_ports": ""
         }
     ],
     "meta_data": [
         {
             "row_headers": [
-                "",
-                "Bookcase_Frame",
-                "Bookcase_Base",
-                "Bookcase_Shelves",
-                "Cabinet_Door_Left",
-                "Cabinet_Door_Right"
+                "Component",
+                "Nightstand_Frame",
+                "Nightstand_Drawer",
+                "Charging_Station"
             ],
             "column_header": [
-                "Bookcase_Frame",
-                "Bookcase_Frame",
-                "Bookcase_Frame",
-                "Bookcase_Frame",
-                "Bookcase_Base",
-                "Bookcase_Shelves",
-                "Cabinet_Door_Left",
-                "Cabinet_Door_Right"
+                "Nightstand_Frame",
+                "Nightstand_Drawer",
+                "Charging_Station",
+                "Charging_Station",
+                "Nightstand_Frame",
+                "Nightstand_Frame",
+                "Nightstand_Frame",
+                "Nightstand_Drawer"
             ],
             "title": "table_1",
             "data": [
                 {
-                    "bookcase_shelves": "<Adjustable_Shelf_3><Board>[<LeftFace>]",
-                    "bookcase_frame": "<Back_Panel><Board>[<RightFace>]"
+                    "nightstand_frame": ""
                 },
                 {
-                    "bookcase_frame": "<Bottom_Panel><Board>[<TopFace>]",
-                    "bookcase_base": ""
+                    "nightstand_frame": "<Drawer_Back><Board>[<FrontFace>]",
+                    "nightstand_drawer": ""
                 },
                 {
-                    "bookcase_frame": "<Left_Side_Panel><Board>[<RightFace>]",
-                    "cabinet_door_left": ""
-                },
-                {
-                    "bookcase_frame": "<Right_Side_Panel><Board>[<LeftFace>]",
-                    "cabinet_door_right": ""
+                    "nightstand_frame": "<Wireless_Charging_Pad><Block>[<BottomFace>]",
+                    "charging_station": ""
                 }
             ]
         },
         {
             "row_headers": [
-                "",
-                "Back_Panel",
+                "Component",
+                "Top_Panel",
                 "Left_Side_Panel",
                 "Right_Side_Panel",
-                "Top_Panel",
                 "Bottom_Panel",
-                "Horizontal_Divide_Shelf_Cabinet_Panel"
+                "Shelf_Panel",
+                "Back_Panel"
             ],
             "column_header": [
+                "Top_Panel",
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Bottom_Panel",
+                "Shelf_Panel",
+                "Back_Panel",
+                "Top_Panel",
+                "Bottom_Panel",
                 "Back_Panel",
                 "Left_Side_Panel",
                 "Right_Side_Panel",
-                "Top_Panel",
-                "Bottom_Panel",
-                "Horizontal_Divide_Shelf_Cabinet_Panel"
+                "Shelf_Panel",
+                "Back_Panel",
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Back_Panel",
+                "Back_Panel"
             ],
             "title": "table_2",
             "data": [
                 {
-                    "left_side_panel": "<Left_Side_Panel><Board>[<BackFace>]",
-                    "back_panel": "<Back_Panel><Board>[<LeftFace>]"
+                    "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]",
+                    "top_panel": ""
                 },
                 {
-                    "right_side_panel": "<Right_Side_Panel><Board>[<BackFace>]",
-                    "back_panel": "<Back_Panel><Board>[<RightFace>]"
+                    "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]",
+                    "top_panel": ""
                 },
                 {
-                    "top_panel": "<Top_Panel><Board>[<BackFace>]",
-                    "back_panel": "<Back_Panel><Board>[<TopFace>]"
+                    "shelf_panel": "<Shelf_Panel><Board>[<LeftFace>]",
+                    "left_side_panel": ""
                 },
                 {
-                    "bottom_panel": "<Bottom_Panel><Board>[<BackFace>]",
-                    "back_panel": "<Back_Panel><Board>[<BottomFace>]"
+                    "shelf_panel": "<Shelf_Panel><Board>[<RightFace>]",
+                    "right_side_panel": ""
                 },
                 {
-                    "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<BackFace>]",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace>]"
+                    "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]",
+                    "bottom_panel": ""
                 },
                 {
-                    "top_panel": "<Top_Panel><Board>[<LeftFace>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
+                    "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]",
+                    "bottom_panel": ""
                 },
                 {
-                    "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
+                    "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]",
+                    "shelf_panel": ""
                 },
                 {
-                    "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<LeftFace>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
-                },
-                {
-                    "top_panel": "<Top_Panel><Board>[<RightFace>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
-                },
-                {
-                    "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
-                },
-                {
-                    "horizontal_divide_shelf_cabinet_panel": "<Horizontal_Divide_Shelf_Cabinet_Panel><Board>[<RightFace>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
+                    "back_panel": ""
                 }
             ]
         },
         {
             "row_headers": [
-                "",
-                "Uppermost_Shelf",
-                "Adjustable_Shelf_1",
-                "Adjustable_Shelf_2",
-                "Adjustable_Shelf_3"
+                "Component",
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Left",
+                "Drawer_Right",
+                "Drawer_Bottom"
             ],
             "column_header": [
-                "Uppermost_Shelf",
-                "Adjustable_Shelf_1",
-                "Adjustable_Shelf_2",
-                "Adjustable_Shelf_3"
+                "Drawer_Front",
+                "Drawer_Back",
+                "Drawer_Left",
+                "Drawer_Right",
+                "Drawer_Bottom",
+                "Drawer_Back",
+                "Drawer_Left",
+                "Drawer_Right",
+                "Drawer_Bottom",
+                "Drawer_Left",
+                "Drawer_Right",
+                "Drawer_Bottom",
+                "Drawer_Right",
+                "Drawer_Bottom",
+                "Drawer_Bottom"
             ],
             "title": "table_3",
+            "data": []
+        },
+        {
+            "row_headers": [
+                "Component",
+                "USB_Ports",
+                "Wireless_Charging_Pad"
+            ],
+            "column_header": [
+                "USB_Ports",
+                "Wireless_Charging_Pad",
+                "USB_Ports",
+                "Wireless_Charging_Pad"
+            ],
+            "title": "table_4",
             "data": [
                 {
-                    "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<BottomFace>]",
-                    "uppermost_shelf": "<Uppermost_Shelf><Board>[<TopFace>]"
-                },
-                {
-                    "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<BottomFace>]",
-                    "adjustable_shelf_1": "<Adjustable_Shelf_1><Board>[<TopFace>]"
-                },
-                {
-                    "adjustable_shelf_3": "<Adjustable_Shelf_3><Board>[<BottomFace>]",
-                    "adjustable_shelf_2": "<Adjustable_Shelf_2><Board>[<TopFace>]"
+                    "wireless_charging_pad": "<Wireless_Charging_Pad><Block>[<LeftFace>]",
+                    "usb_ports": ""
                 }
             ]
         }

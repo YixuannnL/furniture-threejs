@@ -11,7 +11,8 @@ import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 let furnitureData = jsonData;
 let connectionData = Utils.filterConnData(ConnData);
 
-
+// 引入 / 定义 furnitureData, connectionData 后，先进行尺寸放大
+scaleFurnitureIfTooSmall(furnitureData);
 // 拷贝一份初始状态
 const initialFurnitureData = JSON.parse(JSON.stringify(furnitureData));
 const initialConnectionData = JSON.parse(JSON.stringify(connectionData));
@@ -51,6 +52,54 @@ let currentConnectionHighlight = null;
 // 用于存储场景中所有 Mesh 的“原材质”或者“变淡材质”，以便随时切换
 // 也可以不存，直接重新 render_furniture 也行，但可能会破坏用户的中间编辑状态
 let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean, isHighlighted:boolean }
+
+
+// ------------------- 新增：在此处对 furnitureData 做尺寸放大处理 ------------------- //
+function scaleFurnitureIfTooSmall(furnitureData) {
+    // 如果没有根尺寸，直接返回
+    if (!furnitureData.meta || !furnitureData.meta.dimensions) return;
+
+    const rootDim = furnitureData.meta.dimensions;
+    // 计算对角线
+    const diagonal = Math.sqrt(
+        (rootDim.width || 0) ** 2 +
+        (rootDim.height || 0) ** 2 +
+        (rootDim.depth || 0) ** 2
+    );
+
+    let scaleFactor = 1;
+    if (diagonal < 100) {
+        scaleFactor = 10;
+    } else if (diagonal < 1000) {
+        scaleFactor = 5;
+    }
+
+    if (scaleFactor > 1) {
+        // 递归放大 meta 的所有 dimensions
+        scaleMetaDimensions(furnitureData.meta, scaleFactor);
+        console.log(`对角线(${diagonal.toFixed(2)}) < 1000, 已放大 ${scaleFactor} 倍`);
+    } else {
+        console.log(`对角线(${diagonal.toFixed(2)}) >= 1000, 不需放大`);
+    }
+}
+
+function scaleMetaDimensions(metaNode, factor) {
+    // 如果有 dimensions
+    if (metaNode.dimensions) {
+        metaNode.dimensions.width = (metaNode.dimensions.width || 0) * factor;
+        metaNode.dimensions.height = (metaNode.dimensions.height || 0) * factor;
+        metaNode.dimensions.depth = (metaNode.dimensions.depth || 0) * factor;
+    }
+
+    // 若存在 children，继续递归
+    if (Array.isArray(metaNode.children)) {
+        metaNode.children.forEach(child => {
+            if (child && child.meta) {
+                scaleMetaDimensions(child.meta, factor);
+            }
+        });
+    }
+}
 
 // 辅助：计算 THREE.Box3 的体积
 function computeBoxVolume(box) {
