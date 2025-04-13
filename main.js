@@ -763,7 +763,10 @@ function selectMesh(mesh) {
         displayDiv.textContent = `Selected Mesh: ${mesh.name}`;
     }
 
-    // ★ ★ ★ 新增：更新树形面板中选中行的样式 ★ ★ ★
+    // ★★ 关键：每次选中 Mesh 后重新渲染连接面板 ★★
+    renderConnectionLog();
+
+    // ★ 新树形面板中选中行的样式
     updateTreeSelection();
 }
 
@@ -1697,6 +1700,13 @@ function renderConnectionLog() {
     conns.forEach((item) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'conn-item';
+        console.log("HERE11111")
+        // 如果这一条连接与 selectedMeshName 有关，则加上高亮类
+        if (selectedMeshName && connectionItemHasName(item, selectedMeshName)) {
+            console.log("HERE222222")
+            itemDiv.classList.add('conn-item-highlight');
+        }
+
 
         // 若此连接在编辑模式
         if (editingConnections.has(item)) {
