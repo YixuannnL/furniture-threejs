@@ -1343,12 +1343,12 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
     // -- 4) 在 x 轴外侧排布 --
     // 设定一个 margin，让它们起始位置在家具整体 xMax 的再往外 margin 的地方
     const margin = 400;
-    // 两个无连接对象之间的间距
-    const gap = 300;
     // 已连接整体 X 最大值(中心 x + 一半宽度)
     const xMax = center.x + size.x / 2;
+    // 两个无连接对象之间的间距
+    const gap = center.x + size.x / 2; // 不用绝对数值因为家具的尺寸的单位不一定
     // 起始坐标
-    let baseX = xMax + margin;
+    let baseX = xMax + xMax;
 
     for (let i = 0; i < unconnected.length; i++) {
         const obj = unconnected[i];
