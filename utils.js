@@ -247,74 +247,112 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     boxA.applyMatrix4(meshA.matrixWorld);
     boxB.applyMatrix4(meshB.matrixWorld);
 
-    // 取出 min/max
-    const A_min = boxA.min, A_max = boxA.max;
-    const B_min = boxB.min, B_max = boxB.max;
+    // 对三个轴分别计算重叠长度
+    const overlapX = Math.min(boxA.max.x, boxB.max.x) - Math.max(boxA.min.x, boxB.min.x);
+    const overlapY = Math.min(boxA.max.y, boxB.max.y) - Math.max(boxA.min.y, boxB.min.y);
+    const overlapZ = Math.min(boxA.max.z, boxB.max.z) - Math.max(boxA.min.z, boxB.min.z);
 
-    // 用一个辅助函数测试 1D 区间接触
-    const overlapIn1D = (min1, max1, min2, max2) => !(max1 < min2 || max2 < min1);
-
-    // 先判断 x 轴是否接触
-    // 条件： (A_max.x ~ B_min.x) or (B_max.x ~ A_min.x)
-    //        && 在 y,z 方向上有 overlap
-    if (Math.abs(A_max.x - B_min.x) <= eps && overlapIn1D(A_min.y, A_max.y, B_min.y, B_max.y) && overlapIn1D(A_min.z, A_max.z, B_min.z, B_max.z)) {
+    // 如果有任一轴重叠为负，则说明盒子之间存在间隙，返回不接触
+    if (overlapX < 0 || overlapY < 0 || overlapZ < 0) {
         return {
-            isTouching: true,
-            contactAxis: 'x',
-            // 取接触面的中点(世界坐标)
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'x', true),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'x', false)
-        };
-    }
-    if (Math.abs(B_max.x - A_min.x) <= eps && overlapIn1D(A_min.y, A_max.y, B_min.y, B_max.y) && overlapIn1D(A_min.z, A_max.z, B_min.z, B_max.z)) {
-        return {
-            isTouching: true,
-            contactAxis: 'x',
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'x', false),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'x', true)
+            isTouching: false,
+            contactAxis: null,
+            penetrationDepth: 0,
+            contactPointA: null,
+            contactPointB: null
         };
     }
 
-    // 再判断 y 轴接触
-    if (Math.abs(A_max.y - B_min.y) <= eps && overlapIn1D(A_min.x, A_max.x, B_min.x, B_max.x) && overlapIn1D(A_min.z, A_max.z, B_min.z, B_max.z)) {
-        return {
-            isTouching: true,
-            contactAxis: 'y',
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'y', true),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'y', false)
-        };
-    }
-    if (Math.abs(B_max.y - A_min.y) <= eps && overlapIn1D(A_min.x, A_max.x, B_min.x, B_max.x) && overlapIn1D(A_min.z, A_max.z, B_min.z, B_max.z)) {
-        return {
-            isTouching: true,
-            contactAxis: 'y',
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'y', false),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'y', true)
-        };
+    // 对重叠值取最大(防止小负数误差)
+    const ox = Math.max(overlapX, 0);
+    const oy = Math.max(overlapY, 0);
+    const oz = Math.max(overlapZ, 0);
+
+    // 统计近似为零的轴数
+    let zeroCount = 0;
+    if (Math.abs(ox) <= eps) zeroCount++;
+    if (Math.abs(oy) <= eps) zeroCount++;
+    if (Math.abs(oz) <= eps) zeroCount++;
+
+    let contactType = 'face'; // 默认
+    if (zeroCount === 2) {
+        contactType = 'edge';
+    } else if (zeroCount === 3) {
+        contactType = 'corner';
     }
 
-    // z 轴类似
-    if (Math.abs(A_max.z - B_min.z) <= eps && overlapIn1D(A_min.x, A_max.x, B_min.x, B_max.x) && overlapIn1D(A_min.y, A_max.y, B_min.y, B_max.y)) {
-        return {
-            isTouching: true,
-            contactAxis: 'z',
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'z', true),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'z', false)
-        };
-    }
-    if (Math.abs(B_max.z - A_min.z) <= eps && overlapIn1D(A_min.x, A_max.x, B_min.x, B_max.x) && overlapIn1D(A_min.y, A_max.y, B_min.y, B_max.y)) {
-        return {
-            isTouching: true,
-            contactAxis: 'z',
-            contactPointA: getContactCenterOnAxis(boxA, boxB, 'z', false),
-            contactPointB: getContactCenterOnAxis(boxA, boxB, 'z', true)
-        };
+    // 盒子有接触：可以认为它们的交集体积不为 0（或至少边界刚好相接）
+    // 确定主要接触轴为重叠最小的轴
+    let minOverlap = ox;
+    let contactAxis = 'x';
+    if (oy < minOverlap) { minOverlap = oy; contactAxis = 'y'; }
+    if (oz < minOverlap) { minOverlap = oz; contactAxis = 'z'; }
+
+    // 如果是 edge 或 corner 接触，则让接触轴取那些重叠近零的轴（这里按照 x→y→z 优先顺序）
+    if (zeroCount >= 2) {
+        if (Math.abs(ox) <= eps) {
+            contactAxis = 'x';
+            minOverlap = 0;
+        } else if (Math.abs(oy) <= eps) {
+            contactAxis = 'y';
+            minOverlap = 0;
+        } else if (Math.abs(oz) <= eps) {
+            contactAxis = 'z';
+            minOverlap = 0;
+        }
     }
 
-    // 否则不接触
+    // 计算接触点：在 contactAxis 上，我们选取与另一盒子更近的那一面，其他轴取盒子中心（面中心）
+    let contactPointA = new THREE.Vector3();
+    let contactPointB = new THREE.Vector3();
+
+    if (contactAxis === 'x') {
+        const delta1 = Math.abs(boxA.max.x - boxB.min.x);
+        const delta2 = Math.abs(boxB.max.x - boxA.min.x);
+        if (delta1 <= delta2) {
+            // A 的右侧面与 B 的左侧面接触
+            contactPointA.set(boxA.max.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set(boxB.min.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
+        } else {
+            // A 的左侧面与 B 的右侧面接触
+            contactPointA.set(boxA.min.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set(boxB.max.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
+        }
+    }
+    else if (contactAxis === 'y') {
+        const delta1 = Math.abs(boxA.max.y - boxB.min.y);
+        const delta2 = Math.abs(boxB.max.y - boxA.min.y);
+        if (delta1 <= delta2) {
+            // A 上侧与 B 下侧接触
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxA.max.y, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxB.min.y, (boxB.min.z + boxB.max.z) / 2);
+        } else {
+            // A 下侧与 B 上侧接触
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxA.min.y, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxB.max.y, (boxB.min.z + boxB.max.z) / 2);
+        }
+    }
+    else if (contactAxis === 'z') {
+        const delta1 = Math.abs(boxA.max.z - boxB.min.z);
+        const delta2 = Math.abs(boxB.max.z - boxA.min.z);
+        if (delta1 <= delta2) {
+            // A 的前侧面与 B 的后侧面接触
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxA.max.z);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxB.min.z);
+        } else {
+            // A 的后侧面与 B 的前侧面接触
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxA.min.z);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxB.max.z);
+        }
+    }
+
     return {
-        isTouching: false,
-        contactAxis: null
+        isTouching: true,
+        contactAxis: contactAxis,
+        penetrationDepth: minOverlap, // 这里可以代表最小的重叠量
+        contactType: contactType,
+        contactPointA: contactPointA,
+        contactPointB: contactPointB
     };
 }
 
@@ -812,4 +850,174 @@ export function collectAllMeshNames(meta) {
     }
 
     return results;
+}
+
+
+
+/**
+ * 示例：计算在剩余 2 轴上的重叠率
+ * @param {THREE.Box3} boxA 
+ * @param {THREE.Box3} boxB 
+ * @param {string} contactAxis - 'x'|'y'|'z'
+ * @returns {object} { axis1Ratio, axis2Ratio } 取值 [0..1]
+ */
+export function getOverlapRatio(boxA, boxB, contactAxis) {
+    // 比如 contactAxis='y'，则 axis1='x', axis2='z'
+    let axis1, axis2;
+    if (contactAxis === 'x') {
+        axis1 = 'y'; axis2 = 'z';
+    } else if (contactAxis === 'y') {
+        axis1 = 'x'; axis2 = 'z';
+    } else {
+        axis1 = 'x'; axis2 = 'y';
+    }
+
+    // 分别算 axis1 / axis2 上的交集长度 / min(各自长度)
+    const overlap1 = get1DOverlap(boxA.min[axis1], boxA.max[axis1], boxB.min[axis1], boxB.max[axis1]);
+    const overlap2 = get1DOverlap(boxA.min[axis2], boxA.max[axis2], boxB.min[axis2], boxB.max[axis2]);
+
+    // boxA 在 axis1 的长度
+    const lenA1 = boxA.max[axis1] - boxA.min[axis1];
+    const lenB1 = boxB.max[axis1] - boxB.min[axis1];
+    const lenA2 = boxA.max[axis2] - boxA.min[axis2];
+    const lenB2 = boxB.max[axis2] - boxB.min[axis2];
+
+    const axis1Ratio = overlap1 / Math.min(lenA1, lenB1);
+    const axis2Ratio = overlap2 / Math.min(lenA2, lenB2);
+
+    return { axis1Ratio, axis2Ratio };
+}
+
+/** 计算一维区间 [min1, max1] 和 [min2, max2] 的重叠长度 */
+export function get1DOverlap(min1, max1, min2, max2) {
+    const overlapMin = Math.max(min1, min2);
+    const overlapMax = Math.min(max1, max2);
+    return Math.max(0, overlapMax - overlapMin);
+}
+
+/**
+ * 根据两个 mesh 的世界包围盒、各轴上的交叠情况以及尺寸比较，
+ * 为单个 mesh 返回推荐的接触面名称（例如 "TopFace" 或 "LeftEdge"）。
+ *
+ * 原则：
+ * 1. 对每个轴（x, y, z），分别考察 A 的正（例如 A.max.x 与 B.min.x）和负方向（例如 A.min.x 与 B.max.x）的候选；
+ * 2. 计算候选方向在其它两个轴上的重叠率（归一化到 A 自身尺寸），重叠率高说明交叠充分；
+ * 3. 候选中先优先选择重叠率高者（如果有距离误差，两者间距离较小者优先）；
+ * 4. 如果 meshA 为 board 类型且最佳候选的轴恰好是该 board 的薄轴（即尺寸最小者），则认为该面属于窄侧，用 "Edge" 替换 "Face"。
+ *
+ * @param {THREE.Mesh} meshA - 当前需要确定接触面的 mesh
+ * @param {THREE.Mesh} meshB - 与 meshA 接触的另一个 mesh
+ * @param {number} eps - 距离容差（默认 1e-3）
+ * @returns {string} - 如 "TopFace", "LeftEdge" 等
+ */
+export function getContactFaceName(meshA, meshB, eps = 1e-3) {
+    // 确保最新 worldMatrix
+    meshA.updateMatrixWorld(true);
+    meshB.updateMatrixWorld(true);
+    // 计算并确保 geometry 的 boundingBox 存在
+    if (!meshA.geometry.boundingBox) meshA.geometry.computeBoundingBox();
+    if (!meshB.geometry.boundingBox) meshB.geometry.computeBoundingBox();
+
+    // 复制 boundingBox 并转换到世界坐标
+    const boxA = meshA.geometry.boundingBox.clone();
+    const boxB = meshB.geometry.boundingBox.clone();
+    boxA.applyMatrix4(meshA.matrixWorld);
+    boxB.applyMatrix4(meshB.matrixWorld);
+
+    // 候选信息：每个候选包括：axis（'x','y','z'）、side ('positive' 或 'negative')、两者间的距离、以及在其它两个轴上的最小重叠率。
+    let candidates = [];
+
+    // 辅助：计算在除指定轴以外的两个轴上的重叠率
+    function computeOverlap(axis, boxA, boxB) {
+        let otherAxes = ['x', 'y', 'z'].filter(a => a !== axis);
+        let ratios = otherAxes.map(a => {
+            let overlap = Math.min(boxA.max[a], boxB.max[a]) - Math.max(boxA.min[a], boxB.min[a]);
+            let sizeA = boxA.max[a] - boxA.min[a];
+            return (sizeA > 0) ? (overlap / sizeA) : 0;
+        });
+        return Math.min(...ratios);
+    }
+
+    // 对每个轴添加候选面
+    ['x', 'y', 'z'].forEach(axis => {
+        // 正方向候选：A 的最大边界与 B 的最小边界
+        let dPos = Math.abs(boxA.max[axis] - boxB.min[axis]);
+        let overlapRatioPos = computeOverlap(axis, boxA, boxB);
+        // 如果距离小于 eps（即近似贴合），或者两个盒子在其它轴上有正重叠（overlap > 0），则作为候选
+        if (dPos <= eps || overlapRatioPos > 0) {
+            candidates.push({ axis: axis, side: 'positive', distance: dPos, overlapRatio: overlapRatioPos });
+        }
+        // 负方向候选：A 的最小边界与 B 的最大边界
+        let dNeg = Math.abs(boxB.max[axis] - boxA.min[axis]);
+        let overlapRatioNeg = computeOverlap(axis, boxA, boxB);
+        if (dNeg <= eps || overlapRatioNeg > 0) {
+            candidates.push({ axis: axis, side: 'negative', distance: dNeg, overlapRatio: overlapRatioNeg });
+        }
+    });
+
+    if (candidates.length === 0) return "UnknownFace";
+
+    // 选择最佳候选：优先重叠率高，其次距离小
+    candidates.sort((a, b) => {
+        if (b.overlapRatio !== a.overlapRatio) return b.overlapRatio - a.overlapRatio;
+        return a.distance - b.distance;
+    });
+    const best = candidates[0];
+
+    // 根据最佳候选确定基本名称
+    let baseName = "UnknownFace";
+    if (best.axis === 'x') {
+        baseName = (best.side === 'positive') ? "RightFace" : "LeftFace";
+    } else if (best.axis === 'y') {
+        baseName = (best.side === 'positive') ? "TopFace" : "BottomFace";
+    } else if (best.axis === 'z') {
+        baseName = (best.side === 'positive') ? "FrontFace" : "BackFace";
+    }
+
+    // 针对 board 类型，判断是否应将“Face”改为“Edge”。
+    // 规则：先获取 boxA 的尺寸，从 width, height, depth 中找出最小的维度作为薄轴，
+    // 如果最佳候选的 axis 正好和薄轴一致，则认为该面是狭窄的，使用“Edge”命名
+    const dims = meshA.geometry.parameters;
+    if (dims) {
+        const objType = getObjectType({ width: dims.width, height: dims.height, depth: dims.depth });
+        if (objType === "board") {
+            const dimsArr = [
+                { axis: 'width', value: dims.width },
+                { axis: 'height', value: dims.height },
+                { axis: 'depth', value: dims.depth }
+            ];
+            dimsArr.sort((a, b) => a.value - b.value);
+            if (baseName == "RightFace" || baseName == "LeftFace") {
+                if (dimsArr[0].axis == "height" || dimsArr[0].axis == "depth") baseName = baseName.replace("Face", "Edge");
+            }
+            else if (baseName == "TopFace" || baseName == "BottomFace") {
+                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "depth") baseName = baseName.replace("Face", "Edge");
+            }
+            else if (baseName == "FrontFace" || baseName == "BackFace") {
+                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "height") baseName = baseName.replace("Face", "Edge");
+            }
+        }
+    }
+    console.log("basename: ", baseName);
+    return baseName;
+}
+
+
+/**
+ * 修改后的 getAnchorNameFor 函数：
+ * 对于传入的两个 mesh，分别调用 getContactFaceName 得到各自的锚点名称，
+ * 并返回一个对象 { anchorA, anchorB }。
+ *
+ * 注意：即便 meshA 与 meshB 的接触并非严格对应（例如 meshA 接触左侧，meshB 可能接触顶部），
+ * 这种函数独立计算各自的最佳接触面名称，可以反映实际重叠情况。
+ *
+ * @param {THREE.Mesh} meshA
+ * @param {THREE.Mesh} meshB
+ * @returns {object} { anchorA, anchorB }
+ */
+export function getAnchorNameFor(meshA, meshB) {
+    const anchorA = getContactFaceName(meshA, meshB);
+    const anchorB = getContactFaceName(meshB, meshA);
+    console.log("anchor:", anchorA, anchorB);
+    return { anchorA, anchorB };
 }

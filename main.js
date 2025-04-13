@@ -3131,12 +3131,104 @@ resetBtn.addEventListener('click', () => {
     console.log('Reset to initial state done!');
 });
 
+/**
+ * 在导出前，对 connectionData 里每一条连接关系进行重新检测，
+ * 将原本的“点对点锚点”统一修正成更语义化的面/边/角连接，例如 "TopFace" / "LeftEdge" / "BackCorner" 等。
+ * 
+ * 你可根据自己项目对“face/edge/corner”判定阈值做修改。
+ */
+function refineAllConnections() {
+    // 遍历 connectionData 中的每个连接条目
+    for (let i = 0; i < connectionData.data.length; i++) {
+        const connItem = connectionData.data[i];
+
+        // 典型结构: { "Seat":"<Seat><Board>[<BottomFace><FrontLeftCorner>]", "Base":"<Leg_Front_Left><Block>[<TopFace>]" }
+        // 先读取 keyA, keyB
+        const keys = Object.keys(connItem);
+        if (keys.length < 2) continue; // 略过异常数据
+
+        const keyA = keys[0];
+        const keyB = keys[1];
+        const strA = connItem[keyA];
+        const strB = connItem[keyB];
+
+        // 解析 => { name, type, anchors }
+        const cA = Utils.parseConnectionString(strA);
+        const cB = Utils.parseConnectionString(strB);
+        // 用 name 从场景取出对应 Mesh
+        const meshA = objectsByName[cA.name];
+        const meshB = objectsByName[cB.name];
+        if (!meshA || !meshB) {
+            // 找不到对应 Mesh => 跳过
+            continue;
+        }
+
+        // =========== 1) 判断几何接触关系 ==============
+        const contactRes = Utils.checkBoundingBoxContact(meshA, meshB, 2.0 /* eps */);
+        console.log("contactRes:", contactRes);
+        // Utils.checkBoundingBoxContact 只是判定是否接触 & contactAxis
+        // 你可以把它改进成判断面-面 / 边-边 / 角-角 也行。
+
+        if (!contactRes.isTouching) {
+            // 若实际没接触，说明只是逻辑上连接(比如远距离依旧 connect?)
+            // 根据业务需求自行处理：可能保留原 anchor，不动。
+            continue;
+        }
+
+        // contactRes 通常返回:
+        // {
+        //   isTouching: true,
+        //   contactAxis: 'y', // x/y/z
+        //   contactPointA: Vector3,
+        //   contactPointB: Vector3
+        // }
+
+        // =========== 2) 判断是 face-face / edge-edge / corner-corner ===========
+        // 一个常见做法是：判断在其余两个轴上的“重叠区间”大小，来区分是面、边还是角
+
+        // 拿到世界包围盒
+        const boxA = Utils.computeWorldBoundingBoxForObject(meshA);
+        const boxB = Utils.computeWorldBoundingBoxForObject(meshB);
+
+        // 在 contactAxis 上它们贴合；则另两个轴 (axis1, axis2) 上看 overlap
+        // 如果 overlap 两轴都很大 => face-face；如果只在其中 1 轴上大 => edge-edge；都很小 => corner
+        // 这里设置一些阈值
+        // const overlapRatio = Utils.getOverlapRatio(boxA, boxB, contactRes.contactAxis);
+        // overlapRatio = { axis1Ratio: 0.8, axis2Ratio: 0.9 } 之类
+
+        // =========== 3) 根据 contactAxis & contactType & 位置关系 => 确定 A / B 的 anchor 名字 ===========
+        if (contactRes.contactType == "face") {
+            // let anchorA, anchorB
+            const anchors = Utils.getAnchorNameFor(meshA, meshB);
+            // const anchorB = Utils.getAnchorNameFor(meshB, meshA);
+            // console.log("AAAAAA:", anchorA, anchorB);
+
+            // 你也可以把上面拆得更细：对 corner-edge-face 做不同的 anchorName
+
+            // =========== 4) 更新 connectionData 的锚点字符串 ===========
+            // 保留之前的 <ObjA><Board> 头部，只改后面的 [ <...> ]
+            let newStrA;
+            let newStrB;
+            if (anchors.anchorA != "UnknownFace") { newStrA = `<${cA.name}><${cA.type}>[<${cA.anchors}><${anchors.anchorA}>]`; }
+            if (anchors.anchorB != "UnknownFace") { newStrB = `<${cB.name}><${cB.type}>[<${cB.anchors}><${anchors.anchorB}>]`; }
+
+            connItem[keyA] = newStrA;
+            connItem[keyB] = newStrB;
+        }
+
+    }
+
+    console.log("RefineAllConnections done!");
+}
 
 const exportBtn = document.getElementById('exportBtn');
 exportBtn.addEventListener('click', () => {
 
     // 先做碰撞检测 => 给未记录的相邻部件补充连接数据
     detectAndAddConnections();
+
+    // 在真正导出前，做二次检测与修正(点点->面面)
+    refineAllConnections();
 
     //调用导出函数
     exportAllData();
