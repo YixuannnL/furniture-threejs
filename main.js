@@ -1515,8 +1515,13 @@ const snappingMarker = createMarker(10, 0xff0000);
 scene.add(snappingMarker);
 snappingMarker.visible = false;
 
-
-const axesHelper = new THREE.AxesHelper(500);
+// 从 furnitureData.meta.dimensions 中获取初始尺寸
+const initDims = furnitureData.meta.dimensions;
+// 计算最大尺寸
+const maxDim = Math.max(initDims.width, initDims.height, initDims.depth);
+// 根据最大尺寸乘以一个系数（比如1.5）得到轴长度
+const axesLength = maxDim;
+const axesHelper = new THREE.AxesHelper(axesLength / 2);
 scene.add(axesHelper);
 const dir_x = new THREE.Vector3(1, 0, 0);
 const dir_y = new THREE.Vector3(0, 0, 1);
@@ -1526,7 +1531,7 @@ dir_x.normalize();
 dir_y.normalize();
 dir_z.normalize();
 const origin = new THREE.Vector3(0, 0, 0);
-const length = 1500;
+const length = axesLength * 3;
 const hex_x = 0xffff00;
 const hex_y = 0x00ffff;
 const hex_z = 0xff00ff;
