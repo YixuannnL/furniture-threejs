@@ -1391,7 +1391,7 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
     // 两个无连接对象之间的间距
     const gap = center.x + size.x / 2; // 不用绝对数值因为家具的尺寸的单位不一定
     // 起始坐标
-    let baseX = xMax + xMax + xMax;
+    let baseX = xMax + xMax;
 
     for (let i = 0; i < unconnected.length; i++) {
         const obj = unconnected[i];
@@ -1438,27 +1438,31 @@ function applyConnections(connectionData) {
         }
     }
     // console.log("list", list);
-    list.forEach(item => {
-        // console.log("item:", item);
-        const keys = Object.keys(item) // ['Seat','Base']
-        const firstkey = keys[0]
-        const secondkey = keys[1]
-        const firstStr = item[firstkey];
-        const secondStr = item[secondkey];
-        if (!firstStr || !secondStr) return;
-        if (firstStr === "" || secondStr === "") return;
+    for (let i = list.length - 1; i >= 0; i--) {
+        const item = list[i];
+        const keys = Object.keys(item); // 例如 ['Seat','Base']
+        const firstKey = keys[0];
+        const secondKey = keys[1];
+        const firstStr = item[firstKey];
+        const secondStr = item[secondKey];
+
+        if (!firstStr || !secondStr || firstStr === "" || secondStr === "") {
+            // 连接字符串不完整，删除该条目
+            list.splice(i, 1);
+            continue;
+        }
 
         const firstConn = Utils.parseConnectionString(firstStr);
         const secondConn = Utils.parseConnectionString(secondStr);
 
-        // console.log("firstConn", firstConn);
-        // console.log("secondConn", secondConn);
-
         const firstObj = objectsByName[firstConn.name];
         const secondObj = objectsByName[secondConn.name];
+
         if (!firstObj || !secondObj) {
             console.warn('找不到对象:', firstConn.name, secondConn.name);
-            return;
+            // 删除这条连接关系
+            list.splice(i, 1);
+            continue;
         }
 
         // 计算它们的世界坐标 anchor
@@ -1488,7 +1492,7 @@ function applyConnections(connectionData) {
             unifyGroups(gA, gB);
         }
         // 如果已经在同一个组，就什么都不做（说明可能之前已经对齐过）
-    });
+    }
 }
 
 const scene = new THREE.Scene();
@@ -3073,7 +3077,7 @@ function detectAndAddConnections() {
     }
 
     // 如果有新连接，重新渲染
-    render_furniture(furnitureData, connectionData);
+    // render_furniture(furnitureData, connectionData);
 }
 
 
@@ -3133,6 +3137,105 @@ resetBtn.addEventListener('click', () => {
     console.log('Reset to initial state done!');
 });
 
+
+// 新增：辅助函数 AnchorNameIsCorner
+// 根据 Mesh 的尺寸和当前面类型，采用相对阈值进一步细化 anchor 名称
+function AnchorNameIsCorner(originalAnchor, mesh, contactPoint) {
+    // 如果没有几何参数，则直接返回原始 anchor
+    if (!mesh.geometry || !mesh.geometry.parameters) return `<${originalAnchor}>`;;
+    const { width, height, depth } = mesh.geometry.parameters;
+    // 将世界坐标 contactPoint 转换为 mesh 的局部坐标
+    const contactlocalPoint = mesh.worldToLocal(contactPoint.clone());
+    console.log("mesh", mesh);
+    console.log("orianchor:", originalAnchor);
+    console.log("lllllocalpoint", contactlocalPoint);
+
+    // 设置一个相对阈值因子，比如 0.2 表示 20%
+    const factor = 0.2;
+
+    // 根据原始 anchor 判断当前是哪一侧的 face，从而确定候选角点和面相关尺寸
+    let faceCandidates = {};
+    let faceDimension = 0; // 用于计算阈值
+
+    if (originalAnchor.includes("BottomFace")) {
+        // BottomFace 对应 y = -height/2，其候选角点在 x-z 平面
+        faceCandidates = {
+            "FrontLeftCorner": new THREE.Vector3(-width / 2, -height / 2, depth / 2),
+            "FrontRightCorner": new THREE.Vector3(width / 2, -height / 2, depth / 2),
+            "BackLeftCorner": new THREE.Vector3(-width / 2, -height / 2, -depth / 2),
+            "BackRightCorner": new THREE.Vector3(width / 2, -height / 2, -depth / 2)
+        };
+        faceDimension = Math.min(width, depth);
+    } else if (originalAnchor.includes("TopFace")) {
+        // TopFace 对应 y = +height/2，其候选角点在 x-z 平面
+        faceCandidates = {
+            "FrontLeftCorner": new THREE.Vector3(-width / 2, height / 2, depth / 2),
+            "FrontRightCorner": new THREE.Vector3(width / 2, height / 2, depth / 2),
+            "BackLeftCorner": new THREE.Vector3(-width / 2, height / 2, -depth / 2),
+            "BackRightCorner": new THREE.Vector3(width / 2, height / 2, -depth / 2)
+        };
+        faceDimension = Math.min(width, depth);
+    } else if (originalAnchor.includes("LeftFace")) {
+        // LeftFace 对应 x = -width/2，其候选角点在 y-z 平面
+        faceCandidates = {
+            "TopFrontCorner": new THREE.Vector3(-width / 2, height / 2, depth / 2),
+            "TopBackCorner": new THREE.Vector3(-width / 2, height / 2, -depth / 2),
+            "BottomFrontCorner": new THREE.Vector3(-width / 2, -height / 2, depth / 2),
+            "BottomBackCorner": new THREE.Vector3(-width / 2, -height / 2, -depth / 2)
+        };
+        faceDimension = Math.min(height, depth);
+    } else if (originalAnchor.includes("RightFace")) {
+        // RightFace 对应 x = +width/2，其候选角点在 y-z 平面
+        faceCandidates = {
+            "TopFrontCorner": new THREE.Vector3(width / 2, height / 2, depth / 2),
+            "TopBackCorner": new THREE.Vector3(width / 2, height / 2, -depth / 2),
+            "BottomFrontCorner": new THREE.Vector3(width / 2, -height / 2, depth / 2),
+            "BottomBackCorner": new THREE.Vector3(width / 2, -height / 2, -depth / 2)
+        };
+        faceDimension = Math.min(height, depth);
+    } else if (originalAnchor.includes("FrontFace")) {
+        // FrontFace 对应 z = +depth/2，其候选角点在 x-y 平面
+        faceCandidates = {
+            "TopLeftCorner": new THREE.Vector3(-width / 2, height / 2, depth / 2),
+            "TopRightCorner": new THREE.Vector3(width / 2, height / 2, depth / 2),
+            "BottomLeftCorner": new THREE.Vector3(-width / 2, -height / 2, depth / 2),
+            "BottomRightCorner": new THREE.Vector3(width / 2, -height / 2, depth / 2)
+        };
+        faceDimension = Math.min(width, height);
+    } else if (originalAnchor.includes("BackFace")) {
+        // BackFace 对应 z = -depth/2，其候选角点在 x-y 平面
+        faceCandidates = {
+            "TopLeftCorner": new THREE.Vector3(-width / 2, height / 2, -depth / 2),
+            "TopRightCorner": new THREE.Vector3(width / 2, height / 2, -depth / 2),
+            "BottomLeftCorner": new THREE.Vector3(-width / 2, -height / 2, -depth / 2),
+            "BottomRightCorner": new THREE.Vector3(width / 2, -height / 2, -depth / 2)
+        };
+        faceDimension = Math.min(width, height);
+    } else {
+        // 其他情况不处理，直接返回原始 anchor
+        return `<${originalAnchor}>`;
+    }
+    console.log("lllllocalpoint222222", contactlocalPoint);
+    // 采用相对阈值：如面最小尺寸的 factor 倍
+    const threshold = factor * faceDimension;
+    // console.log("orianchor, ", faceDimension, originalAnchor);
+
+    // 遍历候选角点，若 contactlocalPoint 与某个角点距离小于阈值，则返回原始 anchor 加上角点描述
+    for (let candidate in faceCandidates) {
+        const candidatePos = faceCandidates[candidate];
+        // console.log("localpoint111111:", localPoint);
+        const dist = contactlocalPoint.distanceTo(candidatePos);
+        console.log("dist, threshold:", dist, threshold, candidate, candidatePos, contactlocalPoint);
+        if (dist < threshold) {
+            // 例如返回 "BottomFace" + "FrontLeftCorner" 形式
+            console.log("HERE:::", originalAnchor, candidate);
+            return `<${originalAnchor}><${candidate}>`;
+        }
+    }
+
+    return `<${originalAnchor}>`;
+}
+
 /**
  * 在导出前，对 connectionData 里每一条连接关系进行重新检测，
  * 将原本的“点对点锚点”统一修正成更语义化的面/边/角连接，例如 "TopFace" / "LeftEdge" / "BackCorner" 等。
@@ -3185,23 +3288,18 @@ function refineAllConnections() {
         //   contactPointB: Vector3
         // }
 
-        // =========== 2) 判断是 face-face / edge-edge / corner-corner ===========
-        // 一个常见做法是：判断在其余两个轴上的“重叠区间”大小，来区分是面、边还是角
 
-        // 拿到世界包围盒
-        const boxA = Utils.computeWorldBoundingBoxForObject(meshA);
-        const boxB = Utils.computeWorldBoundingBoxForObject(meshB);
-
-        // 在 contactAxis 上它们贴合；则另两个轴 (axis1, axis2) 上看 overlap
-        // 如果 overlap 两轴都很大 => face-face；如果只在其中 1 轴上大 => edge-edge；都很小 => corner
-        // 这里设置一些阈值
-        // const overlapRatio = Utils.getOverlapRatio(boxA, boxB, contactRes.contactAxis);
-        // overlapRatio = { axis1Ratio: 0.8, axis2Ratio: 0.9 } 之类
-
-        // =========== 3) 根据 contactAxis & contactType & 位置关系 => 确定 A / B 的 anchor 名字 ===========
+        // =========== 2) 根据 contactAxis & contactType & 位置关系 => 确定 A / B 的 anchor 名字 ===========
         if (contactRes.contactType == "face") {
             // let anchorA, anchorB
-            const anchors = Utils.getAnchorNameFor(meshA, meshB, contactRes.contactAxis, contactRes.contactType, contactRes.contactPointA, contactRes.contactPointB);
+            const anchors = Utils.getAnchorNameFor(meshA, meshB, contactRes.contactAxis, contactRes.contactType, contactRes.contactPointA, contactRes.contactPointB, contactRes);
+
+            console.log("overall:", anchors);
+
+            // 调用辅助函数，根据接触点进一步 refine anchor 名称
+            const refinedAnchorA = AnchorNameIsCorner(anchors.anchorA, meshA, contactRes.contactPointA);
+            const refinedAnchorB = AnchorNameIsCorner(anchors.anchorB, meshB, contactRes.contactPointB);
+
             // const anchorB = Utils.getAnchorNameFor(meshB, meshA);
             // console.log("AAAAAA:", anchorA, anchorB);
 
@@ -3211,8 +3309,8 @@ function refineAllConnections() {
             // 保留之前的 <ObjA><Board> 头部，只改后面的 [ <...> ]
             let newStrA;
             let newStrB;
-            if (anchors.anchorA != "UnknownFace") { newStrA = `<${cA.name}><${cA.type}>[<${cA.anchors}><${anchors.anchorA}>]`; }
-            if (anchors.anchorB != "UnknownFace") { newStrB = `<${cB.name}><${cB.type}>[<${cB.anchors}><${anchors.anchorB}>]`; }
+            if (anchors.anchorA != "UnknownFace") { newStrA = `<${cA.name}><${cA.type}>[<${cA.anchors}>${refinedAnchorA}]`; }
+            if (anchors.anchorB != "UnknownFace") { newStrB = `<${cB.name}><${cB.type}>[<${cB.anchors}>${refinedAnchorB}]`; }
 
             connItem[keyA] = newStrA;
             connItem[keyB] = newStrB;

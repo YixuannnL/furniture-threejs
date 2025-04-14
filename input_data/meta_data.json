@@ -1,193 +1,35 @@
 {
     "meta": {
-        "object": "nightstand",
+        "object": "coffee_table",
         "object_type": "group",
         "dimensions": {
-            "width": 45,
-            "height": 60,
-            "depth": 40
+            "width": 900,
+            "height": 500,
+            "depth": 500
         },
         "children": [
             {
                 "meta": {
-                    "object": "nightstand_frame",
-                    "object_type": "group",
+                    "object": "tabletop",
+                    "object_type": "board",
                     "dimensions": {
-                        "width": 45,
-                        "height": 60,
-                        "depth": 40
+                        "width": 900,
+                        "height": 20,
+                        "depth": 500
                     },
-                    "children": [
-                        {
-                            "meta": {
-                                "object": "top_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 45,
-                                    "height": 3,
-                                    "depth": 40
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "left_side_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 3,
-                                    "height": 57,
-                                    "depth": 40
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "right_side_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 3,
-                                    "height": 57,
-                                    "depth": 40
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "bottom_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 45,
-                                    "height": 3,
-                                    "depth": 40
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "shelf_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 45,
-                                    "height": 3,
-                                    "depth": 40
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "back_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 45,
-                                    "height": 57,
-                                    "depth": 3
-                                }
-                            }
-                        }
-                    ]
+                    "description": "Tabletop with rounded edges"
                 }
             },
             {
                 "meta": {
-                    "object": "nightstand_drawer",
-                    "object_type": "group",
+                    "object": "leg_front_left",
+                    "object_type": "board",
                     "dimensions": {
-                        "width": 42,
-                        "height": 15,
-                        "depth": 37
+                        "width": 80,
+                        "height": 480,
+                        "depth": 80
                     },
-                    "children": [
-                        {
-                            "meta": {
-                                "object": "drawer_front",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 42,
-                                    "height": 15,
-                                    "depth": 2
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_back",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 42,
-                                    "height": 15,
-                                    "depth": 2
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_left",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 2,
-                                    "height": 15,
-                                    "depth": 37
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_right",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 2,
-                                    "height": 15,
-                                    "depth": 37
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_bottom",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 42,
-                                    "height": 2,
-                                    "depth": 37
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                "meta": {
-                    "object": "charging_station",
-                    "object_type": "group",
-                    "dimensions": {
-                        "width": 10,
-                        "height": 2,
-                        "depth": 15
-                    },
-                    "children": [
-                        {
-                            "meta": {
-                                "object": "usb_ports",
-                                "object_type": "block",
-                                "dimensions": {
-                                    "width": 3,
-                                    "height": 1,
-                                    "depth": 1
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "wireless_charging_pad",
-                                "object_type": "block",
-                                "dimensions": {
-                                    "width": 8,
-                                    "height": 1,
-                                    "depth": 8
-                                }
-                            }
-                        }
-                    ]
+                    "description": "Vertical support leg"
                 }
             }
         ]

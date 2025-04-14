@@ -1,195 +1,128 @@
 {
     "data": [
         {
-            "nightstand_frame": ""
+            "leg_front_left": "<Leg_Front_Left><Board>[<TopEnd>]",
+            "tabletop": "<Tabletop><Board>[<BottomFace>]"
         },
         {
-            "nightstand_frame": "<Drawer_Back><Board>[<FrontFace>]",
-            "nightstand_drawer": ""
+            "leg_front_right": "<Leg_Front_Right><Board>[<TopEnd>]",
+            "tabletop": "<Tabletop><Board>[<BottomFace>]"
         },
         {
-            "nightstand_frame": "<Wireless_Charging_Pad><Block>[<BottomFace>]",
-            "charging_station": ""
+            "leg_back_left": "<Leg_Back_Left><Board>[<TopEnd>]",
+            "tabletop": "<Tabletop><Board>[<BottomFace>]"
         },
         {
-            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]",
-            "top_panel": ""
+            "leg_back_right": "<Leg_Back_Right><Board>[<TopEnd>]",
+            "tabletop": "<Tabletop><Board>[<BottomFace>]"
         },
         {
-            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]",
-            "top_panel": ""
+            "support_panel_front": "<Support_Panel_Front><Board>[<LeftEnd>]",
+            "leg_front_left": "<Leg_Front_Left><Board>[<BackFace>]"
         },
         {
-            "shelf_panel": "<Shelf_Panel><Board>[<LeftFace>]",
-            "left_side_panel": ""
+            "support_panel_left": "<Support_Panel_Left><Board>[<FrontEnd>]",
+            "leg_front_left": "<Leg_Front_Left><Board>[<RightFace>]"
         },
         {
-            "shelf_panel": "<Shelf_Panel><Board>[<RightFace>]",
-            "right_side_panel": ""
+            "support_panel_front": "<Support_Panel_Front><Board>[<RightEnd>]",
+            "leg_front_right": "<Leg_Front_Right><Board>[<BackFace>]"
         },
         {
-            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]",
-            "bottom_panel": ""
+            "support_panel_right": "<Support_Panel_Right><Board>[<FrontEnd>]",
+            "leg_front_right": "<Leg_Front_Right><Board>[<LeftFace>]"
         },
         {
-            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]",
-            "bottom_panel": ""
+            "support_panel_back": "<Support_Panel_Back><Board>[<LeftEnd>]",
+            "leg_back_left": "<Leg_Back_Left><Board>[<BackFace>]"
         },
         {
-            "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]",
-            "shelf_panel": ""
+            "support_panel_left": "<Support_Panel_Left><Board>[<BackEnd>]",
+            "leg_back_left": "<Leg_Back_Left><Board>[<RightFace>]"
         },
         {
-            "back_panel": ""
+            "support_panel_back": "<Support_Panel_Back><Board>[<RightEnd>]",
+            "leg_back_right": "<Leg_Back_Right><Board>[<BackFace>]"
         },
         {
-            "wireless_charging_pad": "<Wireless_Charging_Pad><Block>[<LeftFace>]",
-            "usb_ports": ""
+            "support_panel_right": "<Support_Panel_Right><Board>[<BackEnd>]",
+            "leg_back_right": "<Leg_Back_Right><Board>[<LeftFace>]"
         }
     ],
     "meta_data": [
         {
             "row_headers": [
                 "Component",
-                "Nightstand_Frame",
-                "Nightstand_Drawer",
-                "Charging_Station"
+                "Tabletop",
+                "Leg_Front_Left",
+                "Leg_Front_Right",
+                "Leg_Back_Left",
+                "Leg_Back_Right",
+                "Support_Panel_Front",
+                "Support_Panel_Back",
+                "Support_Panel_Left",
+                "Support_Panel_Right"
             ],
             "column_header": [
-                "Nightstand_Frame",
-                "Nightstand_Drawer",
-                "Charging_Station",
-                "Charging_Station",
-                "Nightstand_Frame",
-                "Nightstand_Frame",
-                "Nightstand_Frame",
-                "Nightstand_Drawer"
+                "Tabletop",
+                "Leg_Front_Left",
+                "Leg_Front_Right",
+                "Leg_Back_Left",
+                "Leg_Back_Right",
+                "Support_Panel_Front",
+                "Support_Panel_Back",
+                "Support_Panel_Left",
+                "Support_Panel_Right"
             ],
             "title": "table_1",
             "data": [
                 {
-                    "nightstand_frame": ""
+                    "leg_front_left": "<Leg_Front_Left><Board>[<TopEnd>]",
+                    "tabletop": "<Tabletop><Board>[<BottomFace>]"
                 },
                 {
-                    "nightstand_frame": "<Drawer_Back><Board>[<FrontFace>]",
-                    "nightstand_drawer": ""
+                    "leg_front_right": "<Leg_Front_Right><Board>[<TopEnd>]",
+                    "tabletop": "<Tabletop><Board>[<BottomFace>]"
                 },
                 {
-                    "nightstand_frame": "<Wireless_Charging_Pad><Block>[<BottomFace>]",
-                    "charging_station": ""
-                }
-            ]
-        },
-        {
-            "row_headers": [
-                "Component",
-                "Top_Panel",
-                "Left_Side_Panel",
-                "Right_Side_Panel",
-                "Bottom_Panel",
-                "Shelf_Panel",
-                "Back_Panel"
-            ],
-            "column_header": [
-                "Top_Panel",
-                "Left_Side_Panel",
-                "Right_Side_Panel",
-                "Bottom_Panel",
-                "Shelf_Panel",
-                "Back_Panel",
-                "Top_Panel",
-                "Bottom_Panel",
-                "Back_Panel",
-                "Left_Side_Panel",
-                "Right_Side_Panel",
-                "Shelf_Panel",
-                "Back_Panel",
-                "Left_Side_Panel",
-                "Right_Side_Panel",
-                "Back_Panel",
-                "Back_Panel"
-            ],
-            "title": "table_2",
-            "data": [
-                {
-                    "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]",
-                    "top_panel": ""
+                    "leg_back_left": "<Leg_Back_Left><Board>[<TopEnd>]",
+                    "tabletop": "<Tabletop><Board>[<BottomFace>]"
                 },
                 {
-                    "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]",
-                    "top_panel": ""
+                    "leg_back_right": "<Leg_Back_Right><Board>[<TopEnd>]",
+                    "tabletop": "<Tabletop><Board>[<BottomFace>]"
                 },
                 {
-                    "shelf_panel": "<Shelf_Panel><Board>[<LeftFace>]",
-                    "left_side_panel": ""
+                    "support_panel_front": "<Support_Panel_Front><Board>[<LeftEnd>]",
+                    "leg_front_left": "<Leg_Front_Left><Board>[<BackFace>]"
                 },
                 {
-                    "shelf_panel": "<Shelf_Panel><Board>[<RightFace>]",
-                    "right_side_panel": ""
+                    "support_panel_left": "<Support_Panel_Left><Board>[<FrontEnd>]",
+                    "leg_front_left": "<Leg_Front_Left><Board>[<RightFace>]"
                 },
                 {
-                    "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]",
-                    "bottom_panel": ""
+                    "support_panel_front": "<Support_Panel_Front><Board>[<RightEnd>]",
+                    "leg_front_right": "<Leg_Front_Right><Board>[<BackFace>]"
                 },
                 {
-                    "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]",
-                    "bottom_panel": ""
+                    "support_panel_right": "<Support_Panel_Right><Board>[<FrontEnd>]",
+                    "leg_front_right": "<Leg_Front_Right><Board>[<LeftFace>]"
                 },
                 {
-                    "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]",
-                    "shelf_panel": ""
+                    "support_panel_back": "<Support_Panel_Back><Board>[<LeftEnd>]",
+                    "leg_back_left": "<Leg_Back_Left><Board>[<BackFace>]"
                 },
                 {
-                    "back_panel": ""
-                }
-            ]
-        },
-        {
-            "row_headers": [
-                "Component",
-                "Drawer_Front",
-                "Drawer_Back",
-                "Drawer_Left",
-                "Drawer_Right",
-                "Drawer_Bottom"
-            ],
-            "column_header": [
-                "Drawer_Front",
-                "Drawer_Back",
-                "Drawer_Left",
-                "Drawer_Right",
-                "Drawer_Bottom",
-                "Drawer_Back",
-                "Drawer_Left",
-                "Drawer_Right",
-                "Drawer_Bottom",
-                "Drawer_Left",
-                "Drawer_Right",
-                "Drawer_Bottom",
-                "Drawer_Right",
-                "Drawer_Bottom",
-                "Drawer_Bottom"
-            ],
-            "title": "table_3",
-            "data": []
-        },
-        {
-            "row_headers": [
-                "Component",
-                "USB_Ports",
-                "Wireless_Charging_Pad"
-            ],
-            "column_header": [
-                "USB_Ports",
-                "Wireless_Charging_Pad",
-                "USB_Ports",
-                "Wireless_Charging_Pad"
-            ],
-            "title": "table_4",
-            "data": [
+                    "support_panel_left": "<Support_Panel_Left><Board>[<BackEnd>]",
+                    "leg_back_left": "<Leg_Back_Left><Board>[<RightFace>]"
+                },
                 {
-                    "wireless_charging_pad": "<Wireless_Charging_Pad><Block>[<LeftFace>]",
-                    "usb_ports": ""
+                    "support_panel_back": "<Support_Panel_Back><Board>[<RightEnd>]",
+                    "leg_back_right": "<Leg_Back_Right><Board>[<BackFace>]"
+                },
+                {
+                    "support_panel_right": "<Support_Panel_Right><Board>[<BackEnd>]",
+                    "leg_back_right": "<Leg_Back_Right><Board>[<LeftFace>]"
                 }
             ]
         }
