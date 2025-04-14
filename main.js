@@ -1369,6 +1369,8 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
     const size = new THREE.Vector3();
     connectedBox.getSize(size);
 
+    console.log("size:", size);
+
     // -- 3) 收集无连接对象 --
     const unconnected = [];
     rootObject.traverse(obj => {
@@ -1389,7 +1391,7 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
     // 两个无连接对象之间的间距
     const gap = center.x + size.x / 2; // 不用绝对数值因为家具的尺寸的单位不一定
     // 起始坐标
-    let baseX = xMax + xMax;
+    let baseX = xMax + xMax + xMax;
 
     for (let i = 0; i < unconnected.length; i++) {
         const obj = unconnected[i];
@@ -1956,10 +1958,10 @@ function renderConnectionLog() {
     conns.forEach((item) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'conn-item';
-        console.log("HERE11111")
+        // console.log("HERE11111")
         // 如果这一条连接与 selectedMeshName 有关，则加上高亮类
         if (selectedMeshName && connectionItemHasName(item, selectedMeshName)) {
-            console.log("HERE222222")
+            // console.log("HERE222222")
             itemDiv.classList.add('conn-item-highlight');
         }
 
@@ -3199,7 +3201,7 @@ function refineAllConnections() {
         // =========== 3) 根据 contactAxis & contactType & 位置关系 => 确定 A / B 的 anchor 名字 ===========
         if (contactRes.contactType == "face") {
             // let anchorA, anchorB
-            const anchors = Utils.getAnchorNameFor(meshA, meshB);
+            const anchors = Utils.getAnchorNameFor(meshA, meshB, contactRes.contactAxis, contactRes.contactType, contactRes.contactPointA, contactRes.contactPointB);
             // const anchorB = Utils.getAnchorNameFor(meshB, meshA);
             // console.log("AAAAAA:", anchorA, anchorB);
 

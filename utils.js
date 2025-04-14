@@ -305,18 +305,20 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     // 计算接触点：在 contactAxis 上，我们选取与另一盒子更近的那一面，其他轴取盒子中心（面中心）
     let contactPointA = new THREE.Vector3();
     let contactPointB = new THREE.Vector3();
+    // let contactPoint = new THREE.Vector3();
 
     if (contactAxis === 'x') {
         const delta1 = Math.abs(boxA.max.x - boxB.min.x);
         const delta2 = Math.abs(boxB.max.x - boxA.min.x);
         if (delta1 <= delta2) {
             // A 的右侧面与 B 的左侧面接触
-            contactPointA.set(boxA.max.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
-            contactPointB.set(boxB.min.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
+            // contactPoint.set()
+            contactPointA.set(boxB.min.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set(boxA.max.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
         } else {
             // A 的左侧面与 B 的右侧面接触
-            contactPointA.set(boxA.min.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
-            contactPointB.set(boxB.max.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
+            contactPointA.set(boxB.max.x, (boxA.min.y + boxA.max.y) / 2, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set(boxA.min.x, (boxB.min.y + boxB.max.y) / 2, (boxB.min.z + boxB.max.z) / 2);
         }
     }
     else if (contactAxis === 'y') {
@@ -324,12 +326,12 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
         const delta2 = Math.abs(boxB.max.y - boxA.min.y);
         if (delta1 <= delta2) {
             // A 上侧与 B 下侧接触
-            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxA.max.y, (boxA.min.z + boxA.max.z) / 2);
-            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxB.min.y, (boxB.min.z + boxB.max.z) / 2);
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxB.min.y, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxA.max.y, (boxB.min.z + boxB.max.z) / 2);
         } else {
             // A 下侧与 B 上侧接触
-            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxA.min.y, (boxA.min.z + boxA.max.z) / 2);
-            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxB.max.y, (boxB.min.z + boxB.max.z) / 2);
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, boxB.max.y, (boxA.min.z + boxA.max.z) / 2);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, boxA.min.y, (boxB.min.z + boxB.max.z) / 2);
         }
     }
     else if (contactAxis === 'z') {
@@ -337,12 +339,12 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
         const delta2 = Math.abs(boxB.max.z - boxA.min.z);
         if (delta1 <= delta2) {
             // A 的前侧面与 B 的后侧面接触
-            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxA.max.z);
-            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxB.min.z);
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxB.min.z);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxA.max.z);
         } else {
             // A 的后侧面与 B 的前侧面接触
-            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxA.min.z);
-            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxB.max.z);
+            contactPointA.set((boxA.min.x + boxA.max.x) / 2, (boxA.min.y + boxA.max.y) / 2, boxB.max.z);
+            contactPointB.set((boxB.min.x + boxB.max.x) / 2, (boxB.min.y + boxB.max.y) / 2, boxA.min.z);
         }
     }
 
@@ -1015,9 +1017,74 @@ export function getContactFaceName(meshA, meshB, eps = 1e-3) {
  * @param {THREE.Mesh} meshB
  * @returns {object} { anchorA, anchorB }
  */
-export function getAnchorNameFor(meshA, meshB) {
-    const anchorA = getContactFaceName(meshA, meshB);
-    const anchorB = getContactFaceName(meshB, meshA);
+export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contactPointA, contactPointB) {
+    let anchorA = getContactFaceName(meshA, meshB);
+    let anchorB = getContactFaceName(meshB, meshA);
+
+    // if (contactPointA) {
+    //     console.log("INNNNNNN");
+    //     anchorA = refineAnchorNameByContactPoint(meshA, anchorA, contactPointA, contactType);
+    // }
+    if (contactPointB) {
+        console.log("INNNNNNN");
+        anchorB = refineAnchorNameByContactPoint(meshB, anchorB, contactPointB, contactType);
+    }
     console.log("anchor:", anchorA, anchorB);
     return { anchorA, anchorB };
+}
+
+
+
+// --- 新增辅助函数，用于根据接触点在局部坐标中的位置细化命名 ---
+export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldContactPoint, contactType) {
+    // 将接触点转换为 mesh 的局部坐标
+    mesh.updateMatrixWorld(true);
+    console.log("matrix:", mesh.matrixWorld);
+    const localPt = mesh.worldToLocal(worldContactPoint.clone()); //here
+    const dims = mesh.geometry.parameters;
+    const halfWidth = dims.width / 2;
+    const halfHeight = dims.height / 2;
+    const halfDepth = dims.depth / 2;
+    // 默认不修改
+    let refinedName = initialAnchorName;
+
+    // 例如：如果原名为 FrontFace 或 BackFace，则检查 localPt.x 看是否接近左右边缘
+    // 可按比例阈值判断，假设距离小于 20% 面宽认为接近边缘
+    console.log("initial:", initialAnchorName);
+    if (initialAnchorName.indexOf("Face") !== -1) {
+        // 判断使用哪一个轴。通常对于 Front/Back，固定为 z 轴面
+        // 我们假设 front/back 面的法线由 z 轴决定，检测 x 方向偏移
+        console.log("mesh:", mesh);
+        console.log("worldx:", worldContactPoint)
+        console.log("localx:", localPt);
+        if (localPt.x < -0.8 * halfWidth) {
+            refinedName = "LeftEdge";
+        }
+        else if (localPt.x > 0.8 * halfWidth) {
+            refinedName = "RightEdge";
+        }
+        // 同理，如果是 TopFace/BottomFace，则可以检测 x 或 z 方向
+        else if (initialAnchorName.indexOf("TopFace") !== -1 || initialAnchorName.indexOf("BottomFace") !== -1) {
+            // 示例：检测 x 方向
+            if (localPt.x < -0.8 * halfWidth) {
+                refinedName = "LeftEdge";
+            } else if (localPt.x > 0.8 * halfWidth) {
+                refinedName = "RightEdge";
+            }
+        }
+        // 对于 LeftFace/RightFace（固定 x 轴面），检测 z 方向的边界
+        else if (initialAnchorName.indexOf("LeftFace") !== -1 || initialAnchorName.indexOf("RightFace") !== -1) {
+            if (localPt.z < -0.8 * halfDepth) {
+                refinedName = "BackEdge";
+            } else if (localPt.z > 0.8 * halfDepth) {
+                refinedName = "FrontEdge";
+            }
+        }
+    }
+
+    // 如果接触类型被识别为 corner，则将后缀统一替换为 Corner
+    if (contactType === 'corner') {
+        refinedName = refinedName.replace('Face', 'Corner').replace('Edge', 'Corner');
+    }
+    return refinedName;
 }
