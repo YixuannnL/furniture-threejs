@@ -410,17 +410,20 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.max.z);
             contactFaceCornersA = [
                 new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxB.min.z), //左下
-                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.z, boxB.min.z), boxB.min.z), // 左上
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxB.min.z), // 左上
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxB.min.z), //右下
-                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.z, boxB.min.z), boxB.min.z) //右上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxB.min.z) //右上
             ];
             contactFaceCornersB = [
                 new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxA.max.z), //左下
-                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.z, boxB.min.z), boxA.max.z), // 左上
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z), // 左上
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxA.max.z), //右下
-                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.z, boxB.min.z), boxA.max.z) //右上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z) //右上
             ];
         } else {
+            console.log("BBBBBBBBBB");
+            console.log("boxA", boxA);
+            console.log("boxB", boxB);
             // A 的后侧面与 B 的前侧面接触
             contactFaceA = "BackFace";
             contactFaceB = "FrontFace";
@@ -428,18 +431,20 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.min.z);
             contactFaceCornersA = [
                 new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxB.max.z), //左下
-                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.z, boxB.min.z), boxB.max.z), // 左上
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxB.max.z), // 左上
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxB.max.z), //右下
-                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.z, boxB.min.z), boxB.max.z) //右上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxB.max.z) //右上
             ];
             contactFaceCornersB = [
                 new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxA.min.z), //左下
-                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.z, boxB.min.z), boxA.min.z), // 左上
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxA.min.z), // 左上
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxA.min.z), //右下
-                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.z, boxB.min.z), boxA.min.z) //右上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.min.z) //右上
             ];
         }
     }
+    console.log("meshA, meshB", meshA, meshB);
+    console.log("contactfaceCornerA, B", contactFaceCornersA, contactFaceCornersB);
 
     return {
         isTouching: true,
@@ -1105,6 +1110,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                 const localCorner = mesh.worldToLocal(pt.clone());
                 return localCorner[axis2];
             });
+            console.log("projections2:", projections2); // [-400, -400, -375, -375]
 
             const minProj1 = Math.min(...projections1);
             const maxProj1 = Math.max(...projections1);
@@ -1141,10 +1147,10 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
 
                     let distToMinSide = Math.abs(minProj2 - (-size2 / 2));
                     let distToMaxSide = Math.abs(maxProj2 - (+size2 / 2));
+                    console.log("meshmesh:", mesh);
+                    console.log("distmin, distmax", distToMinSide, distToMaxSide);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
-
                         if ((axis1 === 'x')) {
-
                             refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis1 === 'y') {
                             refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";

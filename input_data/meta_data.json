@@ -50,6 +50,28 @@
                                     "depth": 350
                                 }
                             }
+                        },
+                        {
+                            "meta": {
+                                "object": "top_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 800,
+                                    "height": 25,
+                                    "depth": 350
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "back_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 800,
+                                    "height": 1800,
+                                    "depth": 6
+                                }
+                            }
                         }
                     ]
                 }
