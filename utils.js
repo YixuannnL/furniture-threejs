@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { min } from 'three/tsl';
 
 export function getCenterPoint(mesh) {
     var middle = new THREE.Vector3();
@@ -53,7 +54,7 @@ export function findBarAxisAndEnds(mesh) {
     return { axisName, axisSize, end1Name, end2Name, end1Coord, end2Coord };
 }
 
-export function getFaceFractionAnchor(localPos, width, height, depth, mesh) {
+export function getFaceFractionAnchor(localPos, width, height, depth, mesh, contactFace = null) {
     // 1) 计算与 6 面边界的距离
     const distFront = Math.abs(localPos.z - depth / 2);
     const distBack = Math.abs(localPos.z + depth / 2);
@@ -62,16 +63,20 @@ export function getFaceFractionAnchor(localPos, width, height, depth, mesh) {
     const distBottom = Math.abs(localPos.y + height / 2);
     const distTop = Math.abs(localPos.y - height / 2);
 
-    // 2) 找到最近面的 faceType
-    let faceType = 'FrontFace';
+    let faceType = "";
     let minDist = distFront;
-    if (distBack < minDist) { faceType = 'BackFace'; minDist = distBack; }
-    if (distLeft < minDist) { faceType = 'LeftFace'; minDist = distLeft; }
-    if (distRight < minDist) { faceType = 'RightFace'; minDist = distRight; }
-    if (distBottom < minDist) { faceType = 'BottomFace'; minDist = distBottom; }
-    if (distTop < minDist) { faceType = 'TopFace'; minDist = distTop; }
-    console.log("NOWMESH:", mesh);
-    console.log("facetype:", faceType);
+    if (contactFace) {
+        faceType = contactFace;
+    }
+    else {
+        // 2) 找到最近面的 faceType
+        faceType = 'FrontFace';
+        if (distBack < minDist) { faceType = 'BackFace'; minDist = distBack; }
+        if (distLeft < minDist) { faceType = 'LeftFace'; minDist = distLeft; }
+        if (distRight < minDist) { faceType = 'RightFace'; minDist = distRight; }
+        if (distBottom < minDist) { faceType = 'BottomFace'; minDist = distBottom; }
+        if (distTop < minDist) { faceType = 'TopFace'; minDist = distTop; }
+    }
     // 3) 在该面内计算分数 param1, param2
     //   (0~1) => clamp 避免浮点误差越界
     const clamp01 = v => Math.min(1, Math.max(0, v));
@@ -306,6 +311,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     // 计算接触点：在 contactAxis 上，我们选取与另一盒子更近的那一面，其他轴取盒子中心（面中心）
     let contactPointA = new THREE.Vector3();
     let contactPointB = new THREE.Vector3();
+    let contactFaceA = "";
+    let contactFaceB = "";
     let contactFaceCornersA = [];
     let contactFaceCornersB = [];
     // let contactPoint = new THREE.Vector3();
@@ -317,6 +324,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             // A 的右侧面与 B 的左侧面接触
             contactPointA.set(boxB.min.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
             contactPointB.set(boxA.max.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactFaceA = "RightFace";
+            contactFaceB = "LeftFace";
             // 计算 A 右侧面的四个角点
             contactFaceCornersA = [
                 new THREE.Vector3(boxB.min.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
@@ -334,6 +343,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             // A 的左侧面与 B 的右侧面接触
             contactPointA.set(boxB.max.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
             contactPointB.set(boxA.min.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactFaceA = "LeftFace";
+            contactFaceB = "RightFace";
             contactFaceCornersA = [
                 new THREE.Vector3(boxB.max.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
                 new THREE.Vector3(boxB.max.x, Math.min(boxA.max.y, boxB.max.y), Math.min(boxA.max.z, boxB.max.z)), // 前上
@@ -353,6 +364,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
         const delta2 = Math.abs(boxB.max.y - boxA.min.y);
         if (delta1 <= delta2) {
             // A 上侧与 B 下侧接触
+            contactFaceA = "TopFace";
+            contactFaceB = "BottomFace";
             contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxB.min.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxA.max.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
             contactFaceCornersA = [
@@ -369,6 +382,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             ];
         } else {
             // A 下侧与 B 上侧接触
+            contactFaceA = "BottomFace";
+            contactFaceB = "TopFace";
             contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxB.max.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxA.min.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
             contactFaceCornersA = [
@@ -390,6 +405,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
         const delta2 = Math.abs(boxB.max.z - boxA.min.z);
         if (delta1 <= delta2) {
             // A 的前侧面与 B 的后侧面接触
+            contactFaceA = "FrontFace";
+            contactFaceB = "BackFace";
             contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxB.min.z);
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.max.z);
             contactFaceCornersA = [
@@ -406,6 +423,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             ];
         } else {
             // A 的后侧面与 B 的前侧面接触
+            contactFaceA = "BackFace";
+            contactFaceB = "FrontFace";
             contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxB.max.z);
             contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.min.z);
             contactFaceCornersA = [
@@ -431,7 +450,9 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
         contactPointA: contactPointA,
         contactPointB: contactPointB,
         contactFaceCornersA: contactFaceCornersA, //接触面的四个角点
-        contactFaceCornersB: contactFaceCornersB
+        contactFaceCornersB: contactFaceCornersB,
+        contactFaceA: contactFaceA,
+        contactFaceB: contactFaceB
     };
 }
 
@@ -974,89 +995,13 @@ export function get1DOverlap(min1, max1, min2, max2) {
     return Math.max(0, overlapMax - overlapMin);
 }
 
-/**
- * 根据两个 mesh 的世界包围盒、各轴上的交叠情况以及尺寸比较，
- * 为单个 mesh 返回推荐的接触面名称（例如 "TopFace" 或 "LeftEdge"）。
- *
- * 原则：
- * 1. 对每个轴（x, y, z），分别考察 A 的正（例如 A.max.x 与 B.min.x）和负方向（例如 A.min.x 与 B.max.x）的候选；
- * 2. 计算候选方向在其它两个轴上的重叠率（归一化到 A 自身尺寸），重叠率高说明交叠充分；
- * 3. 候选中先优先选择重叠率高者（如果有距离误差，两者间距离较小者优先）；
- * 4. 如果 meshA 为 board 类型且最佳候选的轴恰好是该 board 的薄轴（即尺寸最小者），则认为该面属于窄侧，用 "Edge" 替换 "Face"。
- *
- * @param {THREE.Mesh} meshA - 当前需要确定接触面的 mesh
- * @param {THREE.Mesh} meshB - 与 meshA 接触的另一个 mesh
- * @param {number} eps - 距离容差（默认 1e-3）
- * @returns {string} - 如 "TopFace", "LeftEdge" 等
- */
-export function getContactFaceName(meshA, meshB, eps = 1e-3) {
-    // 确保最新 worldMatrix
-    meshA.updateMatrixWorld(true);
-    meshB.updateMatrixWorld(true);
-    // 计算并确保 geometry 的 boundingBox 存在
-    if (!meshA.geometry.boundingBox) meshA.geometry.computeBoundingBox();
-    if (!meshB.geometry.boundingBox) meshB.geometry.computeBoundingBox();
 
-    // 复制 boundingBox 并转换到世界坐标
-    const boxA = meshA.geometry.boundingBox.clone();
-    const boxB = meshB.geometry.boundingBox.clone();
-    boxA.applyMatrix4(meshA.matrixWorld);
-    boxB.applyMatrix4(meshB.matrixWorld);
-
-    // 候选信息：每个候选包括：axis（'x','y','z'）、side ('positive' 或 'negative')、两者间的距离、以及在其它两个轴上的最小重叠率。
-    let candidates = [];
-
-    // 辅助：计算在除指定轴以外的两个轴上的重叠率
-    function computeOverlap(axis, boxA, boxB) {
-        let otherAxes = ['x', 'y', 'z'].filter(a => a !== axis);
-        let ratios = otherAxes.map(a => {
-            let overlap = Math.min(boxA.max[a], boxB.max[a]) - Math.max(boxA.min[a], boxB.min[a]);
-            let sizeA = boxA.max[a] - boxA.min[a];
-            return (sizeA > 0) ? (overlap / sizeA) : 0;
-        });
-        return Math.min(...ratios);
-    }
-
-    // 对每个轴添加候选面
-    ['x', 'y', 'z'].forEach(axis => {
-        // 正方向候选：A 的最大边界与 B 的最小边界
-        let dPos = Math.abs(boxA.max[axis] - boxB.min[axis]);
-        let overlapRatioPos = computeOverlap(axis, boxA, boxB);
-        // 如果距离小于 eps（即近似贴合），或者两个盒子在其它轴上有正重叠（overlap > 0），则作为候选
-        if (dPos <= eps || overlapRatioPos > 0) {
-            candidates.push({ axis: axis, side: 'positive', distance: dPos, overlapRatio: overlapRatioPos });
-        }
-        // 负方向候选：A 的最小边界与 B 的最大边界
-        let dNeg = Math.abs(boxB.max[axis] - boxA.min[axis]);
-        let overlapRatioNeg = computeOverlap(axis, boxA, boxB);
-        if (dNeg <= eps || overlapRatioNeg > 0) {
-            candidates.push({ axis: axis, side: 'negative', distance: dNeg, overlapRatio: overlapRatioNeg });
-        }
-    });
-
-    if (candidates.length === 0) return "UnknownFace";
-
-    // 选择最佳候选：优先重叠率高，其次距离小
-    candidates.sort((a, b) => {
-        if (b.overlapRatio !== a.overlapRatio) return b.overlapRatio - a.overlapRatio;
-        return a.distance - b.distance;
-    });
-    const best = candidates[0];
-
-    // 根据最佳候选确定基本名称
-    let baseName = "UnknownFace";
-    if (best.axis === 'x') {
-        baseName = (best.side === 'positive') ? "RightFace" : "LeftFace";
-    } else if (best.axis === 'y') {
-        baseName = (best.side === 'positive') ? "TopFace" : "BottomFace";
-    } else if (best.axis === 'z') {
-        baseName = (best.side === 'positive') ? "FrontFace" : "BackFace";
-    }
-
+export function WhetherChangeFaceName2Edge(mesh, contactFace) {
     // 针对 board 类型，判断是否应将“Face”改为“Edge”。
     // 规则：先获取 boxA 的尺寸，从 width, height, depth 中找出最小的维度作为薄轴，
     // 如果最佳候选的 axis 正好和薄轴一致，则认为该面是狭窄的，使用“Edge”命名
-    const dims = meshA.geometry.parameters;
+    const dims = mesh.geometry.parameters;
+    let baseName = contactFace;
     if (dims) {
         const objType = getObjectType({ width: dims.width, height: dims.height, depth: dims.depth });
         if (objType === "board") {
@@ -1077,14 +1022,13 @@ export function getContactFaceName(meshA, meshB, eps = 1e-3) {
             }
         }
     }
-    console.log("basename: ", baseName);
     return baseName;
 }
 
 
 /**
  * 修改后的 getAnchorNameFor 函数：
- * 对于传入的两个 mesh，分别调用 getContactFaceName 得到各自的锚点名称，
+ * 对于传入的两个 mesh，分别调用 WhetherChangeFaceName2Edge 得到各自的锚点名称，
  * 并返回一个对象 { anchorA, anchorB }。
  *
  * 注意：即便 meshA 与 meshB 的接触并非严格对应（例如 meshA 接触左侧，meshB 可能接触顶部），
@@ -1095,8 +1039,10 @@ export function getContactFaceName(meshA, meshB, eps = 1e-3) {
  * @returns {object} { anchorA, anchorB }
  */
 export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contactPointA, contactPointB, contactinfo) {
-    let anchorA = getContactFaceName(meshA, meshB);
-    let anchorB = getContactFaceName(meshB, meshA);
+    let anchorA = contactinfo.contactFaceA;
+    let anchorB = contactinfo.contactFaceB;
+    anchorA = WhetherChangeFaceName2Edge(meshA, anchorA);
+    anchorB = WhetherChangeFaceName2Edge(meshB, anchorB);
 
     if (contactPointA) {
         anchorA = refineAnchorNameByContactPoint(meshA, anchorA, contactPointA, contactType, contactinfo);
@@ -1114,11 +1060,12 @@ export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contact
 export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldContactPoint, contactType, contactInfo) {
     // 更新矩阵，并将接触点转换到 mesh 的局部坐标
     mesh.updateMatrixWorld(true);
-    const localPt = mesh.worldToLocal(worldContactPoint.clone());
+    // 如果没有 geometry.parameters 就直接返回原名称
+    if (!mesh.geometry || !mesh.geometry.parameters) {
+        return initialAnchorName;
+    }
+
     const dims = mesh.geometry.parameters;
-    const halfWidth = dims.width / 2;
-    const halfHeight = dims.height / 2;
-    const halfDepth = dims.depth / 2;
 
     // 默认保持原名称
     let refinedName = initialAnchorName;
@@ -1169,8 +1116,18 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             // 设置阈值 80%
             const threshold = 0.8;
 
+            // (1) 如果两个方向都覆盖率很高 => 视为整个面 => 保留 Face
+            if (coverRatio1 >= threshold && coverRatio2 >= threshold) {
+                // refinedName 保持 XXXFace
+                // 这里可能 initialAnchorName 本来包含一些“_5/9Height_1/2Depth”之类，也可以简化成纯 'LeftFace'
+                // 如果你想要“还原成纯净的 Face”，可以进一步 .replace(/(_.*)/,"") 之类
+                // 这里看需要，可以保持：refinedName = "LeftFace"
+                // 也可以保留用户的 fraction 标注
+                // 这里把后缀都去掉：
+                refinedName = initialAnchorName.replace(/(_.*)/, '');
+            }
             // 若两个方向都满足覆盖率，优先采用覆盖率高的方向
-            if (coverRatio1 >= threshold || coverRatio2 >= threshold) {
+            else if (coverRatio1 >= threshold || coverRatio2 >= threshold) {
                 if (coverRatio1 >= coverRatio2 && coverRatio1 >= threshold) {
                     // 根据 axis1 判断具体边名称
                     // 对于 FrontFace/BackFace：axis1 = x；小于 0 属于 LeftEdge，大于 0 属于 RightEdge
@@ -1192,6 +1149,9 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                         refinedName = avg2 < 0 ? "BottomEdge" : "TopEdge";
                     } else if (axis2 === 'z') {
                         refinedName = avg2 < 0 ? "BackEdge" : "FrontEdge";
+                    } else if (axis2 === 'x') {
+                        // 负 => LeftEdge；正 => RightEdge
+                        refinedName = avg2 < 0 ? "LeftEdge" : "RightEdge";
                     }
                 }
             }

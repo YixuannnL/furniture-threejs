@@ -1122,6 +1122,13 @@ function parseMeta(meta) {
         objectsByName[meta.object] = currentObject;
     }
 
+    // --↓↓ 在这里加一段：处理 offset (x,y,z) ↓↓--
+    if (!meta.offset) {
+        meta.offset = { x: 0, y: 0, z: 0 };  // 若不存在就初始化
+    }
+    currentObject.position.set(meta.offset.x, meta.offset.y, meta.offset.z);
+    // --↑↑ 在这里加一段：处理 offset (x,y,z) ↑↑--
+
     // 如果有子节点，则递归解析
     if (meta.children && Array.isArray(meta.children)) {
         meta.children.forEach(child => {
@@ -1286,7 +1293,7 @@ function calcLocalAnchorPosition(object3D, anchors) {
 }
 
 // 根据坐标得到Anchor名字
-function getAnchorDescription(mesh, localPos) {
+function getAnchorDescription(mesh, localPos, contactFace = null) {
     const geom = mesh.geometry;
     if (!geom || !geom.parameters) {
         // 若不是 BoxGeometry，则返回一个默认值
@@ -1316,11 +1323,11 @@ function getAnchorDescription(mesh, localPos) {
         else {
             // 两端都不近 => 可能是中段
             // 你可以返回 <MidEnd> 或者再做更多判断(比如 partial quarter?)
-            return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh);
+            return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh, contactFace);
         }
     }
     else { // board or block
-        return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh);
+        return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh, contactFace);
     }
 }
 
@@ -1722,11 +1729,28 @@ function setMeshDimension(meshName, axis, newVal) {
 }
 
 // ============== 新增：更新 dimensions 与 offset 的辅助函数 ==============
-function updateDimensionAndOffsetInMeta(rootMeta, targetName, axis, newVal) {
+function updateDimensionAndOffsetInMeta(rootMeta, targetName, axisOrOffset, newVal) {
     function recurse(meta) {
         if (meta.object === targetName) {
-            if (meta.dimensions && meta.dimensions[axis] !== undefined) {
-                meta.dimensions[axis] = newVal;
+
+            // 确保有 meta.dimensions
+            if (!meta.dimensions) {
+                meta.dimensions = { width: 300, height: 300, depth: 300 };
+            }
+            // 确保有 meta.offset
+            if (!meta.offset) {
+                meta.offset = { x: 0, y: 0, z: 0 };
+            }
+
+            // 1) 如果是修改 dimensions
+            if (axisOrOffset === 'width' || axisOrOffset === 'height' || axisOrOffset === 'depth') {
+                meta.dimensions[axisOrOffset] = newVal;
+            }
+            else if (axisOrOffset === 'offset') {
+                // 假设 newVal 是 {x:..., y:..., z:...}
+                meta.offset.x = newVal.x;
+                meta.offset.y = newVal.y;
+                meta.offset.z = newVal.z;
             }
         }
         if (Array.isArray(meta.children)) {
@@ -2585,11 +2609,39 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
     // console.log("before:", anchorFaceCenter_before);
     // console.log("after:", anchorFaceCenter_after);
 
-    let offset = delta.clone()
-    // console.log("offset:", offset);
-    offset.divideScalar(2);
+    // let offset = axisDir.clone().multiplyScalar(delta);
+    // offset.divideScalar(2);
+
+    let offsetVec = new THREE.Vector3().subVectors(anchorFaceCenter_before, anchorFaceCenter_after);
+
     // 让 newMeshA 整体平移
-    newMeshA.position.add(offset);
+    newMeshA.position.add(offsetVec);
+
+    // -- 但此时只是在场景的那只mesh上改了 position，并没写回 meta.offset --
+    // 所以下次 render_furniture 就会恢复 (0,0,0)...
+
+    // ★ 在这里把 offsetVec 存到 meta.offset 中 ★
+    //    1) 先取出 old offset (若无则 0,0,0)
+    //    2) newOffset = oldOffset + offsetVec
+    //    3) 写回
+
+    // 先记下旧 offset
+    const oldOffset = (function () {
+        // 在 furnitureData.meta 里找 meshA 的 offset
+        const metaA = Utils.findMetaByName(furnitureData.meta, meshA.name);
+        return metaA && metaA.offset ? { ...metaA.offset } : { x: 0, y: 0, z: 0 };
+    })();
+
+    // 计算新 offset
+    const newOffset = {
+        x: oldOffset.x + offsetVec.x,
+        y: oldOffset.y + offsetVec.y,
+        z: oldOffset.z + offsetVec.z
+    };
+
+    // 写回 meta
+    updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, "offset", newOffset);
+
 
     // 记录到 dimensionChangeLog
     dimensionChangeLog.push({
@@ -2599,6 +2651,9 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
         newVal: newVal
     });
     renderDimensionChangeLog();
+
+    // 11) 再次 render，让 offset 生效
+    render_furniture(furnitureData, connectionData);
 }
 
 let firstAnchorStr = null
@@ -2732,7 +2787,7 @@ function onPointerUp(event) {
 
                     // 获取lowest siblings name
                     const { keyA, keyB } = findSiblingKeysFor(firstMesh.name, secondMesh.name);
-                    console.log("FirstMesh:", firstMesh, "SecondMesh:", secondMesh, "keyA:", keyA, "keyB:", keyB);
+                    // console.log("FirstMesh:", firstMesh, "SecondMesh:", secondMesh, "keyA:", keyA, "keyB:", keyB);
 
                     connectionData.data.push({
                         [keyA]: firstConnStr,
@@ -3060,8 +3115,9 @@ function detectAndAddConnections() {
             const contactInfo = Utils.checkBoundingBoxContact(meshA, meshB, eps);
             if (contactInfo.isTouching) {
                 // 3) 两者接触，生成对应的 anchor 字符串
-                const anchorA = getAnchorDescription(meshA, contactInfo.contactPointA);
-                const anchorB = getAnchorDescription(meshB, contactInfo.contactPointB);
+                console.log("contactP:", contactInfo.contactPointA, contactInfo.contactPointB);
+                const anchorA = getAnchorDescription(meshA, meshA.worldToLocal(contactInfo.contactPointA.clone()), contactInfo.contactFaceA);
+                const anchorB = getAnchorDescription(meshB, meshB.worldToLocal(contactInfo.contactPointB.clone()), contactInfo.contactFaceB);
                 // const anchorA = Utils.guessAnchorFromContact(meshA, contactInfo.contactAxis, contactInfo.contactPointA);
                 // const anchorB = Utils.guessAnchorFromContact(meshB, contactInfo.contactAxis, contactInfo.contactPointB);
                 // 4) 写入 connectionData
