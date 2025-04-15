@@ -435,32 +435,32 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     };
 }
 
-export function guessAnchorFromContact(mesh, contactAxis, contactWorldPos) {
-    // 转为本地坐标
-    const localPos = mesh.worldToLocal(contactWorldPos.clone());
+// export function guessAnchorFromContact(mesh, contactAxis, contactWorldPos) {
+//     // 转为本地坐标
+//     const localPos = mesh.worldToLocal(contactWorldPos.clone());
 
-    // 取出尺寸
-    if (!mesh.geometry || !mesh.geometry.parameters) {
-        // 如果不是 box 或者无参数，则返回一个默认 anchor
-        return 'Center';
-    }
-    const { width, height, depth } = mesh.geometry.parameters;
+//     // 取出尺寸
+//     if (!mesh.geometry || !mesh.geometry.parameters) {
+//         // 如果不是 box 或者无参数，则返回一个默认 anchor
+//         return 'Center';
+//     }
+//     const { width, height, depth } = mesh.geometry.parameters;
 
-    // 把 localPos 转成 [0..1] 范围，以便构造 fraction
-    //   xFrac = (local.x + width/2) / width
-    //   yFrac = (local.y + height/2) / height
-    //   zFrac = (local.z + depth/2) / depth
-    const xFrac = (localPos.x + width / 2) / width;
-    const yFrac = (localPos.y + height / 2) / height;
-    const zFrac = (localPos.z + depth / 2) / depth;
+//     // 把 localPos 转成 [0..1] 范围，以便构造 fraction
+//     //   xFrac = (local.x + width/2) / width
+//     //   yFrac = (local.y + height/2) / height
+//     //   zFrac = (local.z + depth/2) / depth
+//     const xFrac = (localPos.x + width / 2) / width;
+//     const yFrac = (localPos.y + height / 2) / height;
+//     const zFrac = (localPos.z + depth / 2) / depth;
 
-    // 依据 contactAxis 决定优先把哪个面作为 anchor
-    //   如果 contactAxis='x'，那说明 x=±width/2 处接触 => likely <RightFace> or <LeftFace>
-    //   但要看 localPos.x 大约是 +width/2 (1.0) 还是 -width/2 (0.0)
-    //   如果非常接近 0.0 => <LeftFace>；如果接近 1.0 => <RightFace>；如果在 0.2 之类 => <LeftFace_??Height_??Depth>
-    let anchor = convertLocalPosToAnchorString(xFrac, yFrac, zFrac);
-    return anchor;
-}
+//     // 依据 contactAxis 决定优先把哪个面作为 anchor
+//     //   如果 contactAxis='x'，那说明 x=±width/2 处接触 => likely <RightFace> or <LeftFace>
+//     //   但要看 localPos.x 大约是 +width/2 (1.0) 还是 -width/2 (0.0)
+//     //   如果非常接近 0.0 => <LeftFace>；如果接近 1.0 => <RightFace>；如果在 0.2 之类 => <LeftFace_??Height_??Depth>
+//     let anchor = convertLocalPosToAnchorString(xFrac, yFrac, zFrac);
+//     return anchor;
+// }
 
 // 若 obj3D 是 Group，则取它所有子节点（Mesh）包围盒的并集 (union)；
 // 若是单个 Mesh，则直接拿它的 geometry.boundingBox 并转换到世界坐标；
