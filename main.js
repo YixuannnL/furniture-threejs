@@ -3283,7 +3283,7 @@ function AnchorNameIsCorner(originalAnchor, mesh, contactPoint) {
         const candidatePos = faceCandidates[candidate];
         // console.log("localpoint111111:", localPoint);
         const dist = contactlocalPoint.distanceTo(candidatePos);
-        console.log("dist, threshold:", dist, threshold, candidate, candidatePos, contactlocalPoint);
+        // console.log("dist, threshold:", dist, threshold, candidate, candidatePos, contactlocalPoint);
         if (dist < threshold) {
             // 例如返回 "BottomFace" + "FrontLeftCorner" 形式
             console.log("HERE:::", originalAnchor, candidate);
