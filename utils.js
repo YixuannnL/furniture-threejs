@@ -1072,7 +1072,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
     const dims = mesh.geometry.parameters;
 
     // 默认保持原名称
-    let refinedName = initialAnchorName;
+    let refinedName = contactFace;
     console.log("nowmesh:", mesh);
     console.log("initialAn:", initialAnchorName);
 
@@ -1125,16 +1125,11 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             console.log("size1, span1, size2, span2:", size1, span1, size2, span2);
             // 设置阈值 80%
             const threshold = 0.8;
+            const closeEdgeThreshold = 0.05;
 
             // (1) 如果两个方向都覆盖率很高 => 视为整个面 => 保留 Face
             if (coverRatio1 >= threshold && coverRatio2 >= threshold) {
-                // refinedName 保持 XXXFace
-                // 这里可能 initialAnchorName 本来包含一些“_5/9Height_1/2Depth”之类，也可以简化成纯 'LeftFace'
-                // 如果你想要“还原成纯净的 Face”，可以进一步 .replace(/(_.*)/,"") 之类
-                // 这里看需要，可以保持：refinedName = "LeftFace"
-                // 也可以保留用户的 fraction 标注
-                // 这里把后缀都去掉：
-                refinedName = initialAnchorName.replace(/(_.*)/, '');
+                refinedName = contactFace;
             }
             // 若两个方向都满足覆盖率，优先采用覆盖率高的方向
             else if (coverRatio1 >= threshold || coverRatio2 >= threshold) {
@@ -1147,25 +1142,26 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
 
                     let distToMinSide = Math.abs(minProj2 - (-size2 / 2));
                     let distToMaxSide = Math.abs(maxProj2 - (+size2 / 2));
+                    let tmpdist = min(distToMinSide, distToMaxSide);
                     console.log("meshmesh:", mesh);
                     console.log("distmin, distmax", distToMinSide, distToMaxSide);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
                         if ((axis1 === 'x')) {
-                            refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis1 === 'y') {
-                            refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
                         }
                     } else if (contactFace == "LeftFace" || contactFace == "RightFace") {
                         if ((axis1 === 'z')) {
-                            refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis1 === 'y') {
-                            refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
                         }
                     } else if (contactFace == "TopFace" || contactFace == "BottomFace") {
                         if ((axis1 === 'z')) {
-                            refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
                         } else if (axis1 === 'x') {
-                            refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
+                            if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
                         }
                     }
                 } else if (coverRatio2 >= threshold) {
@@ -1175,24 +1171,26 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                     // const avg2 = projections2.reduce((sum, v) => sum + v, 0) / projections2.length;
                     let distToMinSide = Math.abs(minProj1 - (-size1 / 2));
                     let distToMaxSide = Math.abs(maxProj1 - (+size1 / 2));
+                    let tmpdist = min(distToMinSide, distToMaxSide);
+
                     // console.log("avg2", avg2);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
                         if ((axis2 === 'x')) {
-                            refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis2 === 'y') {
-                            refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
                         }
                     } else if (contactFace == "LeftFace" || contactFace == "RightFace") {
                         if ((axis2 === 'z')) {
-                            refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis2 === 'y') {
-                            refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
                         }
                     } else if (contactFace == "TopFace" || contactFace == "BottomFace") {
                         if ((axis2 === 'z')) {
-                            refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "LeftEdge" : "RightEdge";
                         } else if (axis2 === 'x') {
-                            refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
+                            if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
                         }
                     }
                 }
