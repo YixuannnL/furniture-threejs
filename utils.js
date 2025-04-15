@@ -1009,6 +1009,7 @@ export function WhetherChangeFaceName2Edge(mesh, contactFace) {
     if (dims) {
         const objType = getObjectType({ width: dims.width, height: dims.height, depth: dims.depth });
         if (objType === "board") {
+            console.log("HEREEEEEEEEEEEEEE")
             const dimsArr = [
                 { axis: 'width', value: dims.width },
                 { axis: 'height', value: dims.height },
@@ -1022,7 +1023,8 @@ export function WhetherChangeFaceName2Edge(mesh, contactFace) {
                 if (dimsArr[0].axis == "width" || dimsArr[0].axis == "depth") baseName = baseName.replace("Face", "Edge");
             }
             else if (baseName == "FrontFace" || baseName == "BackFace") {
-                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "height") baseName = baseName.replace("Face", "Edge");
+                console.log("HEREEEEEEEEEEEEEE33333333", mesh.name, baseName, dimsArr[0].axis);
+                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "height") { baseName = baseName.replace("Face", "Edge"); console.log("nowbase:", baseName); }
             }
         }
     }
@@ -1047,6 +1049,7 @@ export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contact
     let anchorB = contactinfo.contactFaceB;
     anchorA = WhetherChangeFaceName2Edge(meshA, anchorA);
     anchorB = WhetherChangeFaceName2Edge(meshB, anchorB);
+    // debugger
 
     if (contactPointA) {
         anchorA = refineAnchorNameByContactPoint(meshA, anchorA, contactPointA, contactType, contactinfo.contactFaceCornersA, contactinfo.contactFaceA);
@@ -1072,12 +1075,13 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
     const dims = mesh.geometry.parameters;
 
     // 默认保持原名称
-    let refinedName = contactFace;
+    let refinedName = initialAnchorName;
     console.log("nowmesh:", mesh);
     console.log("initialAn:", initialAnchorName);
 
     if (initialAnchorName.indexOf("Face") !== -1 && contactFaceCorners && Array.isArray(contactFaceCorners) && contactFaceCorners.length > 0) {
         // 根据不同的面，确定其面内两个坐标及对应的尺寸
+        refinedName = contactFace;
         let axis1 = null, axis2 = null; // 在局部坐标下的两个方向，例如 'x','y'
         let size1 = null, size2 = null; // 对应的面尺寸
         console.log("HEREEEEE1")
@@ -1125,7 +1129,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             console.log("size1, span1, size2, span2:", size1, span1, size2, span2);
             // 设置阈值 80%
             const threshold = 0.8;
-            const closeEdgeThreshold = 0.05;
+            const closeEdgeThreshold = 0.1;
 
             // (1) 如果两个方向都覆盖率很高 => 视为整个面 => 保留 Face
             if (coverRatio1 >= threshold && coverRatio2 >= threshold) {
@@ -1142,7 +1146,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
 
                     let distToMinSide = Math.abs(minProj2 - (-size2 / 2));
                     let distToMaxSide = Math.abs(maxProj2 - (+size2 / 2));
-                    let tmpdist = min(distToMinSide, distToMaxSide);
+                    let tmpdist = Math.min(distToMinSide, distToMaxSide);
                     console.log("meshmesh:", mesh);
                     console.log("distmin, distmax", distToMinSide, distToMaxSide);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
@@ -1171,10 +1175,12 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                     // const avg2 = projections2.reduce((sum, v) => sum + v, 0) / projections2.length;
                     let distToMinSide = Math.abs(minProj1 - (-size1 / 2));
                     let distToMaxSide = Math.abs(maxProj1 - (+size1 / 2));
-                    let tmpdist = min(distToMinSide, distToMaxSide);
+                    let tmpdist = Math.min(distToMinSide, distToMaxSide);
 
                     // console.log("avg2", avg2);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
+                        console.log("111111111");
+                        console.log("tmpdist", tmpdist, size1, tmpdist / size1, closeEdgeThreshold);
                         if ((axis2 === 'x')) {
                             if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis2 === 'y') {

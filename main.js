@@ -1189,6 +1189,18 @@ function calcLocalAnchorPosition(object3D, anchors) {
             case 'TopFace':
                 y = +height / 2;
                 break;
+            case 'BackFace':
+                z = -depth / 2;
+                break;
+            case 'FrontFace':
+                z = +depth / 2;
+                break;
+            case 'LeftFace':
+                x = -width / 2;
+                break;
+            case 'RightFace':
+                x = +width / 2;
+                break;
             case 'FrontLeftCorner':
                 x = -width / 2;
                 z = +depth / 2;
@@ -1205,12 +1217,43 @@ function calcLocalAnchorPosition(object3D, anchors) {
                 x = +width / 2;
                 z = -depth / 2;
                 break;
-            case 'TopEdge':
-            case 'TopEdgeCenter':
+            case 'TopFrontCorner':
+                y = +height / 2;
+                z = +depth / 2;
+                break;
+            case 'TopBackCorner':
+                y = +height / 2;
+                z = -depth / 2;
+                break;
+            case 'BottomFrontCorner':
+                y = -height / 2;
+                z = +depth / 2;
+                break;
+            case 'BottomBackCorner':
+                y = -height / 2;
+                z = -depth / 2;
+                break;
+            case 'TopLeftCorner':
+                y = +height / 2;
+                x = -width / 2;
+                break;
+            case 'TopRightCorner':
+                y = +height / 2;
+                x = +width / 2;
+                break;
+            case 'BottomLeftCorner':
+                y = -height / 2;
+                x = -width / 2;
+                break;
+            case 'BottomRightCorner':
+                y = +height / 2;
+                x = + width / 2;
+                break;
+            case 'TopEdge': //line
+            case 'TopEdgeCenter': //poing
                 y = +height / 2;
                 x = 0;
                 z = 0;
-                // console.log("y:", y);
                 break;
             case 'BottomEdge':
             case 'BottomEdgeCenter':
