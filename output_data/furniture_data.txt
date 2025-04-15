@@ -1,190 +1,54 @@
 ```json
 {
     "meta": {
-        "object": "nightstand",
+        "object": "tall_bookshelf",
         "object_type": "group",
         "dimensions": {
-            "width": 450,
-            "height": 600,
-            "depth": 400
+            "width": 800,
+            "height": 1800,
+            "depth": 350
         },
         "children": [
             {
                 "meta": {
-                    "object": "nightstand_frame",
+                    "object": "bookshelf_frame",
                     "object_type": "group",
                     "dimensions": {
-                        "width": 450,
-                        "height": 600,
-                        "depth": 400
+                        "width": 800,
+                        "height": 1800,
+                        "depth": 350
                     },
                     "children": [
-                        {
-                            "meta": {
-                                "object": "top_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 450,
-                                    "height": 30,
-                                    "depth": 400
-                                }
-                            }
-                        },
                         {
                             "meta": {
                                 "object": "left_side_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 30,
-                                    "height": 570,
-                                    "depth": 400
+                                    "width": 25,
+                                    "height": 1800,
+                                    "depth": 350
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "right_side_panel",
+                                "object": "middle_shelf_3",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 30,
-                                    "height": 570,
-                                    "depth": 400
+                                    "width": 800,
+                                    "height": 25,
+                                    "depth": 350
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "bottom_panel",
+                                "object": "top_middle_shelf",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 450,
-                                    "height": 30,
-                                    "depth": 400
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "shelf_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 450,
-                                    "height": 30,
-                                    "depth": 400
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "back_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 450,
-                                    "height": 570,
-                                    "depth": 30
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                "meta": {
-                    "object": "nightstand_drawer",
-                    "object_type": "group",
-                    "dimensions": {
-                        "width": 420,
-                        "height": 150,
-                        "depth": 370
-                    },
-                    "children": [
-                        {
-                            "meta": {
-                                "object": "drawer_front",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 420,
-                                    "height": 150,
-                                    "depth": 20
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_back",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 420,
-                                    "height": 150,
-                                    "depth": 20
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_left",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 20,
-                                    "height": 150,
-                                    "depth": 370
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_right",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 20,
-                                    "height": 150,
-                                    "depth": 370
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "drawer_bottom",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 420,
-                                    "height": 20,
-                                    "depth": 370
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                "meta": {
-                    "object": "charging_station",
-                    "object_type": "group",
-                    "dimensions": {
-                        "width": 100,
-                        "height": 20,
-                        "depth": 150
-                    },
-                    "children": [
-                        {
-                            "meta": {
-                                "object": "usb_ports",
-                                "object_type": "block",
-                                "dimensions": {
-                                    "width": 30,
-                                    "height": 10,
-                                    "depth": 10
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "wireless_charging_pad",
-                                "object_type": "block",
-                                "dimensions": {
-                                    "width": 80,
-                                    "height": 10,
-                                    "depth": 80
+                                    "width": 800,
+                                    "height": 25,
+                                    "depth": 350
                                 }
                             }
                         }

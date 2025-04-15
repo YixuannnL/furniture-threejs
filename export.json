@@ -1,190 +1,54 @@
 {
   "furnitureData": {
     "meta": {
-      "object": "nightstand",
+      "object": "tall_bookshelf",
       "object_type": "group",
       "dimensions": {
-        "width": 450,
-        "height": 600,
-        "depth": 400
+        "width": 800,
+        "height": 1800,
+        "depth": 350
       },
       "children": [
         {
           "meta": {
-            "object": "nightstand_frame",
+            "object": "bookshelf_frame",
             "object_type": "group",
             "dimensions": {
-              "width": 450,
-              "height": 600,
-              "depth": 400
+              "width": 800,
+              "height": 1800,
+              "depth": 350
             },
             "children": [
-              {
-                "meta": {
-                  "object": "top_panel",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 450,
-                    "height": 30,
-                    "depth": 400
-                  }
-                }
-              },
               {
                 "meta": {
                   "object": "left_side_panel",
                   "object_type": "board",
                   "dimensions": {
-                    "width": 30,
-                    "height": 570,
-                    "depth": 400
+                    "width": 25,
+                    "height": 1800,
+                    "depth": 350
                   }
                 }
               },
               {
                 "meta": {
-                  "object": "right_side_panel",
+                  "object": "middle_shelf_3",
                   "object_type": "board",
                   "dimensions": {
-                    "width": 30,
-                    "height": 570,
-                    "depth": 400
+                    "width": 800,
+                    "height": 25,
+                    "depth": 350
                   }
                 }
               },
               {
                 "meta": {
-                  "object": "bottom_panel",
+                  "object": "top_middle_shelf",
                   "object_type": "board",
                   "dimensions": {
-                    "width": 450,
-                    "height": 30,
-                    "depth": 400
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "shelf_panel",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 450,
-                    "height": 30,
-                    "depth": 400
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "back_panel",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 450,
-                    "height": 570,
-                    "depth": 30
-                  }
-                }
-              }
-            ]
-          }
-        },
-        {
-          "meta": {
-            "object": "nightstand_drawer",
-            "object_type": "group",
-            "dimensions": {
-              "width": 420,
-              "height": 150,
-              "depth": 370
-            },
-            "children": [
-              {
-                "meta": {
-                  "object": "drawer_front",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 420,
-                    "height": 150,
-                    "depth": 20
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "drawer_back",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 420,
-                    "height": 150,
-                    "depth": 20
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "drawer_left",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 20,
-                    "height": 150,
-                    "depth": 370
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "drawer_right",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 20,
-                    "height": 150,
-                    "depth": 370
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "drawer_bottom",
-                  "object_type": "board",
-                  "dimensions": {
-                    "width": 420,
-                    "height": 20,
-                    "depth": 370
-                  }
-                }
-              }
-            ]
-          }
-        },
-        {
-          "meta": {
-            "object": "charging_station",
-            "object_type": "group",
-            "dimensions": {
-              "width": 100,
-              "height": 20,
-              "depth": 150
-            },
-            "children": [
-              {
-                "meta": {
-                  "object": "usb_ports",
-                  "object_type": "block",
-                  "dimensions": {
-                    "width": 30,
-                    "height": 10,
-                    "depth": 10
-                  }
-                }
-              },
-              {
-                "meta": {
-                  "object": "wireless_charging_pad",
-                  "object_type": "block",
-                  "dimensions": {
-                    "width": 80,
-                    "height": 10,
-                    "depth": 80
+                    "width": 800,
+                    "height": 25,
+                    "depth": 350
                   }
                 }
               }
@@ -197,590 +61,201 @@
   "connectionData": {
     "data": [
       {
-        "left_side_panel": "<left_side_panel><board>[<BackFace_1/1Height_1/1Width><BackEdge>]",
-        "back_panel": "<back_panel><board>[<FrontFace_1/1Height_1/1Width><FrontFace>]"
+        "middle_shelf_3": "<middle_shelf_3><board>[<FrontFace_1/1Height_0/1Width><LeftEdge>]",
+        "left_side_panel": "<left_side_panel><board>[<FrontFace_9/10Height_1/1Width><RightFace>]"
+      },
+      {
+        "top_middle_shelf": "<top_middle_shelf><board>[<FrontFace_1/1Height_0/1Width><LeftEdge>]",
+        "left_side_panel": "<left_side_panel><board>[<FrontFace_3/10Height_1/1Width><RightFace>]"
       }
     ],
     "meta_data": [
       {
         "row_headers": [
-          "Component",
-          "Nightstand_Frame",
-          "Nightstand_Drawer",
-          "Charging_Station"
+          "",
+          "Bookshelf Frame"
         ],
         "column_header": [
-          "Nightstand_Frame",
-          "Nightstand_Drawer",
-          "Charging_Station",
-          "Charging_Station",
-          "Nightstand_Frame",
-          "Nightstand_Frame",
-          "Nightstand_Frame",
-          "Nightstand_Drawer"
+          "Bookshelf Frame"
         ],
         "title": "table_1",
-        "data": [
-          {
-            "nightstand_frame": ""
-          },
-          {
-            "nightstand_frame": "<Drawer_Back><Board>[<FrontFace>]",
-            "nightstand_drawer": ""
-          },
-          {
-            "nightstand_frame": "<Wireless_Charging_Pad><Block>[<BottomFace>]",
-            "charging_station": ""
-          }
-        ]
-      },
-      {
-        "row_headers": [
-          "Component",
-          "Top_Panel",
-          "Left_Side_Panel",
-          "Right_Side_Panel",
-          "Bottom_Panel",
-          "Shelf_Panel",
-          "Back_Panel"
-        ],
-        "column_header": [
-          "Top_Panel",
-          "Left_Side_Panel",
-          "Right_Side_Panel",
-          "Bottom_Panel",
-          "Shelf_Panel",
-          "Back_Panel",
-          "Top_Panel",
-          "Bottom_Panel",
-          "Back_Panel",
-          "Left_Side_Panel",
-          "Right_Side_Panel",
-          "Shelf_Panel",
-          "Back_Panel",
-          "Left_Side_Panel",
-          "Right_Side_Panel",
-          "Back_Panel",
-          "Back_Panel"
-        ],
-        "title": "table_2",
-        "data": [
-          {
-            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]",
-            "top_panel": ""
-          },
-          {
-            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]",
-            "top_panel": ""
-          },
-          {
-            "shelf_panel": "<Shelf_Panel><Board>[<LeftFace>]",
-            "left_side_panel": ""
-          },
-          {
-            "shelf_panel": "<Shelf_Panel><Board>[<RightFace>]",
-            "right_side_panel": ""
-          },
-          {
-            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]",
-            "bottom_panel": ""
-          },
-          {
-            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]",
-            "bottom_panel": ""
-          },
-          {
-            "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]",
-            "shelf_panel": ""
-          },
-          {
-            "back_panel": ""
-          }
-        ]
-      },
-      {
-        "row_headers": [
-          "Component",
-          "Drawer_Front",
-          "Drawer_Back",
-          "Drawer_Left",
-          "Drawer_Right",
-          "Drawer_Bottom"
-        ],
-        "column_header": [
-          "Drawer_Front",
-          "Drawer_Back",
-          "Drawer_Left",
-          "Drawer_Right",
-          "Drawer_Bottom",
-          "Drawer_Back",
-          "Drawer_Left",
-          "Drawer_Right",
-          "Drawer_Bottom",
-          "Drawer_Left",
-          "Drawer_Right",
-          "Drawer_Bottom",
-          "Drawer_Right",
-          "Drawer_Bottom",
-          "Drawer_Bottom"
-        ],
-        "title": "table_3",
         "data": []
       },
       {
         "row_headers": [
-          "Component",
-          "USB_Ports",
-          "Wireless_Charging_Pad"
+          "",
+          "Left Side Panel",
+          "Right Side Panel",
+          "Base Panel",
+          "Top Panel",
+          "Bottom Shelf",
+          "Middle Shelf 1",
+          "Middle Shelf 2",
+          "Middle Shelf 3",
+          "Top Middle Shelf",
+          "Back Panel"
         ],
         "column_header": [
-          "USB_Ports",
-          "Wireless_Charging_Pad",
-          "USB_Ports",
-          "Wireless_Charging_Pad"
+          "Left Side Panel",
+          "Right Side Panel",
+          "Base Panel",
+          "Top Panel",
+          "Bottom Shelf",
+          "Middle Shelf 1",
+          "Middle Shelf 2",
+          "Middle Shelf 3",
+          "Top Middle Shelf",
+          "Back Panel"
         ],
-        "title": "table_4",
+        "title": "table_2",
         "data": [
           {
-            "wireless_charging_pad": "<Wireless_Charging_Pad><Block>[<LeftFace>]",
-            "usb_ports": ""
+            "back_panel": "<Back_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<BottomEdge>]",
+            "base_panel": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<BottomEdge>]",
+            "base_panel": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomEdge>]",
+            "base_panel": "<Base_Panel><Board>[<TopFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<TopEdge>]",
+            "top_panel": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<TopEdge>]",
+            "top_panel": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<TopEdge>]",
+            "top_panel": "<Top_Panel><Board>[<BottomFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
+            "bottom_shelf": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
+            "bottom_shelf": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
+            "bottom_shelf": "<Bottom_Shelf><Board>[<TopFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
+            "middle_shelf_1": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
+            "middle_shelf_1": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
+            "middle_shelf_1": "<Middle_Shelf_1><Board>[<TopFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
+            "middle_shelf_2": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
+            "middle_shelf_2": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
+            "middle_shelf_2": "<Middle_Shelf_2><Board>[<TopFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
+            "middle_shelf_3": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
+            "middle_shelf_3": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
+            "middle_shelf_3": "<Middle_Shelf_3><Board>[<TopFace>]"
+          },
+          {
+            "left_side_panel": "<Left_Side_Panel><Board>[<LeftEdge>]",
+            "top_middle_shelf": ""
+          },
+          {
+            "right_side_panel": "<Right_Side_Panel><Board>[<RightEdge>]",
+            "top_middle_shelf": ""
+          },
+          {
+            "back_panel": "<Back_Panel><Board>[<BottomFace>]",
+            "top_middle_shelf": "<Top_Middle_Shelf><Board>[<TopFace>]"
           }
         ]
       }
     ]
   },
   "orientationData": {
-    "objectName": "nightstand",
-    "childrenOrientation": [
-      {
-        "objectA": "nightstand_frame",
-        "objectB": "nightstand_drawer",
-        "relation": [
-          "<Right>"
-        ]
-      },
-      {
-        "objectA": "nightstand_drawer",
-        "objectB": "nightstand_frame",
-        "relation": [
-          "<Left>"
-        ]
-      },
-      {
-        "objectA": "nightstand_frame",
-        "objectB": "charging_station",
-        "relation": [
-          "<Right>"
-        ]
-      },
-      {
-        "objectA": "charging_station",
-        "objectB": "nightstand_frame",
-        "relation": [
-          "<Left>"
-        ]
-      },
-      {
-        "objectA": "nightstand_drawer",
-        "objectB": "charging_station",
-        "relation": [
-          "<Right>"
-        ]
-      },
-      {
-        "objectA": "charging_station",
-        "objectB": "nightstand_drawer",
-        "relation": [
-          "<Left>"
-        ]
-      }
-    ],
+    "objectName": "tall_bookshelf",
+    "childrenOrientation": [],
     "children": [
       {
-        "objectName": "nightstand_frame",
+        "objectName": "bookshelf_frame",
         "childrenOrientation": [
           {
-            "objectA": "top_panel",
-            "objectB": "left_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
             "objectA": "left_side_panel",
-            "objectB": "top_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "top_panel",
-            "objectB": "right_side_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "right_side_panel",
-            "objectB": "top_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "top_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "bottom_panel",
-            "objectB": "top_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "top_panel",
-            "objectB": "shelf_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "shelf_panel",
-            "objectB": "top_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "top_panel",
-            "objectB": "back_panel",
-            "relation": [
-              "<Left>",
-              "<Back>"
-            ]
-          },
-          {
-            "objectA": "back_panel",
-            "objectB": "top_panel",
+            "objectB": "middle_shelf_3",
             "relation": [
               "<Right>",
-              "<Front>"
+              "<Top>"
             ]
           },
           {
-            "objectA": "left_side_panel",
-            "objectB": "right_side_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "right_side_panel",
+            "objectA": "middle_shelf_3",
             "objectB": "left_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "left_side_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "bottom_panel",
-            "objectB": "left_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "left_side_panel",
-            "objectB": "shelf_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "shelf_panel",
-            "objectB": "left_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "left_side_panel",
-            "objectB": "back_panel",
             "relation": [
               "<Left>",
-              "<Back>"
+              "<Bottom>"
             ]
           },
           {
-            "objectA": "back_panel",
+            "objectA": "left_side_panel",
+            "objectB": "top_middle_shelf",
+            "relation": [
+              "<Right>",
+              "<Bottom>"
+            ]
+          },
+          {
+            "objectA": "top_middle_shelf",
             "objectB": "left_side_panel",
             "relation": [
-              "<Right>",
-              "<Front>"
-            ]
-          },
-          {
-            "objectA": "right_side_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "bottom_panel",
-            "objectB": "right_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "right_side_panel",
-            "objectB": "shelf_panel",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "shelf_panel",
-            "objectB": "right_side_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "right_side_panel",
-            "objectB": "back_panel",
-            "relation": [
               "<Left>",
-              "<Back>"
+              "<Top>"
             ]
           },
           {
-            "objectA": "back_panel",
-            "objectB": "right_side_panel",
+            "objectA": "middle_shelf_3",
+            "objectB": "top_middle_shelf",
             "relation": [
-              "<Right>",
-              "<Front>"
+              "<Bottom>"
             ]
           },
           {
-            "objectA": "bottom_panel",
-            "objectB": "shelf_panel",
+            "objectA": "top_middle_shelf",
+            "objectB": "middle_shelf_3",
             "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "shelf_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "bottom_panel",
-            "objectB": "back_panel",
-            "relation": [
-              "<Left>",
-              "<Back>"
-            ]
-          },
-          {
-            "objectA": "back_panel",
-            "objectB": "bottom_panel",
-            "relation": [
-              "<Right>",
-              "<Front>"
-            ]
-          },
-          {
-            "objectA": "shelf_panel",
-            "objectB": "back_panel",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "back_panel",
-            "objectB": "shelf_panel",
-            "relation": [
-              "<Right>"
-            ]
-          }
-        ],
-        "children": []
-      },
-      {
-        "objectName": "nightstand_drawer",
-        "childrenOrientation": [
-          {
-            "objectA": "drawer_front",
-            "objectB": "drawer_back",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_back",
-            "objectB": "drawer_front",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_front",
-            "objectB": "drawer_left",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_left",
-            "objectB": "drawer_front",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_front",
-            "objectB": "drawer_right",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_right",
-            "objectB": "drawer_front",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_front",
-            "objectB": "drawer_bottom",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_bottom",
-            "objectB": "drawer_front",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_back",
-            "objectB": "drawer_left",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_left",
-            "objectB": "drawer_back",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_back",
-            "objectB": "drawer_right",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_right",
-            "objectB": "drawer_back",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_back",
-            "objectB": "drawer_bottom",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_bottom",
-            "objectB": "drawer_back",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_left",
-            "objectB": "drawer_right",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_right",
-            "objectB": "drawer_left",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_left",
-            "objectB": "drawer_bottom",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_bottom",
-            "objectB": "drawer_left",
-            "relation": [
-              "<Left>"
-            ]
-          },
-          {
-            "objectA": "drawer_right",
-            "objectB": "drawer_bottom",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "drawer_bottom",
-            "objectB": "drawer_right",
-            "relation": [
-              "<Left>"
-            ]
-          }
-        ],
-        "children": []
-      },
-      {
-        "objectName": "charging_station",
-        "childrenOrientation": [
-          {
-            "objectA": "usb_ports",
-            "objectB": "wireless_charging_pad",
-            "relation": [
-              "<Right>"
-            ]
-          },
-          {
-            "objectA": "wireless_charging_pad",
-            "objectB": "usb_ports",
-            "relation": [
-              "<Left>"
+              "<Top>"
             ]
           }
         ],

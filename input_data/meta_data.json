@@ -1,35 +1,57 @@
 {
     "meta": {
-        "object": "coffee_table",
+        "object": "tall_bookshelf",
         "object_type": "group",
         "dimensions": {
-            "width": 900,
-            "height": 500,
-            "depth": 500
+            "width": 800,
+            "height": 1800,
+            "depth": 350
         },
         "children": [
             {
                 "meta": {
-                    "object": "tabletop",
-                    "object_type": "board",
+                    "object": "bookshelf_frame",
+                    "object_type": "group",
                     "dimensions": {
-                        "width": 900,
-                        "height": 20,
-                        "depth": 500
+                        "width": 800,
+                        "height": 1800,
+                        "depth": 350
                     },
-                    "description": "Tabletop with rounded edges"
-                }
-            },
-            {
-                "meta": {
-                    "object": "leg_front_left",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 80,
-                        "height": 480,
-                        "depth": 80
-                    },
-                    "description": "Vertical support leg"
+                    "children": [
+                        {
+                            "meta": {
+                                "object": "left_side_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 25,
+                                    "height": 1800,
+                                    "depth": 350
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "middle_shelf_3",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 800,
+                                    "height": 25,
+                                    "depth": 350
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "top_middle_shelf",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 800,
+                                    "height": 25,
+                                    "depth": 350
+                                }
+                            }
+                        }
+                    ]
                 }
             }
         ]

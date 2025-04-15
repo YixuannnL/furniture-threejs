@@ -53,7 +53,7 @@ export function findBarAxisAndEnds(mesh) {
     return { axisName, axisSize, end1Name, end2Name, end1Coord, end2Coord };
 }
 
-export function getFaceFractionAnchor(localPos, width, height, depth) {
+export function getFaceFractionAnchor(localPos, width, height, depth, mesh) {
     // 1) 计算与 6 面边界的距离
     const distFront = Math.abs(localPos.z - depth / 2);
     const distBack = Math.abs(localPos.z + depth / 2);
@@ -70,7 +70,8 @@ export function getFaceFractionAnchor(localPos, width, height, depth) {
     if (distRight < minDist) { faceType = 'RightFace'; minDist = distRight; }
     if (distBottom < minDist) { faceType = 'BottomFace'; minDist = distBottom; }
     if (distTop < minDist) { faceType = 'TopFace'; minDist = distTop; }
-
+    console.log("NOWMESH:", mesh);
+    console.log("facetype:", faceType);
     // 3) 在该面内计算分数 param1, param2
     //   (0~1) => clamp 避免浮点误差越界
     const clamp01 = v => Math.min(1, Math.max(0, v));

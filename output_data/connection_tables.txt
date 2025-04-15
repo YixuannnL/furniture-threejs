@@ -1,38 +1,16 @@
 ## Connection Tables
 
-For nightstand Level 1, the connection relationship matrix of its internal components should be as follows:
+For tall_bookshelf Level 1, the connection relationship matrix of its internal components should be as follows:
 
-|  | nightstand_frame | nightstand_drawer | charging_station |
+|  | bookshelf_frame |
+| --- | --- |
+| bookshelf_frame |  |
+
+For bookshelf_frame Level 2, the connection relationship matrix of its internal components should be as follows:
+
+|  | left_side_panel | middle_shelf_3 | top_middle_shelf |
 | --- | --- | --- | --- |
-| nightstand_frame |  |  |  |
-| nightstand_drawer |  |  |  |
-| charging_station |  |  |  |
-
-For nightstand_frame Level 2, the connection relationship matrix of its internal components should be as follows:
-
-|  | top_panel | left_side_panel | right_side_panel | bottom_panel | shelf_panel | back_panel |
-| --- | --- | --- | --- | --- | --- | --- |
-| top_panel |  |  |  |  |  |  |
-| left_side_panel |  |  |  |  |  | `<back_panel><board>[<FrontFace_1/1Height_1/1Width><FrontFace>]` |
-| right_side_panel |  |  |  |  |  |  |
-| bottom_panel |  |  |  |  |  |  |
-| shelf_panel |  |  |  |  |  |  |
-| back_panel |  | `<left_side_panel><board>[<BackFace_1/1Height_1/1Width><BackEdge>]` |  |  |  |  |
-
-For nightstand_drawer Level 2, the connection relationship matrix of its internal components should be as follows:
-
-|  | drawer_front | drawer_back | drawer_left | drawer_right | drawer_bottom |
-| --- | --- | --- | --- | --- | --- |
-| drawer_front |  |  |  |  |  |
-| drawer_back |  |  |  |  |  |
-| drawer_left |  |  |  |  |  |
-| drawer_right |  |  |  |  |  |
-| drawer_bottom |  |  |  |  |  |
-
-For charging_station Level 2, the connection relationship matrix of its internal components should be as follows:
-
-|  | usb_ports | wireless_charging_pad |
-| --- | --- | --- |
-| usb_ports |  |  |
-| wireless_charging_pad |  |  |
+| left_side_panel |  | `<middle_shelf_3><board>[<FrontFace_1/1Height_0/1Width><LeftEdge>]` | `<top_middle_shelf><board>[<FrontFace_1/1Height_0/1Width><LeftEdge>]` |
+| middle_shelf_3 | `<left_side_panel><board>[<FrontFace_9/10Height_1/1Width><RightFace>]` |  |  |
+| top_middle_shelf | `<left_side_panel><board>[<FrontFace_3/10Height_1/1Width><RightFace>]` |  |  |
 

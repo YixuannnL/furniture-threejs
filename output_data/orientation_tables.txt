@@ -1,38 +1,16 @@
 ## Orientation Tables
 
-For nightstand Level 1, the positional relationship matrix of its internal components should be as follows:
+For tall_bookshelf Level 1, the positional relationship matrix of its internal components should be as follows:
 
-|  | nightstand_frame | nightstand_drawer | charging_station |
+|  | bookshelf_frame |
+| --- | --- |
+| bookshelf_frame |  |
+
+For bookshelf_frame Level 2, the positional relationship matrix of its internal components should be as follows:
+
+|  | left_side_panel | middle_shelf_3 | top_middle_shelf |
 | --- | --- | --- | --- |
-| nightstand_frame |  | `<Right>` | `<Right>` |
-| nightstand_drawer | `<Left>` |  | `<Right>` |
-| charging_station | `<Left>` | `<Left>` |  |
-
-For nightstand_frame Level 2, the positional relationship matrix of its internal components should be as follows:
-
-|  | top_panel | left_side_panel | right_side_panel | bottom_panel | shelf_panel | back_panel |
-| --- | --- | --- | --- | --- | --- | --- |
-| top_panel |  | `<Left>` | `<Right>` | `<Right>` | `<Right>` | `<Left>`<br>`<Back>` |
-| left_side_panel | `<Right>` |  | `<Right>` | `<Right>` | `<Right>` | `<Left>`<br>`<Back>` |
-| right_side_panel | `<Left>` | `<Left>` |  | `<Right>` | `<Right>` | `<Left>`<br>`<Back>` |
-| bottom_panel | `<Left>` | `<Left>` | `<Left>` |  | `<Right>` | `<Left>`<br>`<Back>` |
-| shelf_panel | `<Left>` | `<Left>` | `<Left>` | `<Left>` |  | `<Left>` |
-| back_panel | `<Right>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Right>`<br>`<Front>` | `<Right>` |  |
-
-For nightstand_drawer Level 2, the positional relationship matrix of its internal components should be as follows:
-
-|  | drawer_front | drawer_back | drawer_left | drawer_right | drawer_bottom |
-| --- | --- | --- | --- | --- | --- |
-| drawer_front |  | `<Right>` | `<Right>` | `<Right>` | `<Right>` |
-| drawer_back | `<Left>` |  | `<Right>` | `<Right>` | `<Right>` |
-| drawer_left | `<Left>` | `<Left>` |  | `<Right>` | `<Right>` |
-| drawer_right | `<Left>` | `<Left>` | `<Left>` |  | `<Right>` |
-| drawer_bottom | `<Left>` | `<Left>` | `<Left>` | `<Left>` |  |
-
-For charging_station Level 2, the positional relationship matrix of its internal components should be as follows:
-
-|  | usb_ports | wireless_charging_pad |
-| --- | --- | --- |
-| usb_ports |  | `<Right>` |
-| wireless_charging_pad | `<Left>` |  |
+| left_side_panel |  | `<Right>`<br>`<Top>` | `<Right>`<br>`<Bottom>` |
+| middle_shelf_3 | `<Left>`<br>`<Bottom>` |  | `<Bottom>` |
+| top_middle_shelf | `<Left>`<br>`<Top>` | `<Top>` |  |
 

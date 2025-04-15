@@ -1316,11 +1316,11 @@ function getAnchorDescription(mesh, localPos) {
         else {
             // 两端都不近 => 可能是中段
             // 你可以返回 <MidEnd> 或者再做更多判断(比如 partial quarter?)
-            return Utils.getFaceFractionAnchor(localPos, width, height, depth);
+            return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh);
         }
     }
     else { // board or block
-        return Utils.getFaceFractionAnchor(localPos, width, height, depth);
+        return Utils.getFaceFractionAnchor(localPos, width, height, depth, mesh);
     }
 }
 
@@ -2100,7 +2100,7 @@ function saveEditingConnection(item, firstStrNew, secondStrNew) {
         return;
     }
 
-    const keys = Object.keys(data);
+    const keys = Object.keys(item);
     const firstKey = keys[0];
     const secondKey = keys[1];
 
