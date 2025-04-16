@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { NRRDLoader } from 'three/examples/jsm/Addons.js';
 import { lessThan, min } from 'three/tsl';
 
 export function getCenterPoint(mesh) {
@@ -1395,6 +1396,8 @@ export function calcLocalAnchorPosition(object3D, anchors) {
             case 'FrontEdgeRightHalf': z = +depth / 2; x = +width / 4; break;
             case 'BackEdgeLeftHalf': z = -depth / 2; x = -width / 4; break;
             case 'BackEdgeRightHalf': z = -depth / 2; x = +width / 4; break;
+
+            case 'Center': x = 0; y = 0; z = 0; break;
 
             // 可以继续扩展更多标签
             default:
