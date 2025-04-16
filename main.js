@@ -1225,7 +1225,7 @@ function scatterUnconnectedOutsideConnectedLine(rootObject, connectionData) {
     const size = new THREE.Vector3();
     connectedBox.getSize(size);
 
-    console.log("size:", size);
+    // console.log("size:", size);
 
     // -- 3) 收集无连接对象 --
     const unconnected = [];

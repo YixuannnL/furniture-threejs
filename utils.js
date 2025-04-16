@@ -421,9 +421,9 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z) //右上
             ];
         } else {
-            console.log("BBBBBBBBBB");
-            console.log("boxA", boxA);
-            console.log("boxB", boxB);
+            // console.log("BBBBBBBBBB");
+            // console.log("boxA", boxA);
+            // console.log("boxB", boxB);
             // A 的后侧面与 B 的前侧面接触
             contactFaceA = "BackFace";
             contactFaceB = "FrontFace";
@@ -1009,7 +1009,7 @@ export function WhetherChangeFaceName2Edge(mesh, contactFace) {
     if (dims) {
         const objType = getObjectType({ width: dims.width, height: dims.height, depth: dims.depth });
         if (objType === "board") {
-            console.log("HEREEEEEEEEEEEEEE")
+            // console.log("HEREEEEEEEEEEEEEE")
             const dimsArr = [
                 { axis: 'width', value: dims.width },
                 { axis: 'height', value: dims.height },
@@ -1023,8 +1023,8 @@ export function WhetherChangeFaceName2Edge(mesh, contactFace) {
                 if (dimsArr[0].axis == "width" || dimsArr[0].axis == "depth") baseName = baseName.replace("Face", "Edge");
             }
             else if (baseName == "FrontFace" || baseName == "BackFace") {
-                console.log("HEREEEEEEEEEEEEEE33333333", mesh.name, baseName, dimsArr[0].axis);
-                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "height") { baseName = baseName.replace("Face", "Edge"); console.log("nowbase:", baseName); }
+                // console.log("HEREEEEEEEEEEEEEE33333333", mesh.name, baseName, dimsArr[0].axis);
+                if (dimsArr[0].axis == "width" || dimsArr[0].axis == "height") { baseName = baseName.replace("Face", "Edge"); }
             }
         }
     }
@@ -1057,7 +1057,7 @@ export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contact
     if (contactPointB) {
         anchorB = refineAnchorNameByContactPoint(meshB, anchorB, contactPointB, contactType, contactinfo.contactFaceCornersB, contactinfo.contactFaceB);
     }
-    console.log("anchor:", anchorA, anchorB);
+    // console.log("anchor:", anchorA, anchorB);
     return { anchorA, anchorB };
 }
 
@@ -1076,15 +1076,15 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
 
     // 默认保持原名称
     let refinedName = initialAnchorName;
-    console.log("nowmesh:", mesh);
-    console.log("initialAn:", initialAnchorName);
+    // console.log("nowmesh:", mesh);
+    // console.log("initialAn:", initialAnchorName);
 
     if (initialAnchorName.indexOf("Face") !== -1 && contactFaceCorners && Array.isArray(contactFaceCorners) && contactFaceCorners.length > 0) {
         // 根据不同的面，确定其面内两个坐标及对应的尺寸
         refinedName = contactFace;
         let axis1 = null, axis2 = null; // 在局部坐标下的两个方向，例如 'x','y'
         let size1 = null, size2 = null; // 对应的面尺寸
-        console.log("HEREEEEE1")
+        // console.log("HEREEEEE1")
         // 针对 FrontFace / BackFace：面在 z 方向固定，面内轴为 x 和 y
         if (initialAnchorName.indexOf("FrontFace") !== -1 || initialAnchorName.indexOf("BackFace") !== -1) {
             axis1 = 'x'; size1 = dims.width;
@@ -1097,7 +1097,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
         }
         // 针对 TopFace / BottomFace：面在 y 方向固定，面内轴为 x 和 z
         else if (initialAnchorName.indexOf("TopFace") !== -1 || initialAnchorName.indexOf("BottomFace") !== -1) {
-            console.log("HEREEEEE2")
+            // console.log("HEREEEEE2")
             axis1 = 'x'; size1 = dims.width;
             axis2 = 'z'; size2 = dims.depth;
         }
@@ -1106,15 +1106,15 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             // 对于面内四个角点，转换为局部坐标，分别取出在 axis1 与 axis2 上的值
             const projections1 = contactFaceCorners.map(pt => {
                 const localCorner = mesh.worldToLocal(pt.clone());
-                console.log("localcorner:", localCorner);
+                // console.log("localcorner:", localCorner);
                 return localCorner[axis1];
             });
-            console.log("projections1:", projections1); // [-400, -400, -375, -375]
+            // console.log("projections1:", projections1); // [-400, -400, -375, -375]
             const projections2 = contactFaceCorners.map(pt => {
                 const localCorner = mesh.worldToLocal(pt.clone());
                 return localCorner[axis2];
             });
-            console.log("projections2:", projections2); // [-400, -400, -375, -375]
+            // console.log("projections2:", projections2); // [-400, -400, -375, -375]
 
             const minProj1 = Math.min(...projections1);
             const maxProj1 = Math.max(...projections1);
@@ -1126,7 +1126,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             // 计算覆盖比例
             const coverRatio1 = span1 / size1;
             const coverRatio2 = span2 / size2;
-            console.log("size1, span1, size2, span2:", size1, span1, size2, span2);
+            // console.log("size1, span1, size2, span2:", size1, span1, size2, span2);
             // 设置阈值 80%
             const threshold = 0.8;
             const closeEdgeThreshold = 0.1;
@@ -1147,8 +1147,8 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                     let distToMinSide = Math.abs(minProj2 - (-size2 / 2));
                     let distToMaxSide = Math.abs(maxProj2 - (+size2 / 2));
                     let tmpdist = Math.min(distToMinSide, distToMaxSide);
-                    console.log("meshmesh:", mesh);
-                    console.log("distmin, distmax", distToMinSide, distToMaxSide);
+                    // console.log("meshmesh:", mesh);
+                    // console.log("distmin, distmax", distToMinSide, distToMaxSide);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
                         if ((axis1 === 'x')) {
                             if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
@@ -1170,8 +1170,8 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                     }
                 } else if (coverRatio2 >= threshold) {
                     // 根据 axis2 判断具体边名称
-                    console.log("HERE33333")
-                    console.log("contactFace", contactFace);
+                    // console.log("HERE33333")
+                    // console.log("contactFace", contactFace);
                     // const avg2 = projections2.reduce((sum, v) => sum + v, 0) / projections2.length;
                     let distToMinSide = Math.abs(minProj1 - (-size1 / 2));
                     let distToMaxSide = Math.abs(maxProj1 - (+size1 / 2));
@@ -1179,8 +1179,8 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
 
                     // console.log("avg2", avg2);
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
-                        console.log("111111111");
-                        console.log("tmpdist", tmpdist, size1, tmpdist / size1, closeEdgeThreshold);
+                        // console.log("111111111");
+                        // console.log("tmpdist", tmpdist, size1, tmpdist / size1, closeEdgeThreshold);
                         if ((axis2 === 'x')) {
                             if (tmpdist / size1 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
                         } else if (axis2 === 'y') {
@@ -1208,7 +1208,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
     if (contactType === 'corner') {
         refinedName = refinedName.replace('Face', 'Corner').replace('Edge', 'Corner');
     }
-    console.log("refineName:", refinedName);
+    // console.log("refineName:", refinedName);
     return refinedName;
 }
 
@@ -1387,7 +1387,7 @@ export function calcLocalAnchorPosition(object3D, anchors) {
             default:
                 // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
                 // 先拆成 tokens
-                console.log("HEREEEE:", mesh.name);
+                // console.log("HEREEEE:", mesh.name);
                 const parts = anchor.split('_')
                 const result = [parseFractionTag(parts[1]), parseFractionTag(parts[2])];
                 // const result = parts.map(part => {
@@ -1408,10 +1408,10 @@ export function calcLocalAnchorPosition(object3D, anchors) {
                     case 'bottomface': y = -height / 2; break;
                     default: break;
                 }
-                console.log("result", result, parts[1], parts[2]);
+                // console.log("result", result, parts[1], parts[2]);
                 for (let i = 0; i < result.length; i++) {
                     const item = result[i]
-                    console.log("item", item);
+                    // console.log("item", item);
                     // debugger
                     const fval = fractionToFloat(item[0]);
                     switch (item[1]) {
@@ -1420,11 +1420,11 @@ export function calcLocalAnchorPosition(object3D, anchors) {
                         case 'depth': z = -depth / 2 + fval * depth; break;
                     }
                 }
-                console.log("HEREEEE: result", mesh.name, x, y, z, result[0], result[1], result[2]);
+                // console.log("HEREEEE: result", mesh.name, x, y, z, result[0], result[1], result[2]);
                 break;
         }
     }
 
-    console.log("NOWPOS:", mesh.name, new THREE.Vector3(x, y, z));
+    // console.log("NOWPOS:", mesh.name, new THREE.Vector3(x, y, z));
     return new THREE.Vector3(x, y, z);
 }
