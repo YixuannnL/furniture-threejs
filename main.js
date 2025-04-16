@@ -1141,200 +1141,6 @@ function parseMeta(meta) {
     return currentObject;
 }
 
-
-
-// --------------------------------------------------------------------------------------------
-//  根据 anchors 列表，计算该物体在局部坐标的“锚点位置” (x, y, z)
-// --------------------------------------------------------------------------------------------
-function calcLocalAnchorPosition(object3D, anchors) {
-    // 首先要知道这个物体的宽高深。因为我们之前用 BoxGeometry(width, height, depth) + 中心在(0,0,0)。
-    // 我们可以从 geometry.parameters 里拿到实际尺寸
-    // 但需要确保 object3D 真的是 Mesh，且 geometry 是 BoxGeometry
-    // 如果 object3D 是 Group，就可能没有 geometry，要看具体需求怎么处理
-    const mesh = (object3D.isMesh) ? object3D : null;
-    if (!mesh || !mesh.geometry || !mesh.geometry.parameters) {
-        // 如果不是 Mesh 或不满足我们预期，就返回(0,0,0)或抛错
-        return new THREE.Vector3(0, 0, 0);
-    }
-
-    const { width, height, depth } = mesh.geometry.parameters;
-    // const objType = Utils.getObjectType({ width, height, depth });
-
-    // const Center = getCenterPoint(mesh);
-    // let x = Center.x, y = Center.y, z = Center.z;
-    let x = 0, y = 0, z = 0; //local坐标？
-
-    // 定义一个辅助函数，用于把字符串如 "1/3" => 0.3333
-    function fractionToFloat(fracStr) {
-        // fracStr 形如 "1/2"、"2/3"、"1/4"...
-        const parts = fracStr.split('/');
-        if (parts.length === 2) {
-            const numerator = parseFloat(parts[0]);
-            const denominator = parseFloat(parts[1]);
-            if (denominator !== 0) {
-                return numerator / denominator;
-            }
-        }
-        return 0; // 如果解析失败，返回0
-    }
-
-    // 遍历 anchors
-    anchors.forEach(anchor => {
-        // 判断一些关键标签
-        // console.log("nowanchor:", anchor)
-        switch (anchor) {
-            case 'BottomFace':
-                y = -height / 2;
-                break;
-            case 'TopFace':
-                y = +height / 2;
-                break;
-            case 'BackFace':
-                z = -depth / 2;
-                break;
-            case 'FrontFace':
-                z = +depth / 2;
-                break;
-            case 'LeftFace':
-                x = -width / 2;
-                break;
-            case 'RightFace':
-                x = +width / 2;
-                break;
-            case 'FrontLeftCorner':
-                x = -width / 2;
-                z = +depth / 2;
-                break;
-            case 'FrontRightCorner':
-                x = +width / 2;
-                z = +depth / 2;
-                break;
-            case 'BackLeftCorner':
-                x = -width / 2;
-                z = -depth / 2;
-                break;
-            case 'BackRightCorner':
-                x = +width / 2;
-                z = -depth / 2;
-                break;
-            case 'TopFrontCorner':
-                y = +height / 2;
-                z = +depth / 2;
-                break;
-            case 'TopBackCorner':
-                y = +height / 2;
-                z = -depth / 2;
-                break;
-            case 'BottomFrontCorner':
-                y = -height / 2;
-                z = +depth / 2;
-                break;
-            case 'BottomBackCorner':
-                y = -height / 2;
-                z = -depth / 2;
-                break;
-            case 'TopLeftCorner':
-                y = +height / 2;
-                x = -width / 2;
-                break;
-            case 'TopRightCorner':
-                y = +height / 2;
-                x = +width / 2;
-                break;
-            case 'BottomLeftCorner':
-                y = -height / 2;
-                x = -width / 2;
-                break;
-            case 'BottomRightCorner':
-                y = +height / 2;
-                x = + width / 2;
-                break;
-            case 'TopEdge': //line
-            case 'TopEdgeCenter': //poing
-                y = +height / 2;
-                x = 0;
-                z = 0;
-                break;
-            case 'BottomEdge':
-            case 'BottomEdgeCenter':
-                y = -height / 2;
-                x = 0;
-                z = 0;
-                break;
-            case 'LeftEdge':
-            case 'LeftEdgeCenter':
-                x = -width / 2;
-                y = 0;
-                z = 0;
-                break;
-            case 'RightEdge':
-            case 'RightEdgeCenter':
-                x = +width / 2;
-                y = 0;
-                z = 0;
-                break;
-            case 'FrontEdge':
-            case 'FrontEdgeCenter':
-                z = +depth / 2;
-                y = 0;
-                z = 0;
-                break;
-            case 'BackEdge':
-            case 'BackEdgeCenter':
-                z = -depth / 2;
-                y = 0;
-                x = 0;
-                break;
-            case 'TopEnd': y = +height / 2; x = 0; z = 0; break;
-            case 'BottomEnd': y = -height / 2; x = 0; z = 0; break;
-            case 'LeftEnd': x = -width / 2; y = 0; z = 0; break;
-            case 'RightEnd': x = +width / 2; y = 0; z = 0; break;
-            case 'FrontEnd': z = +depth / 2; y = 0; x = 0; break;
-            case 'BackEnd': z = -depth / 2; y = 0; x = 0; break;
-
-            case 'TopEndQuarter': y = +height / 2 - height * 0.25
-
-            // 可以继续扩展更多标签
-            default:
-                // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
-                // 先拆成 tokens
-                const parts = anchor.split('_')
-
-                const result = parts.map(part => {
-                    // 用正则分离以分数开头的部分，例如 1/4Height => ["1/4", "Height"]
-                    const match = part.match(/^(\d+\/\d+)([A-Za-z]+)$/);
-                    if (match) {
-                        return [match[1], match[2]];
-                    }
-                    return part; // 如果不是分数+文本，就原样返回
-                });
-
-                switch (result[0]) {
-                    case 'FrontFace': z = +depth / 2; break;
-                    case 'BackFace': z = -depth / 2; break;
-                    case 'LeftFace': x = -width / 2; break;
-                    case 'RightFace': x = +width / 2; break;
-                    case 'TopFace': y = +height / 2; break;
-                    case 'BottomFace': y = -height / 2; break;
-                    default: break;
-                }
-                for (let i = 1; i < result.length; i++) {
-                    const item = result[i]
-                    const fval = fractionToFloat(item[0]);
-                    switch (item[1]) {
-                        case 'Height': y = -height / 2 + fval * height; break;
-                        case 'Width': x = -width / 2 + fval * width; break;
-                        case 'Depth': z = -depth / 2 + fval * depth; break;
-                    }
-                }
-
-                break;
-        }
-    });
-
-    return new THREE.Vector3(x, y, z);
-}
-
 // 根据坐标得到Anchor名字
 function getAnchorDescription(mesh, localPos, contactFace = null) {
     const geom = mesh.geometry;
@@ -1520,10 +1326,10 @@ function applyConnections(connectionData) {
         firstObj.updateMatrixWorld(true);
         secondObj.updateMatrixWorld(true);
 
-        const firstLocalAnchor = calcLocalAnchorPosition(firstObj, firstConn.anchors);
+        const firstLocalAnchor = Utils.calcLocalAnchorPosition(firstObj, firstConn.anchors);
         const firstWorldAnchor = firstObj.localToWorld(firstLocalAnchor.clone());
 
-        const secondLocalAnchor = calcLocalAnchorPosition(secondObj, secondConn.anchors);
+        const secondLocalAnchor = Utils.calcLocalAnchorPosition(secondObj, secondConn.anchors);
         const secondWorldAnchor = secondObj.localToWorld(secondLocalAnchor.clone());
         // console.log("anchor:", firstConn.anchors, "local:", firstLocalAnchor)
         // 让 firstObj 的锚点贴到 secondObj 的锚点位置
@@ -3247,9 +3053,9 @@ function AnchorNameIsCorner(originalAnchor, mesh, contactPoint) {
     const { width, height, depth } = mesh.geometry.parameters;
     // 将世界坐标 contactPoint 转换为 mesh 的局部坐标
     const contactlocalPoint = mesh.worldToLocal(contactPoint.clone());
-    console.log("mesh", mesh);
-    console.log("orianchor:", originalAnchor);
-    console.log("lllllocalpoint", contactlocalPoint);
+    // console.log("mesh", mesh);
+    // console.log("orianchor:", originalAnchor);
+    // console.log("lllllocalpoint", contactlocalPoint);
 
     // 设置一个相对阈值因子，比如 0.2 表示 20%
     const factor = 0.2;
@@ -3316,7 +3122,7 @@ function AnchorNameIsCorner(originalAnchor, mesh, contactPoint) {
         // 其他情况不处理，直接返回原始 anchor
         return `<${originalAnchor}>`;
     }
-    console.log("lllllocalpoint222222", contactlocalPoint);
+    // console.log("lllllocalpoint222222", contactlocalPoint);
     // 采用相对阈值：如面最小尺寸的 factor 倍
     const threshold = factor * faceDimension;
     // console.log("orianchor, ", faceDimension, originalAnchor);
@@ -3371,7 +3177,7 @@ function refineAllConnections() {
 
         // =========== 1) 判断几何接触关系 ==============
         const contactRes = Utils.checkBoundingBoxContact(meshA, meshB, 2.0 /* eps */);
-        console.log("contactRes:", contactRes);
+        // console.log("contactRes:", contactRes);
         // Utils.checkBoundingBoxContact 只是判定是否接触 & contactAxis
         // 你可以把它改进成判断面-面 / 边-边 / 角-角 也行。
 
@@ -3395,7 +3201,7 @@ function refineAllConnections() {
             // let anchorA, anchorB
             const anchors = Utils.getAnchorNameFor(meshA, meshB, contactRes.contactAxis, contactRes.contactType, contactRes.contactPointA, contactRes.contactPointB, contactRes);
 
-            console.log("overall:", anchors);
+            // console.log("overall:", anchors);
 
             // 调用辅助函数，根据接触点进一步 refine anchor 名称
             const refinedAnchorA = AnchorNameIsCorner(anchors.anchorA, meshA, contactRes.contactPointA);
@@ -3410,8 +3216,8 @@ function refineAllConnections() {
             // 保留之前的 <ObjA><Board> 头部，只改后面的 [ <...> ]
             let newStrA;
             let newStrB;
-            if (anchors.anchorA != "UnknownFace") { newStrA = `<${cA.name}><${cA.type}>[<${cA.anchors}>${refinedAnchorA}]`; }
-            if (anchors.anchorB != "UnknownFace") { newStrB = `<${cB.name}><${cB.type}>[<${cB.anchors}>${refinedAnchorB}]`; }
+            if (anchors.anchorA != "UnknownFace") { newStrA = `<${cA.name}><${cA.type}>[<${cA.anchors}><${contactRes.contactFaceA}>${refinedAnchorA}]`; }
+            if (anchors.anchorB != "UnknownFace") { newStrB = `<${cB.name}><${cB.type}>[<${cB.anchors}><${contactRes.contactFaceB}>${refinedAnchorB}]`; }
 
             connItem[keyA] = newStrA;
             connItem[keyB] = newStrB;

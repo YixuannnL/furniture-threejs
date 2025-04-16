@@ -443,8 +443,8 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
             ];
         }
     }
-    console.log("meshA, meshB", meshA, meshB);
-    console.log("contactfaceCornerA, B", contactFaceCornersA, contactFaceCornersB);
+    // console.log("meshA, meshB", meshA, meshB);
+    // console.log("contactfaceCornerA, B", contactFaceCornersA, contactFaceCornersB);
 
     return {
         isTouching: true,
@@ -1210,4 +1210,221 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
     }
     console.log("refineName:", refinedName);
     return refinedName;
+}
+
+// --------------------------------------------------------------------------------------------
+//  根据 anchors 列表，计算该物体在局部坐标的“锚点位置” (x, y, z)
+// --------------------------------------------------------------------------------------------
+export function calcLocalAnchorPosition(object3D, anchors) {
+
+    const mesh = (object3D.isMesh) ? object3D : null;
+    if (!mesh || !mesh.geometry || !mesh.geometry.parameters) {
+        // 如果不是 Mesh 或不满足我们预期，就返回(0,0,0)或抛错
+        return new THREE.Vector3(0, 0, 0);
+    }
+
+    const { width, height, depth } = mesh.geometry.parameters;
+    let x = 0, y = 0, z = 0; //local坐标
+    let tags = [];
+
+    // 遍历 anchors
+    if (anchors.length > 1) { //length === 3
+        let parts = anchors[0].split(",")[0].split("_");
+        tags.push(parts[1].toLowerCase(), parts[2].toLowerCase(), anchors[1].toLowerCase(), anchors[2].toLowerCase());
+        processOneAnchor(anchors[0].split(",")[0]);
+    }
+    else {
+        anchors.forEach(anchor => {
+            processOneAnchor(anchor);
+        });
+    }
+
+    // 定义一个辅助函数，用于把字符串如 "1/3" => 0.3333
+    function fractionToFloat(fracStr) {
+        // fracStr 形如 "1/2"、"2/3"、"1/4"...
+        const parts = fracStr.split('/');
+        if (parts.length === 2) {
+            const numerator = parseFloat(parts[0]);
+            const denominator = parseFloat(parts[1]);
+            if (denominator !== 0) {
+                return numerator / denominator;
+            }
+        }
+        return 0; // 如果解析失败，返回0
+    }
+    /**
+ * 解析类似 "1/1Height" / "0/2Width" / "1/3Depth"
+ * 用 fraction 修正 x/y/z 中的某一个
+ */
+    function parseFractionTag(fractionTag) {
+        // 例如 "1/1Height" -> fraction=1, axis="Height"
+        // 例如 "0/1Width"  -> fraction=0, axis="Width"
+        // 例如 "1/2Depth"  -> fraction=0.5, axis="Depth"
+        // 也可能纯数字 "0.5Height" ...
+        // 正则:
+        //   1) 先检测有没有Height/Width/Depth
+        //   2) 前面那段当成 fraction
+        const pattern = /^([0-9./]+)(Height|Width|Depth)$/i;
+        const m = fractionTag.match(pattern);
+        if (!m) return; // 不匹配就跳过
+        const fractionStr = m[1]; // "1/1" or "0/1" or "0.25"
+        const axisKey = m[2].toLowerCase(); // height / width / depth
+
+        return [fractionStr, axisKey];
+    }
+
+    function processOneAnchor(anchor) {
+        switch (anchor) {
+            //Face
+            case 'BottomFace':
+                y = -height / 2;
+                break;
+            case 'TopFace':
+                y = +height / 2;
+                break;
+            case 'BackFace':
+                z = -depth / 2;
+                break;
+            case 'FrontFace':
+                z = +depth / 2;
+                break;
+            case 'LeftFace':
+                x = -width / 2;
+                break;
+            case 'RightFace':
+                x = +width / 2;
+                break;
+            //Corner
+            case 'FrontLeftCorner':
+                x = -width / 2;
+                z = +depth / 2;
+                break;
+            case 'FrontRightCorner':
+                x = +width / 2;
+                z = +depth / 2;
+                break;
+            case 'BackLeftCorner':
+                x = -width / 2;
+                z = -depth / 2;
+                break;
+            case 'BackRightCorner':
+                x = +width / 2;
+                z = -depth / 2;
+                break;
+            case 'TopFrontCorner':
+                y = +height / 2;
+                z = +depth / 2;
+                break;
+            case 'TopBackCorner':
+                y = +height / 2;
+                z = -depth / 2;
+                break;
+            case 'BottomFrontCorner':
+                y = -height / 2;
+                z = +depth / 2;
+                break;
+            case 'BottomBackCorner':
+                y = -height / 2;
+                z = -depth / 2;
+                break;
+            case 'TopLeftCorner':
+                y = +height / 2;
+                x = -width / 2;
+                break;
+            case 'TopRightCorner':
+                y = +height / 2;
+                x = +width / 2;
+                break;
+            case 'BottomLeftCorner':
+                y = -height / 2;
+                x = -width / 2;
+                break;
+            case 'BottomRightCorner':
+                y = +height / 2;
+                x = + width / 2;
+                break;
+            //Edge 【不是和Face等价的那个Edge 而是一个面的靠近边缘的部分】
+            case 'TopEdge': //line
+                y = +height / 2;
+                x = 0;
+                z = 0;
+                break;
+            case 'BottomEdge':
+                y = -height / 2;
+                x = 0;
+                z = 0;
+                break;
+            case 'LeftEdge':
+                x = -width / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'RightEdge':
+                x = +width / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'FrontEdge':
+                z = +depth / 2;
+                y = 0;
+                z = 0;
+                break;
+            case 'BackEdge':
+                z = -depth / 2;
+                y = 0;
+                x = 0;
+                break;
+            case 'TopEnd': y = +height / 2; x = 0; z = 0; break;
+            case 'BottomEnd': y = -height / 2; x = 0; z = 0; break;
+            case 'LeftEnd': x = -width / 2; y = 0; z = 0; break;
+            case 'RightEnd': x = +width / 2; y = 0; z = 0; break;
+            case 'FrontEnd': z = +depth / 2; y = 0; x = 0; break;
+            case 'BackEnd': z = -depth / 2; y = 0; x = 0; break;
+
+            case 'TopEndQuarter': y = +height / 2 - height * 0.25
+
+            // 可以继续扩展更多标签
+            default:
+                // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
+                // 先拆成 tokens
+                console.log("HEREEEE:", mesh.name);
+                const parts = anchor.split('_')
+                const result = [parseFractionTag(parts[1]), parseFractionTag(parts[2])];
+                // const result = parts.map(part => {
+                //     // 用正则分离以分数开头的部分，例如 1/4Height => ["1/4", "Height"]
+                //     const match = part.match(/^(\d+\/\d+)([A-Za-z]+)$/);
+                //     if (match) {
+                //         return [match[1], match[2]];
+                //     }
+                //     return part; // 如果不是分数+文本，就原样返回
+                // });
+
+                switch (parts[0].toLowerCase()) {
+                    case 'frontface': z = +depth / 2; break;
+                    case 'backface': z = -depth / 2; break;
+                    case 'leftface': x = -width / 2; break;
+                    case 'rightface': x = +width / 2; break;
+                    case 'topface': y = +height / 2; break;
+                    case 'bottomface': y = -height / 2; break;
+                    default: break;
+                }
+                console.log("result", result, parts[1], parts[2]);
+                for (let i = 0; i < result.length; i++) {
+                    const item = result[i]
+                    console.log("item", item);
+                    // debugger
+                    const fval = fractionToFloat(item[0]);
+                    switch (item[1]) {
+                        case 'height': y = -height / 2 + fval * height; break;
+                        case 'width': x = -width / 2 + fval * width; break;
+                        case 'depth': z = -depth / 2 + fval * depth; break;
+                    }
+                }
+                console.log("HEREEEE: result", mesh.name, x, y, z, result[0], result[1], result[2]);
+                break;
+        }
+    }
+
+    console.log("NOWPOS:", mesh.name, new THREE.Vector3(x, y, z));
+    return new THREE.Vector3(x, y, z);
 }
