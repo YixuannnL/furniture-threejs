@@ -1231,7 +1231,7 @@ export function calcLocalAnchorPosition(object3D, anchors) {
     if (anchors.length > 1 && anchors[0].includes("_")) { //length === 3
         let parts = anchors[0].split(",")[0].split("_");
         console.log("parts, anchors", parts, anchors);
-        tags.push(parts[1].toLowerCase(), parts[2].toLowerCase(), anchors[1].toLowerCase(), anchors[2].toLowerCase());
+        // tags.push(parts[1].toLowerCase(), parts[2].toLowerCase(), anchors[1].toLowerCase(), anchors[2].toLowerCase());
         processOneAnchor(anchors[0].split(",")[0]);
     }
     else {
