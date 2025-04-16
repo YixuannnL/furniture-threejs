@@ -2370,10 +2370,119 @@ function onPointerMove(event) {
 }
 
 /**
+ * 检查某个本地坐标 localPos 是否落在 faceIndex 对应的那张面上（±width/2、±height/2、±depth/2）
+ *
+ * @param {THREE.Mesh} mesh - 用于获取 geometry.parameters
+ * @param {THREE.Vector3} localPos - 该锚点在 mesh 本地坐标系中的坐标
+ * @param {number} faceIndex
+ * @param {number} epsilon
+ * @returns {boolean} true=在这张面上
+ */
+function isAnchorOnFace(mesh, localPos, faceIndex, epsilon) {
+    const { width, height, depth } = mesh.geometry.parameters;
+    const halfW = width / 2, halfH = height / 2, halfD = depth / 2;
+
+    // faceIndex-> 6大面; 其中每个面用2个索引
+    switch (faceIndex) {
+        case 0: // RightFace
+        case 1: // RightFace
+            // 检查 x ~ +halfW
+            return Math.abs(localPos.x - halfW) < epsilon;
+        case 2: // LeftFace
+        case 3:
+            return Math.abs(localPos.x + halfW) < epsilon;
+        case 4: // TopFace
+        case 5:
+            return Math.abs(localPos.y - halfH) < epsilon;
+        case 6: // BottomFace
+        case 7:
+            return Math.abs(localPos.y + halfH) < epsilon;
+        case 8: // FrontFace
+        case 9:
+            return Math.abs(localPos.z - halfD) < epsilon;
+        case 10:// BackFace
+        case 11:
+            return Math.abs(localPos.z + halfD) < epsilon;
+        default:
+            // faceIndex 超出范围
+            return false;
+    }
+}
+
+/**
+ * 检查某个 mesh 的指定面（faceIndex）是否在 connectionData 中存在连接
+ * @param {string} meshName 
+ * @param {number} faceIndex 
+ * @returns {boolean} true=该面已被连接占用，false=未连接
+ */
+function isFaceConnected(meshName, faceIndex, epsilon = 1.0) {
+
+    const mesh = objectsByName[meshName];
+    if (!mesh || !mesh.geometry || !mesh.geometry.parameters) {
+        console.warn("No mesh or invalid geometry for:", meshName);
+        return false;
+    }
+
+    // 遍历连接数据
+    for (let i = 0; i < connectionData.data.length; i++) {
+        const connItem = connectionData.data[i];
+        const keys = Object.keys(connItem);
+        if (keys.length < 2) continue;
+
+        const strA = connItem[keys[0]];
+        const strB = connItem[keys[1]];
+        const cA = Utils.parseConnectionString(strA);
+        const cB = Utils.parseConnectionString(strB);
+
+        // 检查 cA / cB 中哪个是 meshName
+        if (cA.name === meshName) {
+            // 计算 anchor 在本地坐标
+            const localAnchorA = Utils.calcLocalAnchorPosition(mesh, cA.anchors);
+            // 如果在 faceIndex 对应的那一面 => 返回 true
+            if (isAnchorOnFace(mesh, localAnchorA, faceIndex, epsilon)) {
+                return true;
+            }
+        }
+        if (cB.name === meshName) {
+            const localAnchorB = Utils.calcLocalAnchorPosition(mesh, cB.anchors);
+            if (isAnchorOnFace(mesh, localAnchorB, faceIndex, epsilon)) {
+                return true;
+            }
+        }
+    }
+
+    // 若都没找到 => false
+    return false;
+}
+
+/**
+ * 将 faceIndex 转成字符串 "<RightFace>" / "<LeftFace>" / ...，
+ * 与已有连接字符串里的面描述对应。
+ */
+function convertFaceIndexToTag(faceIndex) {
+    const faceMap = {
+        0: 'RightFace', 1: 'RightFace',
+        2: 'LeftFace', 3: 'LeftFace',
+        4: 'TopFace', 5: 'TopFace',
+        6: 'BottomFace', 7: 'BottomFace',
+        8: 'FrontFace', 9: 'FrontFace',
+        10: 'BackFace', 11: 'BackFace'
+    };
+    return faceMap[faceIndex] || null;
+}
+
+
+/**
  * 让 meshA 的 faceIndexA 这面，移动过去对齐 meshB 的 faceIndexB；
  * 效果：meshA 只在那一面进行伸缩，A的对侧面保持在原世界坐标不动。
  */
 function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
+    if (isFaceConnected(meshA.name, faceIndexA)) {
+        // 发现该面已连接 =>     
+        // 提示用户 “请先移除连接，再来拉伸”
+        alert(`该mesh的${convertFaceIndexToTag(faceIndexA)} 已与其他部件连接，无法直接拉伸！\n请先删除该连接或更换其他面。`);
+        return;
+    }
     // console.log("test:", faceIndexA, faceIndexB);
     function getFaceCenterWorld(mesh, rawFaceIndex, eor = false) {
         const { axis, sign } = Utils.getFaceAxisAndSign(mesh, rawFaceIndex, eor);
@@ -2386,7 +2495,7 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
     }
 
     // 1) 识别 A 的面对应的轴 + 正负号
-    //    注意你已有的 getFaceAxisAndSign(mesh, faceIndex) 函数
+    //    注意已有的 getFaceAxisAndSign(mesh, faceIndex) 函数
     const { axis: axisA, sign: signA } = Utils.getFaceAxisAndSign(meshA, faceIndexA);
 
     // 如果取不到 axis，说明 faceIndex 有误
@@ -2416,10 +2525,11 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
     // 这里假设场景没旋转或都对齐，仅需看 x/y/z 分量
     // 如果有任意旋转，需要更复杂的 localAxis 变换，这里先简化处理
     let deltaVec = new THREE.Vector3().subVectors(targetFaceCenter, chosenFaceCenter_before);
-    let axisDir = new THREE.Vector3(0, 0, 0);
-    if (axisA === 'width') axisDir.set(1, 0, 0);   // x
-    if (axisA === 'height') axisDir.set(0, 1, 0);   // y
-    if (axisA === 'depth') axisDir.set(0, 0, 1);   // z
+    const axisDir = new THREE.Vector3(
+        axisA === 'width' ? 1 : 0,
+        axisA === 'height' ? 1 : 0,
+        axisA === 'depth' ? 1 : 0
+    );
 
     // dot 可以得出在 axisDir 上的投影长度
     let delta = deltaVec.dot(axisDir);
@@ -2443,55 +2553,29 @@ function doStretchAlignFaceAtoFaceB(meshA, faceIndexA, meshB, faceIndexB) {
 
     // 现在，从 objectsByName 里重新获取新的 meshA
     const newMeshA = objectsByName[meshA.name];
-
     // console.log("after:", objectsByName[meshA.name]);
     if (!newMeshA) return;
-
     newMeshA.updateMatrixWorld(true);
 
     // 8) 现在 newMeshA 具有新的尺寸，但它的 center 依然在(0,0,0)；chosen/anchor 都会一起移动
     //    => 我们要把 anchor 面移回原先 anchorFaceCenter_before
     //    => 先计算 anchor 面 (faceIndexA ^ 1) 在此刻新的世界坐标 anchorFaceCenter_after
     const anchorFaceCenter_after = getFaceCenterWorld(newMeshA, faceIndexA, true);
-    // console.log("index:", faceIndexA, faceIndexA ^ 1);
-    // console.log("newmeshA:", newMeshA);
-    // console.log("before:", anchorFaceCenter_before);
-    // console.log("after:", anchorFaceCenter_after);
+    // 计算“让锚点面回到原位置”所需的偏移 =  原位置 - 新位置
+    const offsetVec = new THREE.Vector3().subVectors(anchorFaceCenter_before, anchorFaceCenter_after);
+    console.log("offsetvec", offsetVec);
 
-    // let offset = axisDir.clone().multiplyScalar(delta);
-    // offset.divideScalar(2);
 
-    let offsetVec = new THREE.Vector3().subVectors(anchorFaceCenter_before, anchorFaceCenter_after);
+    // 9) 把这个 offset 写回 meta.offset
+    const metaA = Utils.findMetaByName(furnitureData.meta, meshA.name);
+    const oldOffset = (metaA && metaA.offset) ? { ...metaA.offset } : { x: 0, y: 0, z: 0 };
 
-    // 让 newMeshA 整体平移
-    newMeshA.position.add(offsetVec);
-
-    // -- 但此时只是在场景的那只mesh上改了 position，并没写回 meta.offset --
-    // 所以下次 render_furniture 就会恢复 (0,0,0)...
-
-    // ★ 在这里把 offsetVec 存到 meta.offset 中 ★
-    //    1) 先取出 old offset (若无则 0,0,0)
-    //    2) newOffset = oldOffset + offsetVec
-    //    3) 写回
-
-    // 先记下旧 offset
-    const oldOffset = (function () {
-        // 在 furnitureData.meta 里找 meshA 的 offset
-        const metaA = Utils.findMetaByName(furnitureData.meta, meshA.name);
-        return metaA && metaA.offset ? { ...metaA.offset } : { x: 0, y: 0, z: 0 };
-    })();
-
-    // 计算新 offset
     const newOffset = {
         x: oldOffset.x + offsetVec.x,
         y: oldOffset.y + offsetVec.y,
         z: oldOffset.z + offsetVec.z
     };
-
-    // 写回 meta
     updateDimensionAndOffsetInMeta(furnitureData.meta, meshA.name, "offset", newOffset);
-
-
     // 记录到 dimensionChangeLog
     dimensionChangeLog.push({
         meshName: newMeshA.name,
