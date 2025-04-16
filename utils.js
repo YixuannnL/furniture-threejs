@@ -1065,12 +1065,13 @@ export function getAnchorNameFor(meshA, meshB, contactAxis, contactType, contact
 
 // --- 新增辅助函数，用于根据接触点在局部坐标中的位置细化命名 ---
 export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldContactPoint, contactType, contactFaceCorners, contactFace) {
-    // 更新矩阵，并将接触点转换到 mesh 的局部坐标
-    mesh.updateMatrixWorld(true);
+
     // 如果没有 geometry.parameters 就直接返回原名称
     if (!mesh.geometry || !mesh.geometry.parameters) {
         return initialAnchorName;
     }
+    // 更新矩阵，并将接触点转换到 mesh 的局部坐标
+    mesh.updateMatrixWorld(true);
 
     const dims = mesh.geometry.parameters;
 
@@ -1082,7 +1083,7 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
     if (initialAnchorName.indexOf("Face") !== -1 && contactFaceCorners && Array.isArray(contactFaceCorners) && contactFaceCorners.length > 0) {
         // 根据不同的面，确定其面内两个坐标及对应的尺寸
         refinedName = contactFace;
-        let axis1 = null, axis2 = null; // 在局部坐标下的两个方向，例如 'x','y'
+        let axis1 = null, axis2 = null; // 面内的两个坐标轴
         let size1 = null, size2 = null; // 对应的面尺寸
         // console.log("HEREEEEE1")
         // 针对 FrontFace / BackFace：面在 z 方向固定，面内轴为 x 和 y
@@ -1106,7 +1107,6 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             // 对于面内四个角点，转换为局部坐标，分别取出在 axis1 与 axis2 上的值
             const projections1 = contactFaceCorners.map(pt => {
                 const localCorner = mesh.worldToLocal(pt.clone());
-                // console.log("localcorner:", localCorner);
                 return localCorner[axis1];
             });
             // console.log("projections1:", projections1); // [-400, -400, -375, -375]
@@ -1137,18 +1137,14 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
             }
             // 若两个方向都满足覆盖率，优先采用覆盖率高的方向
             else if (coverRatio1 >= threshold || coverRatio2 >= threshold) {
+                // 判断哪个方向覆盖更大
                 if (coverRatio1 >= coverRatio2 && coverRatio1 >= threshold) {
-                    // 根据 axis1 判断具体边名称
-                    // 对于 FrontFace/BackFace：axis1 = x；小于 0 属于 LeftEdge，大于 0 属于 RightEdge
-                    // 对于 TopFace/BottomFace：axis1 = x；同上
-                    // 对于 LeftFace/RightFace：axis1 = z；小于 0 属于 BackEdge，大于 0 属于 FrontEdge
-                    // const avg1 = projections1.reduce((sum, v) => sum + v, 0) / projections1.length;
-
+                    // 这里是处理 axis1
                     let distToMinSide = Math.abs(minProj2 - (-size2 / 2));
                     let distToMaxSide = Math.abs(maxProj2 - (+size2 / 2));
                     let tmpdist = Math.min(distToMinSide, distToMaxSide);
-                    // console.log("meshmesh:", mesh);
-                    // console.log("distmin, distmax", distToMinSide, distToMaxSide);
+
+                    // 根据面名 + 哪条边 => 生成 "TopEdge" / "BottomEdge" / ...
                     if (contactFace == "FrontFace" || contactFace == "BackFace") {
                         if ((axis1 === 'x')) {
                             if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BottomEdge" : "TopEdge";
@@ -1168,7 +1164,8 @@ export function refineAnchorNameByContactPoint(mesh, initialAnchorName, worldCon
                             if (tmpdist / size2 < closeEdgeThreshold) refinedName = distToMinSide < distToMaxSide ? "BackEdge" : "FrontEdge";
                         }
                     }
-                } else if (coverRatio2 >= threshold) {
+                }
+                else if (coverRatio2 >= threshold) {
                     // 根据 axis2 判断具体边名称
                     // console.log("HERE33333")
                     // console.log("contactFace", contactFace);
@@ -1266,7 +1263,9 @@ export function calcLocalAnchorPosition(object3D, anchors) {
         //   1) 先检测有没有Height/Width/Depth
         //   2) 前面那段当成 fraction
         const pattern = /^([0-9./]+)(Height|Width|Depth)$/i;
+        console.log("Pat:", fractionTag);
         const m = fractionTag.match(pattern);
+        console.log("mmmmm", m);
         if (!m) return; // 不匹配就跳过
         const fractionStr = m[1]; // "1/1" or "0/1" or "0.25"
         const axisKey = m[2].toLowerCase(); // height / width / depth
@@ -1382,45 +1381,56 @@ export function calcLocalAnchorPosition(object3D, anchors) {
             case 'FrontEnd': z = +depth / 2; y = 0; x = 0; break;
             case 'BackEnd': z = -depth / 2; y = 0; x = 0; break;
 
-            case 'TopEndQuarter': y = +height / 2 - height * 0.25
+            case 'TopEndQuarter': y = +height / 2 - height * 0.25; break;
+
+            case 'TopEdgeRightHalf': y = +height / 2; x = +width / 4; break;
+            case 'TopEdgeLeftHalf': y = +height / 2; x = -width / 4; break;
+            case 'BottomEdgeRightHalf': y = -height / 2; x = +width / 4; break;
+            case 'BottomEdgeLeftHalf': y = -height / 2; x = -width / 4; break;
+            case 'LeftEdgeTopHalf': x = -width / 2; y = +height / 4; break;
+            case 'LeftEdgeBottomHalf': x = -width / 2; y = -height / 4; break;
+            case 'RightEdgeTopHalf': x = +width / 2; y = +height / 4; break;
+            case 'RightEdgeBottomHalf': x = +width / 2; y = -height / 4; break;
+            case 'FrontEdgeLeftHalf': z = +depth / 2; x = -width / 4; break;
+            case 'FrontEdgeRightHalf': z = +depth / 2; x = +width / 4; break;
+            case 'BackEdgeLeftHalf': z = -depth / 2; x = -width / 4; break;
+            case 'BackEdgeRightHalf': z = -depth / 2; x = +width / 4; break;
 
             // 可以继续扩展更多标签
             default:
                 // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
                 // 先拆成 tokens
                 // console.log("HEREEEE:", mesh.name);
+                console.log("an:", [anchor]);
                 const parts = anchor.split('_')
-                const result = [parseFractionTag(parts[1]), parseFractionTag(parts[2])];
-                // const result = parts.map(part => {
-                //     // 用正则分离以分数开头的部分，例如 1/4Height => ["1/4", "Height"]
-                //     const match = part.match(/^(\d+\/\d+)([A-Za-z]+)$/);
-                //     if (match) {
-                //         return [match[1], match[2]];
-                //     }
-                //     return part; // 如果不是分数+文本，就原样返回
-                // });
+                console.log("here:", parts);
+                const fracTag1 = parseFractionTag(parts[1]), fracTag2 = parseFractionTag(parts[2]);
+                if (fracTag1 && fracTag2) { //in case 出现莫名其妙的tag比如'FrontFace_Height_BottomMost'
+                    const result = [parseFractionTag(parts[1]), parseFractionTag(parts[2])];
 
-                switch (parts[0].toLowerCase()) {
-                    case 'frontface': z = +depth / 2; break;
-                    case 'backface': z = -depth / 2; break;
-                    case 'leftface': x = -width / 2; break;
-                    case 'rightface': x = +width / 2; break;
-                    case 'topface': y = +height / 2; break;
-                    case 'bottomface': y = -height / 2; break;
-                    default: break;
-                }
-                // console.log("result", result, parts[1], parts[2]);
-                for (let i = 0; i < result.length; i++) {
-                    const item = result[i]
-                    // console.log("item", item);
-                    // debugger
-                    const fval = fractionToFloat(item[0]);
-                    switch (item[1]) {
-                        case 'height': y = -height / 2 + fval * height; break;
-                        case 'width': x = -width / 2 + fval * width; break;
-                        case 'depth': z = -depth / 2 + fval * depth; break;
+                    switch (parts[0].toLowerCase()) {
+                        case 'frontface': z = +depth / 2; break;
+                        case 'backface': z = -depth / 2; break;
+                        case 'leftface': x = -width / 2; break;
+                        case 'rightface': x = +width / 2; break;
+                        case 'topface': y = +height / 2; break;
+                        case 'bottomface': y = -height / 2; break;
+                        default: break;
+                    }
+                    console.log("result, parts", result, parts);
+                    for (let i = 0; i < result.length; i++) {
+                        const item = result[i]
+                        console.log("item", item);
+                        // debugger
+                        const fval = fractionToFloat(item[0]);
+                        switch (item[1]) {
+                            case 'height': y = -height / 2 + fval * height; break;
+                            case 'width': x = -width / 2 + fval * width; break;
+                            case 'depth': z = -depth / 2 + fval * depth; break;
+                        }
                     }
                 }
+
                 // console.log("HEREEEE: result", mesh.name, x, y, z, result[0], result[1], result[2]);
                 break;
         }
