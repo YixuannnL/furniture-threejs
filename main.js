@@ -50,7 +50,7 @@ let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean
  * @param {Object} metaNode - 当前 meta 节点
  * @param {number} ratio - 最小维度与最大尺寸的比例 (比如 0.01 => 1%)
  */
-function normalizeBoardThickness(metaNode, ratio = 0.01) {
+function normalizeBoardThickness(metaNode, ratio = 0.03) {
     if (metaNode.object_type === 'board' && metaNode.dimensions) {
         const dims = metaNode.dimensions;
         const entries = [
@@ -1475,7 +1475,7 @@ let initialFurnitureData;
 
 function handle_two_data() {
     connectionData = Utils.filterConnData(connectionData);
-    normalizeBoardThickness(furnitureData.meta, 0.01);
+    normalizeBoardThickness(furnitureData.meta);
     // 引入 / 定义 furnitureData, connectionData 后，先进行尺寸放大
     scaleFurnitureIfTooSmall(furnitureData);
     // 拷贝一份初始状态
