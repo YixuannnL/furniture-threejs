@@ -257,6 +257,7 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     const overlapX = Math.min(boxA.max.x, boxB.max.x) - Math.max(boxA.min.x, boxB.min.x);
     const overlapY = Math.min(boxA.max.y, boxB.max.y) - Math.max(boxA.min.y, boxB.min.y);
     const overlapZ = Math.min(boxA.max.z, boxB.max.z) - Math.max(boxA.min.z, boxB.min.z);
+    console.log("overlap:", meshA.name, meshB.name, overlapX, overlapY, overlapZ);
 
     // 如果有任一轴重叠为负，则说明盒子之间存在间隙，返回不接触
     if (overlapX < 0 || overlapY < 0 || overlapZ < 0) {
