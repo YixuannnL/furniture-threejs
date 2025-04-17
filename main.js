@@ -46,22 +46,37 @@ let currentConnectionHighlight = null;
 let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean, isHighlighted:boolean }
 
 /**
- * 对所有 board 类型的节点，确保其厚度(depth)不小于宽/高中最大值*ratio
+ * 对所有 board 类型的节点，确保其最小维度（厚度）不小于最大维度 * ratio
  * @param {Object} metaNode - 当前 meta 节点
- * @param {number} ratio - 最小厚度与宽/高最大值的比例 (比如 0.01 => 1%)
+ * @param {number} ratio - 最小维度与最大尺寸的比例 (比如 0.01 => 1%)
  */
 function normalizeBoardThickness(metaNode, ratio = 0.01) {
     if (metaNode.object_type === 'board' && metaNode.dimensions) {
-        const { width = 0, height = 0, depth = 0 } = metaNode.dimensions;
-        const maxDim = Math.max(width, height);
-        const minDepth = maxDim * ratio;
-        if (depth < minDepth) {
+        const dims = metaNode.dimensions;
+        const entries = [
+            ['width', dims.width || 0],
+            ['height', dims.height || 0],
+            ['depth', dims.depth || 0]
+        ];
+        // 找出最大维度和最小维度的 key & 值
+        const maxEntry = entries.reduce((a, b) => a[1] > b[1] ? a : b);
+        const minEntry = entries.reduce((a, b) => a[1] < b[1] ? a : b);
+        const maxVal = maxEntry[1];
+        const minKey = minEntry[0];
+        const minVal = minEntry[1];
+
+        // 计算允许的最小厚度
+        const minAllowed = maxVal * ratio;
+        if (minVal < minAllowed) {
             console.warn(
-                `板件 "${metaNode.object}" 太薄 (depth=${depth.toFixed(2)}), 提升到 ${minDepth.toFixed(2)}`
+                `板件 "${metaNode.object}" 的最小维度 "${minKey}" (${minVal.toFixed(2)}) ` +
+                `低于 ${(ratio * 100).toFixed(1)}% 最大维度 (${maxVal.toFixed(2)})，` +
+                `提升到 ${minAllowed.toFixed(2)}`
             );
-            metaNode.dimensions.depth = minDepth;
+            metaNode.dimensions[minKey] = minAllowed;
         }
     }
+    // 递归处理子节点
     if (Array.isArray(metaNode.children)) {
         metaNode.children.forEach(child => {
             if (child && child.meta) {
@@ -70,6 +85,7 @@ function normalizeBoardThickness(metaNode, ratio = 0.01) {
         });
     }
 }
+
 
 // ------------------- 新增：在此处对 furnitureData 做尺寸放大处理 ------------------- //
 function scaleFurnitureIfTooSmall(furnitureData) {
