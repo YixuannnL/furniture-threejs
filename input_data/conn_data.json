@@ -1,130 +1,125 @@
 {
     "data": [
         {
-            "liftup_top": "<Lift-Up Top><Board>[<TopEdge>]",
-            "bench_frame": "<Right Side Panel><Board>[<TopEdge>]"
+            "back_panel": "<Back_Panel><Board>[<FrontFace><LeftEdge>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BackEdge>]"
         },
         {
-            "hinges": "<Back Panel><Board>[<BackFace>]",
-            "bench_frame": "<Back Panel><Board>[<TopEdge>]"
+            "bottom_panel": "<Bottom_Panel><Board>[<LeftEdge>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
         },
         {
-            "hinges": "<Lift-Up Top><Board>[<BackEdge>]",
-            "liftup_top": "<Lift-Up Top><Board>[<BackEdge>]"
+            "changing_surface_panel": "<Changing_Surface_Panel><Board>[<LeftEdge>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
         },
         {
-            "bottom_panel": "<Bottom Panel><Board>[<TopEdge>]",
-            "left_side_panel": "<Left Side Panel><Board>[<BottomEdge>]"
+            "fixed_shelf": "<Fixed_Shelf><Board>[<LeftEdge>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
         },
         {
-            "bottom_panel": "<Bottom Panel><Board>[<TopEdge>]",
-            "right_side_panel": "<Right Side Panel><Board>[<BottomEdge>]"
+            "back_panel": "<Back_Panel><Board>[<FrontFace><RightEdge>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BackEdge>]"
         },
         {
-            "left_side_panel": "<Left Side Panel><Board>[<RightFace>]",
-            "front_panel": ""
+            "bottom_panel": "<Bottom_Panel><Board>[<RightEdge>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
         },
         {
-            "right_side_panel": "<Right Side Panel><Board>[<LeftFace>]",
-            "front_panel": ""
+            "changing_surface_panel": "<Changing_Surface_Panel><Board>[<RightEdge>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
         },
         {
-            "bottom_panel": "<Bottom Panel><Board>[<FrontEdge>]",
-            "front_panel": "<Front Panel><Board>[<BottomEdge>]"
+            "fixed_shelf": "<Fixed_Shelf><Board>[<RightEdge>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
         },
         {
-            "left_side_panel": "<Left Side Panel><Board>[<RightFace>]",
-            "back_panel": ""
+            "bottom_panel": "<Bottom_Panel><Board>[<BackEdge>]",
+            "back_panel": "<Back_Panel><Board>[<FrontFace><BottomAlign>]"
         },
         {
-            "right_side_panel": "<Right Side Panel><Board>[<LeftFace>]",
-            "back_panel": ""
+            "changing_surface_panel": "<Changing_Surface_Panel><Board>[<BackEdge>]",
+            "back_panel": "<Back_Panel><Board>[<FrontFace>]"
         },
         {
-            "bottom_panel": "<Bottom Panel><Board>[<BackEdge>]",
-            "back_panel": "<Back Panel><Board>[<BottomEdge>]"
+            "fixed_shelf": "<Fixed_Shelf><Board>[<BackEdge>]",
+            "back_panel": "<Back_Panel><Board>[<FrontFace>]"
         }
     ],
     "meta_data": [
         {
             "row_headers": [
                 "",
-                "Bench Frame",
-                "Lift-Up Top",
-                "Hinges"
+                "Changing_Table_Frame"
             ],
             "column_header": [
-                "Bench Frame",
-                "Lift-Up Top",
-                "Lift-Up Top",
-                "Hinges",
-                "Hinges"
+                "Changing_Table_Frame"
             ],
             "title": "table_1",
-            "data": [
-                {
-                    "liftup_top": "<Lift-Up Top><Board>[<TopEdge>]",
-                    "bench_frame": "<Right Side Panel><Board>[<TopEdge>]"
-                },
-                {
-                    "hinges": "<Back Panel><Board>[<BackFace>]",
-                    "bench_frame": "<Back Panel><Board>[<TopEdge>]"
-                },
-                {
-                    "hinges": "<Lift-Up Top><Board>[<BackEdge>]",
-                    "liftup_top": "<Lift-Up Top><Board>[<BackEdge>]"
-                }
-            ]
+            "data": []
         },
         {
             "row_headers": [
                 "",
-                "Left Side Panel",
-                "Right Side Panel",
-                "Front Panel",
-                "Back Panel",
-                "Bottom Panel"
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Back_Panel",
+                "Bottom_Panel",
+                "Changing_Surface_Panel",
+                "Fixed_Shelf"
             ],
             "column_header": [
-                "Left Side Panel",
-                "Right Side Panel",
-                "Front Panel",
-                "Back Panel",
-                "Bottom Panel"
+                "Left_Side_Panel",
+                "Right_Side_Panel",
+                "Back_Panel",
+                "Bottom_Panel",
+                "Changing_Surface_Panel",
+                "Fixed_Shelf"
             ],
             "title": "table_2",
             "data": [
                 {
-                    "bottom_panel": "<Bottom Panel><Board>[<TopEdge>]",
-                    "left_side_panel": "<Left Side Panel><Board>[<BottomEdge>]"
+                    "back_panel": "<Back_Panel><Board>[<FrontFace><LeftEdge>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BackEdge>]"
                 },
                 {
-                    "bottom_panel": "<Bottom Panel><Board>[<TopEdge>]",
-                    "right_side_panel": "<Right Side Panel><Board>[<BottomEdge>]"
+                    "bottom_panel": "<Bottom_Panel><Board>[<LeftEdge>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
                 },
                 {
-                    "left_side_panel": "<Left Side Panel><Board>[<RightFace>]",
-                    "front_panel": ""
+                    "changing_surface_panel": "<Changing_Surface_Panel><Board>[<LeftEdge>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
                 },
                 {
-                    "right_side_panel": "<Right Side Panel><Board>[<LeftFace>]",
-                    "front_panel": ""
+                    "fixed_shelf": "<Fixed_Shelf><Board>[<LeftEdge>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace>]"
                 },
                 {
-                    "bottom_panel": "<Bottom Panel><Board>[<FrontEdge>]",
-                    "front_panel": "<Front Panel><Board>[<BottomEdge>]"
+                    "back_panel": "<Back_Panel><Board>[<FrontFace><RightEdge>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BackEdge>]"
                 },
                 {
-                    "left_side_panel": "<Left Side Panel><Board>[<RightFace>]",
-                    "back_panel": ""
+                    "bottom_panel": "<Bottom_Panel><Board>[<RightEdge>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
                 },
                 {
-                    "right_side_panel": "<Right Side Panel><Board>[<LeftFace>]",
-                    "back_panel": ""
+                    "changing_surface_panel": "<Changing_Surface_Panel><Board>[<RightEdge>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
                 },
                 {
-                    "bottom_panel": "<Bottom Panel><Board>[<BackEdge>]",
-                    "back_panel": "<Back Panel><Board>[<BottomEdge>]"
+                    "fixed_shelf": "<Fixed_Shelf><Board>[<RightEdge>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace>]"
+                },
+                {
+                    "bottom_panel": "<Bottom_Panel><Board>[<BackEdge>]",
+                    "back_panel": "<Back_Panel><Board>[<FrontFace><BottomAlign>]"
+                },
+                {
+                    "changing_surface_panel": "<Changing_Surface_Panel><Board>[<BackEdge>]",
+                    "back_panel": "<Back_Panel><Board>[<FrontFace>]"
+                },
+                {
+                    "fixed_shelf": "<Fixed_Shelf><Board>[<BackEdge>]",
+                    "back_panel": "<Back_Panel><Board>[<FrontFace>]"
                 }
             ]
         }

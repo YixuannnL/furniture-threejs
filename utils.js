@@ -1401,6 +1401,13 @@ export function calcLocalAnchorPosition(object3D, anchors) {
             case 'BackEdgeRightHalf': z = -depth / 2; x = +width / 4; break;
 
             case 'Center': x = 0; y = 0; z = 0; break;
+            // @TODO
+            case 'BottomAlign': break;
+            case 'TopAlign': break;
+            case 'LeftAlign': break;
+            case 'RightAlign': break;
+            case 'FrontAlign': break;
+            case 'BackAlign': break;
 
             // 可以继续扩展更多标签
             default:

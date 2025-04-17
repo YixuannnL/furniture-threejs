@@ -1,21 +1,21 @@
 {
     "meta": {
-        "object": "storage_bench",
+        "object": "changing_table",
         "object_type": "group",
         "dimensions": {
-            "width": 1200,
-            "height": 400,
-            "depth": 400
+            "width": 800,
+            "height": 900,
+            "depth": 500
         },
         "children": [
             {
                 "meta": {
-                    "object": "bench_frame",
+                    "object": "changing_table_frame",
                     "object_type": "group",
                     "dimensions": {
-                        "width": 1200,
-                        "height": 400,
-                        "depth": 400
+                        "width": 800,
+                        "height": 900,
+                        "depth": 500
                     },
                     "children": [
                         {
@@ -23,9 +23,9 @@
                                 "object": "left_side_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 20,
-                                    "height": 350,
-                                    "depth": 400
+                                    "width": 18,
+                                    "height": 900,
+                                    "depth": 500
                                 }
                             }
                         },
@@ -34,20 +34,9 @@
                                 "object": "right_side_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 20,
-                                    "height": 350,
-                                    "depth": 400
-                                }
-                            }
-                        },
-                        {
-                            "meta": {
-                                "object": "front_panel",
-                                "object_type": "board",
-                                "dimensions": {
-                                    "width": 1160,
-                                    "height": 350,
-                                    "depth": 20
+                                    "width": 18,
+                                    "height": 900,
+                                    "depth": 500
                                 }
                             }
                         },
@@ -55,10 +44,11 @@
                             "meta": {
                                 "object": "back_panel",
                                 "object_type": "board",
+                                "notes": "Fits between side panels, full height.",
                                 "dimensions": {
-                                    "width": 1160,
-                                    "height": 350,
-                                    "depth": 20
+                                    "width": 764,
+                                    "height": 900,
+                                    "depth": 18
                                 }
                             }
                         },
@@ -66,33 +56,39 @@
                             "meta": {
                                 "object": "bottom_panel",
                                 "object_type": "board",
+                                "notes": "Fits between side panels and in front of back panel, rests near floor.",
                                 "dimensions": {
-                                    "width": 1160,
-                                    "height": 20,
-                                    "depth": 360
+                                    "width": 764,
+                                    "height": 18,
+                                    "depth": 482
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "changing_surface_panel",
+                                "object_type": "board",
+                                "notes": "Fits between side panels, full depth. Top surface positioned 800mm from floor, creating 100mm barriers with top of side/back panels.",
+                                "dimensions": {
+                                    "width": 764,
+                                    "height": 18,
+                                    "depth": 500
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "fixed_shelf",
+                                "object_type": "board",
+                                "notes": "Fits between side panels and in front of back panel. Positioned mid-height in the open storage area below changing surface.",
+                                "dimensions": {
+                                    "width": 764,
+                                    "height": 18,
+                                    "depth": 482
                                 }
                             }
                         }
                     ]
-                }
-            },
-            {
-                "meta": {
-                    "object": "liftup_top",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 1200,
-                        "height": 20,
-                        "depth": 400
-                    }
-                }
-            },
-            {
-                "meta": {
-                    "object": "hinges",
-                    "object_type": "part",
-                    "amount": "2",
-                    "note": "Connects the Lift-Up Top to the Bench Frame back panel"
                 }
             }
         ]
