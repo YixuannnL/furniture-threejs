@@ -50,7 +50,7 @@ let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean
  * @param {Object} metaNode - 当前 meta 节点
  * @param {number} ratio - 最小维度与最大尺寸的比例 (比如 0.01 => 1%)
  */
-function normalizeBoardThickness(metaNode, ratio = 0.01) {
+function normalizeBoardThickness(metaNode, ratio = 0.02) {
     if (metaNode.object_type === 'board' && metaNode.dimensions) {
         const dims = metaNode.dimensions;
         const entries = [
@@ -1428,6 +1428,7 @@ const scene = new THREE.Scene();
 //      4) 返回新的家具根对象
 // ======================
 function render_furniture(meta_data, conn_data) {
+    console.log("4444417171177")
     // 1) 如果已有旧的家具根对象，就先从场景移除
     if (currentFurnitureRoot) {
         scene.remove(currentFurnitureRoot);
