@@ -50,7 +50,7 @@ let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean
  * @param {Object} metaNode - 当前 meta 节点
  * @param {number} ratio - 最小维度与最大尺寸的比例 (比如 0.01 => 1%)
  */
-function normalizeBoardThickness(metaNode, ratio = 0.03) {
+function normalizeBoardThickness(metaNode, ratio = 0.01) {
     if (metaNode.object_type === 'board' && metaNode.dimensions) {
         const dims = metaNode.dimensions;
         const entries = [
