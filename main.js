@@ -3074,11 +3074,9 @@ function detectAndAddConnections() {
             const contactInfo = Utils.checkBoundingBoxContact(meshA, meshB, eps);
             if (contactInfo.isTouching) {
                 // 3) 两者接触，生成对应的 anchor 字符串
-                console.log("contactP:", contactInfo.contactPointA, contactInfo.contactPointB);
+                console.log("contactP:", meshA.name, meshB.name, contactInfo.contactFaceA, contactInfo.contactFaceB, contactInfo.contactPointA, contactInfo.contactPointB);
                 const anchorA = getAnchorDescription(meshA, meshA.worldToLocal(contactInfo.contactPointA.clone()), contactInfo.contactFaceA);
                 const anchorB = getAnchorDescription(meshB, meshB.worldToLocal(contactInfo.contactPointB.clone()), contactInfo.contactFaceB);
-                // const anchorA = Utils.guessAnchorFromContact(meshA, contactInfo.contactAxis, contactInfo.contactPointA);
-                // const anchorB = Utils.guessAnchorFromContact(meshB, contactInfo.contactAxis, contactInfo.contactPointB);
                 // 4) 写入 connectionData
                 const { keyA, keyB } = findSiblingKeysFor(meshA.name, meshB.name);
                 // const keyA = meshA.name

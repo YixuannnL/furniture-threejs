@@ -1,480 +1,182 @@
 {
     "data": [
         {
-            "wardrobe_carcass": "<Left_Side_Panel><Board>[<BottomEdge>]",
-            "wardrobe_base": "<Left_Base_Support><Board>[<TopFace>]"
+            "cabinet_door_left": "<cabinet_door_left><board>[<FrontFace_0/1Height_0/1Width,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]",
+            "bookcase_frame": "<bottom_panel><board>[<FrontFace_1/1Height_0/1Width,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace><TopFace><TopFace>]"
         },
         {
-            "wardrobe_carcass": "",
-            "wardrobe_base": "<Right_Base_Support><Board>[<TopFace>]"
+            "cabinet_door_right": "<cabinet_door_right><board>[<FrontFace_0/1Height_1/1Width,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]",
+            "bookcase_frame": "<bottom_panel><board>[<FrontFace_1/1Height_1/1Width,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace><TopFace><TopFace>]"
         },
         {
-            "wardrobe_carcass": "<Right_Side_Panel><Board>[<BottomEdge>]",
-            "wardrobe_base": ""
+            "cabinet_door_right": "",
+            "bookcase_frame": "<right_side_panel><board>[<LeftFace_1/4Height_1/1Depth><LeftFace><LeftFace>]"
         },
         {
-            "door_assembly": "<Door_Panel><Board>[<BackFace_Height_TopQuarter>]",
-            "wardrobe_carcass": "<Left_Side_Panel><Board>[<FrontEdge><Height_TopQuarter>]"
+            "cabinet_door_right": "<cabinet_door_right><board>[<RightFace_1/2Height_1/2Depth><RightFace><RightEdge>]",
+            "bookcase_frame": ""
         },
         {
-            "door_assembly": "",
-            "wardrobe_carcass": "<Left_Side_Panel><Board>[<FrontEdge><Height_BottomQuarter>]"
+            "left_side_panel": "<left_side_panel><Board>[<BackFace><RightFace><BackEdge>]",
+            "back_panel": "<back_panel><Board>[<LeftFace><LeftFace><LeftEdge>]"
         },
         {
-            "door_assembly": "<Door_Panel><Board>[<BackFace_Height_BottomQuarter>]",
-            "wardrobe_carcass": ""
+            "right_side_panel": "<right_side_panel><Board>[<BackFace,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge><LeftFace><BackEdge>]",
+            "back_panel": "<back_panel><Board>[<RightFace,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge><RightFace><RightEdge>]"
         },
         {
-            "front_kicker_panel": "<Front_Kicker_Panel><Board>[<LeftEnd>]",
-            "left_base_support": "<Left_Base_Support><Board>[<FrontEnd>]"
+            "top_panel": "<top_panel><Board>[<BackFace,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge><BottomFace><BackEdge>]",
+            "back_panel": "<back_panel><Board>[<TopFace,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge><TopFace><TopEdge>]"
         },
         {
-            "front_kicker_panel": "<Front_Kicker_Panel><Board>[<RightEnd>]",
-            "right_base_support": "<Right_Base_Support><Board>[<FrontEnd>]"
+            "bottom_panel": "<bottom_panel><Board>[<BackFace,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge><TopFace><BackEdge>]",
+            "back_panel": "<back_panel><Board>[<BottomFace,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]"
         },
         {
-            "bottom_panel": "<Bottom_Panel><Board>[<LeftEdge>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BottomAlign>]"
+            "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<BottomFace_0/1Depth_1/2Width><BottomFace><BackEdge>]",
+            "back_panel": "<back_panel><board>[<TopFace_3/4Depth_1/2Width><TopFace><TopEdge>]"
         },
         {
-            "top_panel": "<Top_Panel><Board>[<LeftEdge>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><TopAlign>]"
+            "top_panel": "<Top_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
         },
         {
-            "back_panel": "<Back_Panel><Board>[<LeftEdge>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BackAlign>]"
+            "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
+            "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
         },
         {
-            "left_section_internals": "<Upper_Shelf_Left><Board>[<LeftEdge>]",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace_Height_0.68>]"
+            "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<LeftFace_1/2Height_1/2Depth,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge><LeftFace><LeftEdge>]",
+            "left_side_panel": "<left_side_panel><board>[<RightFace_1/2Height_1/2Depth,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace><RightFace><RightFace>]"
         },
         {
-            "left_section_internals": "",
-            "left_side_panel": "<Left_Side_Panel><Board>[<RightFace_Height_0.6>]"
+            "top_panel": "<Top_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
         },
         {
-            "left_section_internals": "<Hanging_Rod><Bar>[<LeftEnd>]",
-            "left_side_panel": ""
+            "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
+            "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
         },
         {
-            "bottom_panel": "<Bottom_Panel><Board>[<RightEdge>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BottomAlign>]"
-        },
-        {
-            "top_panel": "<Top_Panel><Board>[<RightEdge>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><TopAlign>]"
-        },
-        {
-            "back_panel": "<Back_Panel><Board>[<RightEdge>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BackAlign>]"
-        },
-        {
-            "right_section_shelving": "<Shelf_1_Right><Board>[<RightEdge>]",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.2>]"
-        },
-        {
-            "right_section_shelving": "",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.4>]"
-        },
-        {
-            "right_section_shelving": "",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.6>]"
-        },
-        {
-            "right_section_shelving": "",
-            "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.8>]"
-        },
-        {
-            "right_section_shelving": "<Shelf_2_Right><Board>[<RightEdge>]",
-            "right_side_panel": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_3_Right><Board>[<RightEdge>]",
-            "right_side_panel": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_4_Right><Board>[<RightEdge>]",
-            "right_side_panel": ""
-        },
-        {
-            "back_panel": "<Back_Panel><Board>[<FrontFace><BottomAlign>]",
-            "bottom_panel": "<Bottom_Panel><Board>[<BackEdge>]"
-        },
-        {
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<BottomEdge>]",
-            "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]"
-        },
-        {
-            "back_panel": "<Back_Panel><Board>[<FrontFace><TopAlign>]",
-            "top_panel": "<Top_Panel><Board>[<BottomFace><BackAlign>]"
-        },
-        {
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<TopEdge>]",
-            "top_panel": "<Top_Panel><Board>[<BottomFace>]"
-        },
-        {
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<BackEdge>]",
-            "back_panel": "<Back_Panel><Board>[<FrontFace>]"
-        },
-        {
-            "left_section_internals": "<Upper_Shelf_Left><Board>[<BackEdge>]",
-            "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.68>]"
-        },
-        {
-            "right_section_shelving": "<Shelf_1_Right><Board>[<BackEdge>]",
-            "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.2>]"
-        },
-        {
-            "right_section_shelving": "",
-            "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.4>]"
-        },
-        {
-            "right_section_shelving": "",
-            "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.6>]"
-        },
-        {
-            "right_section_shelving": "",
-            "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.8>]"
-        },
-        {
-            "right_section_shelving": "<Shelf_2_Right><Board>[<BackEdge>]",
-            "back_panel": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_3_Right><Board>[<BackEdge>]",
-            "back_panel": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_4_Right><Board>[<BackEdge>]",
-            "back_panel": ""
-        },
-        {
-            "left_section_internals": "<Upper_Shelf_Left><Board>[<RightEdge>]",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<LeftFace_Height_0.68>]"
-        },
-        {
-            "left_section_internals": "",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<LeftFace_Height_0.6>]"
-        },
-        {
-            "left_section_internals": "<Hanging_Rod><Bar>[<RightEnd>]",
-            "internal_vertical_divider": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_1_Right><Board>[<LeftEdge>]",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.2>]"
-        },
-        {
-            "right_section_shelving": "",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.4>]"
-        },
-        {
-            "right_section_shelving": "",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.6>]"
-        },
-        {
-            "right_section_shelving": "",
-            "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.8>]"
-        },
-        {
-            "right_section_shelving": "<Shelf_2_Right><Board>[<LeftEdge>]",
-            "internal_vertical_divider": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_3_Right><Board>[<LeftEdge>]",
-            "internal_vertical_divider": ""
-        },
-        {
-            "right_section_shelving": "<Shelf_4_Right><Board>[<LeftEdge>]",
-            "internal_vertical_divider": ""
+            "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<RightFace_1/2Height_1/2Depth,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge><RightFace><RightEdge>]",
+            "right_side_panel": "<right_side_panel><board>[<LeftFace_1/2Height_1/2Depth,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace><LeftFace><LeftFace>]"
         }
     ],
     "meta_data": [
         {
             "row_headers": [
                 "",
-                "Wardrobe_Base",
-                "Wardrobe_Carcass",
-                "Door_Assembly"
+                "bookcase_frame",
+                "bookcase_shelves",
+                "cabinet_door_left",
+                "cabinet_door_right"
             ],
             "column_header": [
-                "Wardrobe_Base",
-                "Wardrobe_Carcass",
-                "Door_Assembly"
+                "bookcase_frame",
+                "bookcase_shelves",
+                "cabinet_door_left",
+                "cabinet_door_right"
             ],
             "title": "table_1",
             "data": [
                 {
-                    "wardrobe_carcass": "<Left_Side_Panel><Board>[<BottomEdge>]",
-                    "wardrobe_base": "<Left_Base_Support><Board>[<TopFace>]"
+                    "cabinet_door_left": "<cabinet_door_left><board>[<FrontFace_0/1Height_0/1Width,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]",
+                    "bookcase_frame": "<bottom_panel><board>[<FrontFace_1/1Height_0/1Width,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace><TopFace><TopFace>]"
                 },
                 {
-                    "wardrobe_carcass": "",
-                    "wardrobe_base": "<Right_Base_Support><Board>[<TopFace>]"
+                    "cabinet_door_right": "<cabinet_door_right><board>[<FrontFace_0/1Height_1/1Width,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]",
+                    "bookcase_frame": "<bottom_panel><board>[<FrontFace_1/1Height_1/1Width,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace,TopFace><TopFace><TopFace>]"
                 },
                 {
-                    "wardrobe_carcass": "<Right_Side_Panel><Board>[<BottomEdge>]",
-                    "wardrobe_base": ""
+                    "cabinet_door_right": "",
+                    "bookcase_frame": "<right_side_panel><board>[<LeftFace_1/4Height_1/1Depth><LeftFace><LeftFace>]"
                 },
                 {
-                    "door_assembly": "<Door_Panel><Board>[<BackFace_Height_TopQuarter>]",
-                    "wardrobe_carcass": "<Left_Side_Panel><Board>[<FrontEdge><Height_TopQuarter>]"
-                },
-                {
-                    "door_assembly": "",
-                    "wardrobe_carcass": "<Left_Side_Panel><Board>[<FrontEdge><Height_BottomQuarter>]"
-                },
-                {
-                    "door_assembly": "<Door_Panel><Board>[<BackFace_Height_BottomQuarter>]",
-                    "wardrobe_carcass": ""
+                    "cabinet_door_right": "<cabinet_door_right><board>[<RightFace_1/2Height_1/2Depth><RightFace><RightEdge>]",
+                    "bookcase_frame": ""
                 }
             ]
         },
         {
             "row_headers": [
                 "",
-                "Left_Base_Support",
-                "Right_Base_Support",
-                "Front_Kicker_Panel"
+                "back_panel",
+                "left_side_panel",
+                "right_side_panel",
+                "top_panel",
+                "bottom_panel",
+                "horizontal_divide_shelf_cabinet_panel"
             ],
             "column_header": [
-                "Left_Base_Support",
-                "Right_Base_Support",
-                "Front_Kicker_Panel"
+                "back_panel",
+                "left_side_panel",
+                "right_side_panel",
+                "top_panel",
+                "bottom_panel",
+                "horizontal_divide_shelf_cabinet_panel"
             ],
             "title": "table_2",
             "data": [
                 {
-                    "front_kicker_panel": "<Front_Kicker_Panel><Board>[<LeftEnd>]",
-                    "left_base_support": "<Left_Base_Support><Board>[<FrontEnd>]"
+                    "left_side_panel": "<left_side_panel><Board>[<BackFace><RightFace><BackEdge>]",
+                    "back_panel": "<back_panel><Board>[<LeftFace><LeftFace><LeftEdge>]"
                 },
                 {
-                    "front_kicker_panel": "<Front_Kicker_Panel><Board>[<RightEnd>]",
-                    "right_base_support": "<Right_Base_Support><Board>[<FrontEnd>]"
+                    "right_side_panel": "<right_side_panel><Board>[<BackFace,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge,LeftFace,BackEdge><LeftFace><BackEdge>]",
+                    "back_panel": "<back_panel><Board>[<RightFace,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge><RightFace><RightEdge>]"
+                },
+                {
+                    "top_panel": "<top_panel><Board>[<BackFace,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge,BottomFace,BackEdge><BottomFace><BackEdge>]",
+                    "back_panel": "<back_panel><Board>[<TopFace,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge,TopFace,TopEdge><TopFace><TopEdge>]"
+                },
+                {
+                    "bottom_panel": "<bottom_panel><Board>[<BackFace,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge,TopFace,BackEdge><TopFace><BackEdge>]",
+                    "back_panel": "<back_panel><Board>[<BottomFace,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge,BottomFace,BottomEdge><BottomFace><BottomEdge>]"
+                },
+                {
+                    "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<BottomFace_0/1Depth_1/2Width><BottomFace><BackEdge>]",
+                    "back_panel": "<back_panel><board>[<TopFace_3/4Depth_1/2Width><TopFace><TopEdge>]"
+                },
+                {
+                    "top_panel": "<Top_Panel><Board>[<LeftFace>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<TopFace>]"
+                },
+                {
+                    "bottom_panel": "<Bottom_Panel><Board>[<LeftFace>]",
+                    "left_side_panel": "<Left_Side_Panel><Board>[<BottomFace>]"
+                },
+                {
+                    "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<LeftFace_1/2Height_1/2Depth,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge,LeftFace,LeftEdge><LeftFace><LeftEdge>]",
+                    "left_side_panel": "<left_side_panel><board>[<RightFace_1/2Height_1/2Depth,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace,RightFace><RightFace><RightFace>]"
+                },
+                {
+                    "top_panel": "<Top_Panel><Board>[<RightFace>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<TopFace>]"
+                },
+                {
+                    "bottom_panel": "<Bottom_Panel><Board>[<RightFace>]",
+                    "right_side_panel": "<Right_Side_Panel><Board>[<BottomFace>]"
+                },
+                {
+                    "horizontal_divide_shelf_cabinet_panel": "<horizontal_divide_shelf_cabinet_panel><board>[<RightFace_1/2Height_1/2Depth,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge,RightFace,RightEdge><RightFace><RightEdge>]",
+                    "right_side_panel": "<right_side_panel><board>[<LeftFace_1/2Height_1/2Depth,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace,LeftFace><LeftFace><LeftFace>]"
                 }
             ]
         },
         {
             "row_headers": [
-                "Component",
-                "Left\\_Side\\_Panel",
-                "Right\\_Side\\_Panel",
-                "Bottom\\_Panel",
-                "Top\\_Panel",
-                "Back\\_Panel",
-                "Internal\\_Vertical\\_Divider",
-                "Left\\_Section\\_Internals",
-                "Right\\_Section\\_Shelving"
+                "",
+                "uppermost_shelf",
+                "adjustable_shelf_1",
+                "adjustable_shelf_2",
+                "adjustable_shelf_3"
             ],
             "column_header": [
-                "Left\\_Side\\_Panel",
-                "Right\\_Side\\_Panel",
-                "Bottom\\_Panel",
-                "Top\\_Panel",
-                "Back\\_Panel",
-                "Internal\\_Vertical\\_Divider",
-                "Left\\_Section\\_Internals",
-                "Right\\_Section\\_Shelving"
+                "uppermost_shelf",
+                "adjustable_shelf_1",
+                "adjustable_shelf_2",
+                "adjustable_shelf_3"
             ],
             "title": "table_3",
-            "data": [
-                {
-                    "bottom_panel": "<Bottom_Panel><Board>[<LeftEdge>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BottomAlign>]"
-                },
-                {
-                    "top_panel": "<Top_Panel><Board>[<LeftEdge>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><TopAlign>]"
-                },
-                {
-                    "back_panel": "<Back_Panel><Board>[<LeftEdge>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace><BackAlign>]"
-                },
-                {
-                    "left_section_internals": "<Upper_Shelf_Left><Board>[<LeftEdge>]",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace_Height_0.68>]"
-                },
-                {
-                    "left_section_internals": "",
-                    "left_side_panel": "<Left_Side_Panel><Board>[<RightFace_Height_0.6>]"
-                },
-                {
-                    "left_section_internals": "<Hanging_Rod><Bar>[<LeftEnd>]",
-                    "left_side_panel": ""
-                },
-                {
-                    "bottom_panel": "<Bottom_Panel><Board>[<RightEdge>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BottomAlign>]"
-                },
-                {
-                    "top_panel": "<Top_Panel><Board>[<RightEdge>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><TopAlign>]"
-                },
-                {
-                    "back_panel": "<Back_Panel><Board>[<RightEdge>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace><BackAlign>]"
-                },
-                {
-                    "right_section_shelving": "<Shelf_1_Right><Board>[<RightEdge>]",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.2>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.4>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.6>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "right_side_panel": "<Right_Side_Panel><Board>[<LeftFace_Height_0.8>]"
-                },
-                {
-                    "right_section_shelving": "<Shelf_2_Right><Board>[<RightEdge>]",
-                    "right_side_panel": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_3_Right><Board>[<RightEdge>]",
-                    "right_side_panel": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_4_Right><Board>[<RightEdge>]",
-                    "right_side_panel": ""
-                },
-                {
-                    "back_panel": "<Back_Panel><Board>[<FrontFace><BottomAlign>]",
-                    "bottom_panel": "<Bottom_Panel><Board>[<BackEdge>]"
-                },
-                {
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<BottomEdge>]",
-                    "bottom_panel": "<Bottom_Panel><Board>[<TopFace>]"
-                },
-                {
-                    "back_panel": "<Back_Panel><Board>[<FrontFace><TopAlign>]",
-                    "top_panel": "<Top_Panel><Board>[<BottomFace><BackAlign>]"
-                },
-                {
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<TopEdge>]",
-                    "top_panel": "<Top_Panel><Board>[<BottomFace>]"
-                },
-                {
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<BackEdge>]",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace>]"
-                },
-                {
-                    "left_section_internals": "<Upper_Shelf_Left><Board>[<BackEdge>]",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.68>]"
-                },
-                {
-                    "right_section_shelving": "<Shelf_1_Right><Board>[<BackEdge>]",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.2>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.4>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.6>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "back_panel": "<Back_Panel><Board>[<FrontFace_Height_0.8>]"
-                },
-                {
-                    "right_section_shelving": "<Shelf_2_Right><Board>[<BackEdge>]",
-                    "back_panel": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_3_Right><Board>[<BackEdge>]",
-                    "back_panel": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_4_Right><Board>[<BackEdge>]",
-                    "back_panel": ""
-                },
-                {
-                    "left_section_internals": "<Upper_Shelf_Left><Board>[<RightEdge>]",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<LeftFace_Height_0.68>]"
-                },
-                {
-                    "left_section_internals": "",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<LeftFace_Height_0.6>]"
-                },
-                {
-                    "left_section_internals": "<Hanging_Rod><Bar>[<RightEnd>]",
-                    "internal_vertical_divider": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_1_Right><Board>[<LeftEdge>]",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.2>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.4>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.6>]"
-                },
-                {
-                    "right_section_shelving": "",
-                    "internal_vertical_divider": "<Internal_Vertical_Divider><Board>[<RightFace_Height_0.8>]"
-                },
-                {
-                    "right_section_shelving": "<Shelf_2_Right><Board>[<LeftEdge>]",
-                    "internal_vertical_divider": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_3_Right><Board>[<LeftEdge>]",
-                    "internal_vertical_divider": ""
-                },
-                {
-                    "right_section_shelving": "<Shelf_4_Right><Board>[<LeftEdge>]",
-                    "internal_vertical_divider": ""
-                }
-            ]
-        },
-        {
-            "row_headers": [
-                "",
-                "Door\\_Panel"
-            ],
-            "column_header": [
-                "Door_Panel"
-            ],
-            "title": "table_4",
-            "data": []
-        },
-        {
-            "row_headers": [
-                "",
-                "Upper\\_Shelf\\_Left",
-                "Hanging\\_Rod"
-            ],
-            "column_header": [
-                "Upper_Shelf_Left",
-                "Hanging_Rod"
-            ],
-            "title": "table_5",
-            "data": []
-        },
-        {
-            "row_headers": [
-                "",
-                "Shelf\\_1\\_Right",
-                "Shelf\\_2\\_Right",
-                "Shelf\\_3\\_Right",
-                "Shelf\\_4\\_Right"
-            ],
-            "column_header": [
-                "Shelf_1_Right",
-                "Shelf_2_Right",
-                "Shelf_3_Right",
-                "Shelf_4_Right"
-            ],
-            "title": "table_6",
             "data": []
         }
     ]
