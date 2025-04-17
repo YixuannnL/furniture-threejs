@@ -1108,8 +1108,22 @@ function computeSnapPointsForBox(width, height, depth) {
 
 // 递归解析 JSON，生成 Three.js 对象
 function parseMeta(meta) {
-    let currentObject;
 
+    // ─── 0. 非 group 且没有 dimensions ⇒ 视为无效 ───────────────────────
+    if (meta.object_type !== 'group') {
+        const dims = meta.dimensions;
+        const hasDims = dims &&
+            typeof dims.width === 'number' &&
+            typeof dims.height === 'number' &&
+            typeof dims.depth === 'number';
+
+        if (!hasDims) {
+            console.warn(`[parseMeta] Skip "${meta.object || '(unnamed)'}": missing dimensions`);
+            return null;           // ✱ 直接返回 null，父層會把它剔除
+        }
+    }
+
+    let currentObject;
     // 如果是 group，就用 Group；否则就用 Mesh
     if (meta.object_type === 'group') {
         currentObject = new THREE.Group();
@@ -1131,10 +1145,22 @@ function parseMeta(meta) {
 
     // 如果有子节点，则递归解析
     if (meta.children && Array.isArray(meta.children)) {
+        const validChildren = [];
+
         meta.children.forEach(child => {
             const childObj = parseMeta(child.meta);
-            currentObject.add(childObj);
+            if (childObj) {
+                currentObject.add(childObj);
+                validChildren.push(child)
+            } else {
+                console.warn(`[parseMeta] Remove invalid child of "${meta.object}":`,
+                    child?.meta?.object);
+            }
         });
+        // 如果有结点被删除，更新原meta结构
+        if (validChildren.length !== meta.children.length) {
+            meta.children = validChildren;
+        }
     }
 
 

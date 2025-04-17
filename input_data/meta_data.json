@@ -1,20 +1,20 @@
 {
     "meta": {
-        "object": "kitchen_utility_cart",
+        "object": "storage_bench",
         "object_type": "group",
         "dimensions": {
-            "width": 300,
-            "height": 900,
+            "width": 1200,
+            "height": 400,
             "depth": 400
         },
         "children": [
             {
                 "meta": {
-                    "object": "cart_frame",
+                    "object": "bench_frame",
                     "object_type": "group",
                     "dimensions": {
-                        "width": 300,
-                        "height": 900,
+                        "width": 1200,
+                        "height": 400,
                         "depth": 400
                     },
                     "children": [
@@ -24,7 +24,7 @@
                                 "object_type": "board",
                                 "dimensions": {
                                     "width": 20,
-                                    "height": 900,
+                                    "height": 350,
                                     "depth": 400
                                 }
                             }
@@ -35,19 +35,19 @@
                                 "object_type": "board",
                                 "dimensions": {
                                     "width": 20,
-                                    "height": 900,
+                                    "height": 350,
                                     "depth": 400
                                 }
                             }
                         },
                         {
                             "meta": {
-                                "object": "bottom_panel",
+                                "object": "front_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 300,
-                                    "height": 20,
-                                    "depth": 400
+                                    "width": 1160,
+                                    "height": 350,
+                                    "depth": 20
                                 }
                             }
                         },
@@ -56,9 +56,20 @@
                                 "object": "back_panel",
                                 "object_type": "board",
                                 "dimensions": {
-                                    "width": 300,
-                                    "height": 900,
+                                    "width": 1160,
+                                    "height": 350,
                                     "depth": 20
+                                }
+                            }
+                        },
+                        {
+                            "meta": {
+                                "object": "bottom_panel",
+                                "object_type": "board",
+                                "dimensions": {
+                                    "width": 1160,
+                                    "height": 20,
+                                    "depth": 360
                                 }
                             }
                         }
@@ -67,10 +78,10 @@
             },
             {
                 "meta": {
-                    "object": "countertop",
+                    "object": "liftup_top",
                     "object_type": "board",
                     "dimensions": {
-                        "width": 300,
+                        "width": 1200,
                         "height": 20,
                         "depth": 400
                     }
@@ -78,35 +89,10 @@
             },
             {
                 "meta": {
-                    "object": "shelf_1",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 300,
-                        "height": 20,
-                        "depth": 400
-                    }
-                }
-            },
-            {
-                "meta": {
-                    "object": "shelf_2",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 300,
-                        "height": 20,
-                        "depth": 400
-                    }
-                }
-            },
-            {
-                "meta": {
-                    "object": "shelf_3",
-                    "object_type": "board",
-                    "dimensions": {
-                        "width": 300,
-                        "height": 20,
-                        "depth": 400
-                    }
+                    "object": "hinges",
+                    "object_type": "part",
+                    "amount": "2",
+                    "note": "Connects the Lift-Up Top to the Bench Frame back panel"
                 }
             }
         ]
