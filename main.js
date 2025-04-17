@@ -45,6 +45,31 @@ let currentConnectionHighlight = null;
 // 也可以不存，直接重新 render_furniture 也行，但可能会破坏用户的中间编辑状态
 let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean, isHighlighted:boolean }
 
+/**
+ * 对所有 board 类型的节点，确保其厚度(depth)不小于宽/高中最大值*ratio
+ * @param {Object} metaNode - 当前 meta 节点
+ * @param {number} ratio - 最小厚度与宽/高最大值的比例 (比如 0.01 => 1%)
+ */
+function normalizeBoardThickness(metaNode, ratio = 0.01) {
+    if (metaNode.object_type === 'board' && metaNode.dimensions) {
+        const { width = 0, height = 0, depth = 0 } = metaNode.dimensions;
+        const maxDim = Math.max(width, height);
+        const minDepth = maxDim * ratio;
+        if (depth < minDepth) {
+            console.warn(
+                `板件 "${metaNode.object}" 太薄 (depth=${depth.toFixed(2)}), 提升到 ${minDepth.toFixed(2)}`
+            );
+            metaNode.dimensions.depth = minDepth;
+        }
+    }
+    if (Array.isArray(metaNode.children)) {
+        metaNode.children.forEach(child => {
+            if (child && child.meta) {
+                normalizeBoardThickness(child.meta, ratio);
+            }
+        });
+    }
+}
 
 // ------------------- 新增：在此处对 furnitureData 做尺寸放大处理 ------------------- //
 function scaleFurnitureIfTooSmall(furnitureData) {
@@ -1434,6 +1459,7 @@ let initialFurnitureData;
 
 function handle_two_data() {
     connectionData = Utils.filterConnData(connectionData);
+    normalizeBoardThickness(furnitureData.meta, 0.01);
     // 引入 / 定义 furnitureData, connectionData 后，先进行尺寸放大
     scaleFurnitureIfTooSmall(furnitureData);
     // 拷贝一份初始状态

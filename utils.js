@@ -422,9 +422,6 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
                 new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z) //右上
             ];
         } else {
-            // console.log("BBBBBBBBBB");
-            // console.log("boxA", boxA);
-            // console.log("boxB", boxB);
             // A 的后侧面与 B 的前侧面接触
             contactFaceA = "BackFace";
             contactFaceB = "FrontFace";
