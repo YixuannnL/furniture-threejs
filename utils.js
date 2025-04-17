@@ -1234,7 +1234,10 @@ export function calcLocalAnchorPosition(object3D, anchors) {
     }
     else {
         anchors.forEach(anchor => {
-            processOneAnchor(anchor);
+            let subanchors = anchor.split(",");
+            subanchors.forEach(sub => {
+                processOneAnchor(sub);
+            })
         });
     }
 
