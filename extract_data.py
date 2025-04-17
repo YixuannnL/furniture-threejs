@@ -100,72 +100,94 @@ def parse_markdown_tables(text):
         # 判断是否可能是一个 Markdown 表格的起始行
         if line.startswith('|') and line.count('|') >= 2:
             # 检查下一行是否为分隔行（通常由 - 组成）
-            if i+1 < len(lines) and re.match(r'^\|\s*-+', lines[i+1].strip()):
-                table_lines = []
-                # 收集所有以 "|" 开头的连续行作为一个表格
-                while i < len(lines) and lines[i].strip().startswith('|'):
-                    table_lines.append(lines[i])
-                    i += 1
+            if i+1 < len(lines):
+                sep = lines[i+1].strip()
+                if re.match(r'^[\|\s:\-]+$', sep) and '-' in sep:
+                    table_lines = []
+                    # 收集所有以 "|" 开头的连续行作为一个表格
+                    while i < len(lines) and lines[i].strip().startswith('|'):
+                        table_lines.append(lines[i])
+                        i += 1
 
-                # 至少需要表头和分隔行
-                if len(table_lines) < 2:
-                    continue
-
-                # 解析表头
-                header_line = table_lines[0]
-                headers = [cell.strip() for cell in header_line.strip().strip('|').split('|')]
-                
-                # 数据行在第3行开始（第2行为分隔行），解析每一行
-                data_rows = table_lines[2:]
-                table_data = {}
-                row_labels = []
-                for row in data_rows:
-                    # 跳过空行
-                    if not row.strip():
+                    # 至少需要表头和分隔行
+                    if len(table_lines) < 2:
                         continue
-                    # 按 "|" 分割并去掉首尾多余的空格
-                    cells = [cell.strip() for cell in row.strip().strip('|').split('|')]
-                    if not cells:
-                        continue
-                    # 第一个单元格作为行名
-                    row_header = cells[0]
-                    row_labels.append(row_header)
-                    # 其余单元格与 header 中除第一个之外的项对应
-                    cell_dict = {}
-                    for j, cell in enumerate(cells[1:], start=1):
-                        if j < len(headers):
-                            cell_dict[headers[j]] = cell
-                    # pdb.set_trace()
-                    table_data[row_header] = cell_dict
 
-                table_data = handle_table_data(table_data)
-                # 将解析出来的表格信息保存到字典中
-                table_info = {
-                    "row_headers": headers,
-                    "column_header": row_labels,
-                    "title": f"table_{len(tables)+1}",
-                    "data": table_data
-                }
-                tables.append(table_info)
-                continue  # 已经更新 i，直接进入下一轮循环
+                    # 解析表头
+                    header_line = table_lines[0]
+                    headers = [cell.strip() for cell in header_line.strip().strip('|').split('|')]
+                    
+                    # 数据行在第3行开始（第2行为分隔行），解析每一行
+                    data_rows = table_lines[2:]
+                    table_data = {}
+                    row_labels = []
+                    for row in data_rows:
+                        # 跳过空行
+                        if not row.strip():
+                            continue
+                        # 按 "|" 分割并去掉首尾多余的空格
+                        cells = [cell.strip() for cell in row.strip().strip('|').split('|')]
+                        if not cells:
+                            continue
+                        # 第一个单元格作为行名
+                        row_header = cells[0]
+                        row_labels.append(row_header)
+                        # 其余单元格与 header 中除第一个之外的项对应
+                        cell_dict = {}
+                        for j, cell in enumerate(cells[1:], start=1):
+                            if j < len(headers):
+                                cell_dict[headers[j]] = cell
+                        # pdb.set_trace()
+                        table_data[row_header] = cell_dict
+
+                    table_data = handle_table_data(table_data)
+                    # 将解析出来的表格信息保存到字典中
+                    table_info = {
+                        "row_headers": headers,
+                        "column_header": row_labels,
+                        "title": f"table_{len(tables)+1}",
+                        "data": table_data
+                    }
+                    tables.append(table_info)
+                    continue  # 已经更新 i，直接进入下一轮循环
         i += 1
     return tables
+
+def _strip_js_comments_and_trailing_commas(s: str) -> str:
+    """
+    1. 去除 // 单行注释 和 /* … */ 多行注释
+    2. 去除对象或数组最后一个元素后的尾随逗号
+    """
+    # 1. 去注释
+    pattern_comments = r'//.*?$|/\*.*?\*/'
+    no_comments = re.sub(pattern_comments, '', s, flags=re.MULTILINE | re.DOTALL)
+
+    # 2. 去尾随逗号：逗号后面紧跟 } 或 ]
+    pattern_trailing_commas = r',\s*(?=[}\]])'
+    clean = re.sub(pattern_trailing_commas, '', no_comments)
+
+    return clean
 
 def parse_json(text):
     # 正则表达式匹配代码块内的 JSON 数据
     pattern = r'```json(.*?)```'
     match = re.search(pattern, text, re.DOTALL)
-    if match:
-        # 去除前后空白字符
-        json_str = match.group(1).strip()
-        try:
-            # 将字符串解析为 Python 字典对象
-            data = json.loads(json_str)
-            return data
-        except json.JSONDecodeError as e:
-            print("解析 JSON 数据失败：", e)
-    else:
+    if not match:
         print("未在文本中找到 JSON 数据。")
+        return None
+    
+    raw = match.group(1).strip()
+    # 预处理：去注释 & 去尾逗号
+    cleaned = _strip_js_comments_and_trailing_commas(raw)
+
+    try:
+        data = json.loads(cleaned)
+        return data
+    except json.JSONDecodeError as e:
+        print("解析 JSON 数据失败：", e)
+        # 如有需要，可打印出 cleaned 内容进行调试
+        # print("清洗后的 JSON 文本：", cleaned)
+        return None
 
 def get_conn_data(txt):
     tables = parse_markdown_tables(txt)

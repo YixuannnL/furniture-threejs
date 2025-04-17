@@ -5,3 +5,5 @@ table_output
 translate.py
 export.json
 finish
+input_data
+output_data

@@ -1411,12 +1411,38 @@ export function calcLocalAnchorPosition(object3D, anchors) {
 
             // 可以继续扩展更多标签
             default:
+                if (!anchor.includes('_')) break;
                 // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
                 // 先拆成 tokens
                 // console.log("HEREEEE:", mesh.name);
                 console.log("an:", [anchor]);
                 const parts = anchor.split('_')
+                if (parts.length != 3) break;
                 console.log("here:", parts);
+                if (!/\d/.test(parts[1])) { // 处理这种：LeftFace_Height_0.2， LeftFace_Height_1/2 , ...
+                    switch (parts[0].toLowerCase()) {
+                        case 'frontface': z = +depth / 2; break;
+                        case 'backface': z = -depth / 2; break;
+                        case 'leftface': x = -width / 2; break;
+                        case 'rightface': x = +width / 2; break;
+                        case 'topface': y = +height / 2; break;
+                        case 'bottomface': y = -height / 2; break;
+                        default: break;
+                    }
+
+
+                    let val = 0;
+                    if (parts[2].includes('/')) val = fractionToFloat(parts[2]);
+                    if (/^\d+$/.test(parts[2])) val = parseFloat(parts[2]);
+                    switch (parts[1].toLowerCase()) {
+                        case 'height': y = -height / 2 + height * val; break;
+                        case 'width': x = -width / 2 + width * val; break;
+                        case 'depth': z = -depth / 2 + depth * val; break;
+                    }
+                    break;
+                }
+
+
                 const fracTag1 = parseFractionTag(parts[1]), fracTag2 = parseFractionTag(parts[2]);
                 if (fracTag1 && fracTag2) { //in case 出现莫名其妙的tag比如'FrontFace_Height_BottomMost'
                     const result = [parseFractionTag(parts[1]), parseFractionTag(parts[2])];
