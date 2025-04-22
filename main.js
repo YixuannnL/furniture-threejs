@@ -3562,7 +3562,7 @@ exportBtn.addEventListener('click', () => {
 
     cnt += 1;
     // 先做碰撞检测 => 给未记录的相邻部件补充连接数据
-    detectAndAddConnections();
+    // detectAndAddConnections();
 
     // 在真正导出前，做二次检测与修正(点点->面面)
     refineAllConnections();
