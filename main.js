@@ -12,6 +12,8 @@ import ConnData from './input_data/conn_data.json' assert { type: 'json' };
 let tempSnappedLocalPos = null;
 let tempSnappedMesh = null;
 
+let cnt = 0;
+
 // 用来记录：当前是否在按住某个键做拉伸，拉伸的是哪个轴
 let scalingAxis = null;        // 取值 'width' | 'height' | 'depth' | null
 let scalingStartDim = 0;       // 该轴的初始尺寸
@@ -50,7 +52,7 @@ let originalMaterialMap = new WeakMap(); // mesh => { material, isDimmed:boolean
  * @param {Object} metaNode - 当前 meta 节点
  * @param {number} ratio - 最小维度与最大尺寸的比例 (比如 0.01 => 1%)
  */
-function normalizeBoardThickness(metaNode, ratio = 0.02) {
+function normalizeBoardThickness(metaNode, ratio = 0.01) {
     if (metaNode.object_type === 'board' && metaNode.dimensions) {
         const dims = metaNode.dimensions;
         const entries = [
@@ -1420,6 +1422,41 @@ function applyConnections(connectionData) {
 
 const scene = new THREE.Scene();
 
+
+/**
+ * 深度克隆函数
+ * 支持对象、数组、Date、RegExp，并防止循环引用
+ * @param {*} obj - 要克隆的目标
+ * @param {WeakMap} [hash=new WeakMap()] - 用于处理循环引用
+ * @returns {*} - 克隆后的新对象
+ */
+function deepClone(obj, hash = new WeakMap()) {
+    // 处理 null
+    if (obj === null) return null;
+    // 处理 Date
+    if (obj instanceof Date) return new Date(obj);
+    // 处理 RegExp
+    if (obj instanceof RegExp) return new RegExp(obj);
+    // 原始类型直接返回
+    if (typeof obj !== 'object') return obj;
+
+    // 处理循环引用
+    if (hash.has(obj)) return hash.get(obj);
+
+    // 初始化克隆对象（区分数组或普通对象）
+    const cloneObj = Array.isArray(obj) ? [] : {};
+    // 保存到 WeakMap，以便后续遇到同一个对象时直接返回
+    hash.set(obj, cloneObj);
+
+    // 递归克隆所有属性
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            cloneObj[key] = deepClone(obj[key], hash);
+        }
+    }
+    return cloneObj;
+}
+
 // ======================
 //      整体渲染函数 (核心！)
 //      1) 清理旧的家具对象
@@ -1428,7 +1465,8 @@ const scene = new THREE.Scene();
 //      4) 返回新的家具根对象
 // ======================
 function render_furniture(meta_data, conn_data) {
-    console.log("4444417171177")
+    // console.log("4444417171177")
+    console.log("render_furniture", cnt, deepClone({ meta_data, conn_data }),);
     // 1) 如果已有旧的家具根对象，就先从场景移除
     if (currentFurnitureRoot) {
         scene.remove(currentFurnitureRoot);
@@ -3097,11 +3135,99 @@ function connectionExists(meshA, meshB) {
     return false;
 }
 
+/* ========== 2. 判断交集盒是否“贴边” ========== */
+/* ======== 严格贴面的 getFlushAxisInfo ======== */
+/**
+ * interBox   —— A 与 B 的交集盒
+ * outerBox   —— 判断这张面是否与 interBox 完全重合的那一方盒子
+ * tol        —— 容差(毫米)；默认 1e‑6
+ *
+ * 若 interBox 在某一轴的 min / max 与 outerBox 重合，
+ * 且 **在其余两轴上的 min、max 也分别与 outerBox 完全一致**，
+ * 则说明 interBox 与 outerBox 在这一整个面完全贴合，可用来“削面”。
+ *
+ * 返回值:
+ *   { axis:'x'|'y'|'z', dir:-1|+1, delta:number }  // 可削
+ *   null                                            // 不可削
+ */
+function getFlushAxisInfo(interBox, outerBox, tol = 1e-6) {
+    const axes = ['x', 'y', 'z'];
+
+    // 对于三个轴，依次检查 “在该轴贴边 + 另外两轴完整覆盖” 的组合
+    for (const a of axes) {
+        const aMinO = outerBox.min[a], aMaxO = outerBox.max[a];
+        const aMinI = interBox.min[a], aMaxI = interBox.max[a];
+
+        // ① interBox 贴在 outerBox 的 min 面
+        if (Math.abs(aMinI - aMinO) < tol && aMaxI < aMaxO - tol) {
+            // 另外两轴必须完全覆盖 outerBox
+            const otherAxes = axes.filter(ax => ax !== a);
+            const fullCover =
+                Math.abs(interBox.min[otherAxes[0]] - outerBox.min[otherAxes[0]]) < tol &&
+                Math.abs(interBox.max[otherAxes[0]] - outerBox.max[otherAxes[0]]) < tol &&
+                Math.abs(interBox.min[otherAxes[1]] - outerBox.min[otherAxes[1]]) < tol &&
+                Math.abs(interBox.max[otherAxes[1]] - outerBox.max[otherAxes[1]]) < tol;
+
+            if (fullCover) {
+                return { axis: a, dir: -1, delta: aMaxI - aMinI };
+            }
+        }
+
+        // ② interBox 贴在 outerBox 的 max 面
+        if (Math.abs(aMaxI - aMaxO) < tol && aMinI > aMinO + tol) {
+            const otherAxes = axes.filter(ax => ax !== a);
+            const fullCover =
+                Math.abs(interBox.min[otherAxes[0]] - outerBox.min[otherAxes[0]]) < tol &&
+                Math.abs(interBox.max[otherAxes[0]] - outerBox.max[otherAxes[0]]) < tol &&
+                Math.abs(interBox.min[otherAxes[1]] - outerBox.min[otherAxes[1]]) < tol &&
+                Math.abs(interBox.max[otherAxes[1]] - outerBox.max[otherAxes[1]]) < tol;
+
+            if (fullCover) {
+                return { axis: a, dir: +1, delta: aMaxI - aMinI };
+            }
+        }
+    }
+    // 没有任何一整面完全贴合 ⇒ 返回 null
+    return null;
+}
+
+/* ========== 3. 真正做“削减” ========== */
+/**
+ * 按 flushInfo 把 mesh 的几何尺寸减小，并调整 offset 让盒子回到“贴面”位置
+ * flushInfo 由 getFlushAxisInfo() 返回
+ */
+function shaveMeshByIntersection(mesh, metaRoot, flushInfo) {
+    const axisMap = { x: 'width', y: 'height', z: 'depth' };
+    const sizeKey = axisMap[flushInfo.axis];
+    const oldSize = mesh.geometry.parameters[sizeKey];
+    const newSize = oldSize - flushInfo.delta;
+    if (newSize <= 1) return false; // 安全防护
+
+    // ① 更新尺寸
+    updateDimensionAndOffsetInMeta(metaRoot, mesh.name, sizeKey, newSize);
+
+    // ② 更新 offset（中心要被推回去 delta/2）
+    const meta = Utils.findMetaByName(metaRoot, mesh.name);
+    if (!meta) return false;
+    if (!meta.offset) meta.offset = { x: 0, y: 0, z: 0 };
+    meta.offset[flushInfo.axis] += (-flushInfo.dir * flushInfo.delta) / 2;
+    console.log("flushinfo", flushInfo, meta);
+
+    // ③ 记录日志
+    dimensionChangeLog.push({
+        meshName: mesh.name,
+        axis: sizeKey,
+        oldVal: oldSize,
+        newVal: newSize
+    });
+
+    return true;
+}
+
+
 function detectAndAddConnections() {
     // 先收集场景中所有Mesh
     const allMeshes = Utils.getAllMeshesInScene(currentFurnitureRoot);
-
-    // 设定一个接触阈值(若 bounding boxes 在某轴仅差 <= eps 就算接触)
     const eps = 1e-3;
 
     for (let i = 0; i < allMeshes.length; i++) {
@@ -3113,29 +3239,80 @@ function detectAndAddConnections() {
             if (connectionExists(meshA, meshB)) {
                 continue; // 已记录连接，不再重复
             }
-            // 2) 检测它们是否接触
-            const contactInfo = Utils.checkBoundingBoxContact(meshA, meshB, eps);
-            if (contactInfo.isTouching) {
-                // 3) 两者接触，生成对应的 anchor 字符串
-                console.log("contactP:", meshA.name, meshB.name, contactInfo.contactFaceA, contactInfo.contactFaceB, contactInfo.contactPointA, contactInfo.contactPointB);
-                const anchorA = getAnchorDescription(meshA, meshA.worldToLocal(contactInfo.contactPointA.clone()), contactInfo.contactFaceA);
-                const anchorB = getAnchorDescription(meshB, meshB.worldToLocal(contactInfo.contactPointB.clone()), contactInfo.contactFaceB);
-                // 4) 写入 connectionData
-                const { keyA, keyB } = findSiblingKeysFor(meshA.name, meshB.name);
-                // const keyA = meshA.name
-                // const keyB = meshB.name
-                // -------------- 简易写法：--------------
-                const connItem = {};
-                connItem[keyA] = `<${meshA.name}><${Utils.getObjectType({ width: meshA.geometry.parameters.width, height: meshA.geometry.parameters.height, depth: meshA.geometry.parameters.depth })}>[${anchorA}]`;
-                connItem[keyB] = `<${meshB.name}><${Utils.getObjectType({ width: meshB.geometry.parameters.width, height: meshB.geometry.parameters.height, depth: meshB.geometry.parameters.depth })}>[${anchorB}]`;
-                // push 到 connectionData
-                connectionData.data.push(connItem);
+
+            // 计算 AABB
+            const boxA = new THREE.Box3().setFromObject(meshA);
+            const boxB = new THREE.Box3().setFromObject(meshB);
+            if (!boxA || !boxB) continue;
+
+            // 2）若无相交，退回到旧的“接触检测”
+            if (!boxA.intersectsBox(boxB)) {
+                const info = Utils.checkBoundingBoxContact(meshA, meshB, eps);
+                if (info.isTouching) addConnectionRecord(meshA, meshB, info); // 复用你已有的封装
+                continue;
             }
+            // debugger
+            console.log("meshA,meshB flush", meshA.name, meshB.name);
+            /* ---------- 有相交：先决定削谁 ---------- */
+            const interBox = boxA.clone().intersect(boxB);
+            const flushA = getFlushAxisInfo(interBox, boxA);
+            const flushB = getFlushAxisInfo(interBox, boxB);
+
+            let targetMesh = null;      // 需要削减的 mesh
+            let flushInfo = null;      // 对应 flushAxis 信息
+            console.log("flushA,flushB", flushA, flushB);
+            if (flushA && !flushB) {
+                targetMesh = meshA; flushInfo = flushA;
+            } else if (!flushA && flushB) {
+                targetMesh = meshB; flushInfo = flushB;
+            } else if (flushA && flushB) {
+                // 两边都可削，取交集 / 自身体积分率较小的一方
+                console.log("here");
+                const ratioA = computeBoxVolume(interBox) / computeBoxVolume(boxA);
+                const ratioB = computeBoxVolume(interBox) / computeBoxVolume(boxB);
+                if (ratioA <= ratioB) { targetMesh = meshA; flushInfo = flushA; }
+                else { targetMesh = meshB; flushInfo = flushB; }
+            }
+            else {
+                // 交集盒完全位于两者内部——无法安全削
+                // 不应该出现的——非法操作，提示用户并中断
+                const msg = `未对齐连接：部件 "${meshA.name}" 与 "${meshB.name}" 出现没有对齐的嵌入，请检查连接与部件尺寸。`;
+                console.error(msg);
+                alert(msg);
+                return;
+            }
+
+            console.log("targrtMesh", targetMesh);
+
+            /* ---------- 真正削减 ---------- */
+            if (shaveMeshByIntersection(targetMesh, furnitureData.meta, flushInfo)) {
+                // 重新渲染，让尺寸变化生效
+                render_furniture(furnitureData, connectionData);
+            }
+            /* ---------- 削完再检测接触并补连接 ---------- */
+            const infoAfter = Utils.checkBoundingBoxContact(meshA, meshB, eps);
+            if (infoAfter.isTouching) addConnectionRecord(meshA, meshB, infoAfter);
         }
     }
 
-    // 如果有新连接，重新渲染
-    // render_furniture(furnitureData, connectionData);
+
+
+    function addConnectionRecord(meshA, meshB, info) {
+
+        const anchorA = getAnchorDescription(meshA, meshA.worldToLocal(info.contactPointA.clone()), info.contactFaceA);
+        const anchorB = getAnchorDescription(meshB, meshB.worldToLocal(info.contactPointB.clone()), info.contactFaceB);
+
+        const { keyA, keyB } = findSiblingKeysFor(meshA.name, meshB.name);
+        const connItem = {};
+        connItem[keyA] = `<${meshA.name}><${Utils.getObjectType({ width: meshA.geometry.parameters.width, height: meshA.geometry.parameters.height, depth: meshA.geometry.parameters.depth })}>[${anchorA}]`;
+        connItem[keyB] = `<${meshB.name}><${Utils.getObjectType({ width: meshB.geometry.parameters.width, height: meshB.geometry.parameters.height, depth: meshB.geometry.parameters.depth })}>[${anchorB}]`;
+
+        connectionData.data.push(connItem);
+    }
+
+    // 最后把连接面板 / 尺寸变更面板刷新一下
+    renderConnectionLog();
+    renderDimensionChangeLog();
 }
 
 
@@ -3381,7 +3558,9 @@ function refineAllConnections() {
 
 const exportBtn = document.getElementById('exportBtn');
 exportBtn.addEventListener('click', () => {
+    // render_furniture(furnitureData, connectionData)
 
+    cnt += 1;
     // 先做碰撞检测 => 给未记录的相邻部件补充连接数据
     detectAndAddConnections();
 

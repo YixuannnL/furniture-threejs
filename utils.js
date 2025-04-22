@@ -253,171 +253,209 @@ export function checkBoundingBoxContact(meshA, meshB, eps = 1e-3) {
     boxA.applyMatrix4(meshA.matrixWorld);
     boxB.applyMatrix4(meshB.matrixWorld);
 
-    // 1. 计算三轴重叠
+    // 对三个轴分别计算重叠长度
     const overlapX = Math.min(boxA.max.x, boxB.max.x) - Math.max(boxA.min.x, boxB.min.x);
     const overlapY = Math.min(boxA.max.y, boxB.max.y) - Math.max(boxA.min.y, boxB.min.y);
     const overlapZ = Math.min(boxA.max.z, boxB.max.z) - Math.max(boxA.min.z, boxB.min.z);
 
-    // 2. 如果任一轴明显分离，则不接触
-    if (overlapX < -eps || overlapY < -eps || overlapZ < -eps) {
+
+    // 如果有任一轴重叠为负，则说明盒子之间存在间隙，返回不接触
+    if (overlapX < 0 || overlapY < 0 || overlapZ < 0) {
         return {
             isTouching: false,
             contactAxis: null,
             penetrationDepth: 0,
-            contactType: null,
             contactPointA: null,
-            contactPointB: null,
-            contactFaceCornersA: null,
-            contactFaceCornersB: null,
-            contactFaceA: null,
-            contactFaceB: null
+            contactPointB: null
         };
     }
 
-    // 3. 正值重叠，负值仅是微小误差
+    // 对重叠值取最大(防止小负数误差)
     const ox = Math.max(overlapX, 0);
     const oy = Math.max(overlapY, 0);
     const oz = Math.max(overlapZ, 0);
 
-    // 4. 判断 face / edge / corner
+    // 统计近似为零的轴数
     let zeroCount = 0;
     if (Math.abs(ox) <= eps) zeroCount++;
     if (Math.abs(oy) <= eps) zeroCount++;
     if (Math.abs(oz) <= eps) zeroCount++;
-    let contactType = 'face';
-    if (zeroCount === 2) contactType = 'edge';
-    else if (zeroCount === 3) contactType = 'corner';
 
-    // —— 辅助：鲁棒的面–面检测
-    function getFaceContact(box1, box2) {
-        const axes = ['x', 'y', 'z'];
-        const cands = [];
-        for (const axis of axes) {
-            const [a, b] = axes.filter(ax => ax !== axis);
-            const overlapA = Math.min(box1.max[a], box2.max[a]) - Math.max(box1.min[a], box2.min[a]);
-            const overlapB = Math.min(box1.max[b], box2.max[b]) - Math.max(box1.min[b], box2.min[b]);
-            // 测两种面配对
-            const tests = [
-                { face1: 'max' + axis.toUpperCase(), face2: 'min' + axis.toUpperCase(), dist: box1.max[axis] - box2.min[axis] },
-                { face1: 'min' + axis.toUpperCase(), face2: 'max' + axis.toUpperCase(), dist: box1.min[axis] - box2.max[axis] }
-            ];
-            for (const t of tests) {
-                if (overlapA >= -eps && overlapB >= -eps && Math.abs(t.dist) <= eps) {
-                    cands.push({
-                        axis,
-                        face1: t.face1,   // e.g. "maxX"
-                        face2: t.face2,   // e.g. "minX"
-                        penetration: -t.dist,
-                        area: overlapA * overlapB
-                    });
-                }
-            }
-        }
-        if (!cands.length) return null;
-        return cands.reduce((best, cur) => cur.area > best.area ? cur : best);
+    let contactType = 'face'; // 默认
+    if (zeroCount === 2) {
+        contactType = 'edge';
+    } else if (zeroCount === 3) {
+        contactType = 'corner';
     }
 
-    // 5. 尝试面–面检测，只有纯 face 情况下才用
-    const faceHit = (contactType === 'face') && getFaceContact(boxA, boxB);
+    // 盒子有接触：可以认为它们的交集体积不为 0（或至少边界刚好相接）
+    // 确定主要接触轴为重叠最小的轴
+    let minOverlap = ox;
+    let contactAxis = 'x';
+    if (oy < minOverlap) { minOverlap = oy; contactAxis = 'y'; }
+    if (oz < minOverlap) { minOverlap = oz; contactAxis = 'z'; }
 
-    // 6. 决定 contactAxis / penetrationDepth / 面名称
-    let contactAxis, penetrationDepth, contactFaceA, contactFaceB;
-    if (faceHit) {
-        contactAxis = faceHit.axis;
-        penetrationDepth = faceHit.penetration;
-        const m = {
-            maxx: 'RightFace', minx: 'LeftFace',
-            maxy: 'TopFace', miny: 'BottomFace',
-            maxz: 'FrontFace', minz: 'BackFace'
-        };
-        contactFaceA = m[faceHit.face1.toLowerCase()];
-        contactFaceB = m[faceHit.face2.toLowerCase()];
-    } else {
-        // fallback：沿最小重叠（或 flush 轴）选轴
-        contactAxis = 'x'; let minO = ox;
-        if (oy < minO) { contactAxis = 'y'; minO = oy; }
-        if (oz < minO) { contactAxis = 'z'; minO = oz; }
-        if (zeroCount >= 2) {
-            if (Math.abs(ox) <= eps) { contactAxis = 'x'; minO = 0; }
-            else if (Math.abs(oy) <= eps) { contactAxis = 'y'; minO = 0; }
-            else if (Math.abs(oz) <= eps) { contactAxis = 'z'; minO = 0; }
-        }
-        penetrationDepth = minO;
-
-        // 决定是哪对面
-        const cMax = boxA.max[contactAxis], cMin = boxA.min[contactAxis];
-        const d1 = Math.abs(cMax - boxB.min[contactAxis]);
-        const d2 = Math.abs(boxB.max[contactAxis] - cMin);
-        const isMaxHit = d1 <= d2;
-
-        if (contactAxis === 'x') {
-            contactFaceA = isMaxHit ? 'RightFace' : 'LeftFace';
-            contactFaceB = isMaxHit ? 'LeftFace' : 'RightFace';
-        } else if (contactAxis === 'y') {
-            contactFaceA = isMaxHit ? 'TopFace' : 'BottomFace';
-            contactFaceB = isMaxHit ? 'BottomFace' : 'TopFace';
-        } else {
-            contactFaceA = isMaxHit ? 'FrontFace' : 'BackFace';
-            contactFaceB = isMaxHit ? 'BackFace' : 'FrontFace';
+    // 如果是 edge 或 corner 接触，则让接触轴取那些重叠近零的轴（这里按照 x→y→z 优先顺序）
+    if (zeroCount >= 2) {
+        if (Math.abs(ox) <= eps) {
+            contactAxis = 'x';
+            minOverlap = 0;
+        } else if (Math.abs(oy) <= eps) {
+            contactAxis = 'y';
+            minOverlap = 0;
+        } else if (Math.abs(oz) <= eps) {
+            contactAxis = 'z';
+            minOverlap = 0;
         }
     }
 
-    // 7. 计算接触面中心点 & 四个角
-    const cA = new THREE.Vector3(), cB = new THREE.Vector3();
-    const cornersA = [], cornersB = [];
-    // overlap 范围
-    const low = { x: Math.max(boxA.min.x, boxB.min.x), y: Math.max(boxA.min.y, boxB.min.y), z: Math.max(boxA.min.z, boxB.min.z) };
-    const high = { x: Math.min(boxA.max.x, boxB.max.x), y: Math.min(boxA.max.y, boxB.max.y), z: Math.min(boxA.max.z, boxB.max.z) };
-    const mid = { x: 0.5 * (low.x + high.x), y: 0.5 * (low.y + high.y), z: 0.5 * (low.z + high.z) };
+    // 计算接触点：在 contactAxis 上，我们选取与另一盒子更近的那一面，其他轴取盒子中心（面中心）
+    let contactPointA = new THREE.Vector3();
+    let contactPointB = new THREE.Vector3();
+    let contactFaceA = "";
+    let contactFaceB = "";
+    let contactFaceCornersA = [];
+    let contactFaceCornersB = [];
+    // let contactPoint = new THREE.Vector3();
 
     if (contactAxis === 'x') {
-        // A 面的 x，B 面的 x
-        const xA = (contactFaceA === 'RightFace' ? boxA.max.x : boxA.min.x);
-        const xB = (contactFaceB === 'LeftFace' ? boxB.min.x : boxB.max.x);
-        cA.set(xA, mid.y, mid.z);
-        cB.set(xB, mid.y, mid.z);
-        // 四个角
-        for (const yy of [low.y, high.y]) {
-            for (const zz of [low.z, high.z]) {
-                cornersA.push(new THREE.Vector3(xA, yy, zz));
-                cornersB.push(new THREE.Vector3(xB, yy, zz));
-            }
-        }
-    } else if (contactAxis === 'y') {
-        const yA = (contactFaceA === 'TopFace' ? boxA.max.y : boxA.min.y);
-        const yB = (contactFaceB === 'BottomFace' ? boxB.min.y : boxB.max.y);
-        cA.set(mid.x, yA, mid.z);
-        cB.set(mid.x, yB, mid.z);
-        for (const xx of [low.x, high.x]) {
-            for (const zz of [low.z, high.z]) {
-                cornersA.push(new THREE.Vector3(xx, yA, zz));
-                cornersB.push(new THREE.Vector3(xx, yB, zz));
-            }
-        }
-    } else { // z
-        const zA = (contactFaceA === 'FrontFace' ? boxA.max.z : boxA.min.z);
-        const zB = (contactFaceB === 'BackFace' ? boxB.min.z : boxB.max.z);
-        cA.set(mid.x, mid.y, zA);
-        cB.set(mid.x, mid.y, zB);
-        for (const xx of [low.x, high.x]) {
-            for (const yy of [low.y, high.y]) {
-                cornersA.push(new THREE.Vector3(xx, yy, zA));
-                cornersB.push(new THREE.Vector3(xx, yy, zB));
-            }
+        const delta1 = Math.abs(boxA.max.x - boxB.min.x);
+        const delta2 = Math.abs(boxB.max.x - boxA.min.x);
+        if (delta1 <= delta2) {
+            // A 的右侧面与 B 的左侧面接触
+            contactPointA.set(boxB.min.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactPointB.set(boxA.max.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactFaceA = "RightFace";
+            contactFaceB = "LeftFace";
+            // 计算 A 右侧面的四个角点
+            contactFaceCornersA = [
+                new THREE.Vector3(boxB.min.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
+                new THREE.Vector3(boxB.min.x, Math.min(boxA.max.y, boxB.max.y), Math.min(boxA.max.z, boxB.max.z)), // 前上
+                new THREE.Vector3(boxB.min.x, Math.max(boxA.min.y, boxB.min.y), Math.max(boxA.min.z, boxB.min.z)), //后下
+                new THREE.Vector3(boxB.min.x, Math.min(boxA.max.y, boxB.max.y), Math.max(boxA.min.z, boxB.min.z)) //后上
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(boxA.max.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
+                new THREE.Vector3(boxA.max.x, Math.min(boxA.max.y, boxB.max.y), Math.min(boxA.max.z, boxB.max.z)), // 前上
+                new THREE.Vector3(boxA.max.x, Math.max(boxA.min.y, boxB.min.y), Math.max(boxA.min.z, boxB.min.z)), //后下
+                new THREE.Vector3(boxA.max.x, Math.min(boxA.max.y, boxB.max.y), Math.max(boxA.min.z, boxB.min.z)) //后上
+            ];
+        } else {
+            // A 的左侧面与 B 的右侧面接触
+            contactPointA.set(boxB.max.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactPointB.set(boxA.min.x, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, (Math.min(boxA.max.z, boxB.max.z) + Math.max(boxA.min.z, boxB.min.z)) / 2);
+            contactFaceA = "LeftFace";
+            contactFaceB = "RightFace";
+            contactFaceCornersA = [
+                new THREE.Vector3(boxB.max.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
+                new THREE.Vector3(boxB.max.x, Math.min(boxA.max.y, boxB.max.y), Math.min(boxA.max.z, boxB.max.z)), // 前上
+                new THREE.Vector3(boxB.max.x, Math.max(boxA.min.y, boxB.min.y), Math.max(boxA.min.z, boxB.min.z)), //后下
+                new THREE.Vector3(boxB.max.x, Math.min(boxA.max.y, boxB.max.y), Math.max(boxA.min.z, boxB.min.z)) //后上
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(boxA.min.x, Math.max(boxA.min.y, boxB.min.y), Math.min(boxA.max.z, boxB.max.z)), //前下
+                new THREE.Vector3(boxA.min.x, Math.min(boxA.max.y, boxB.max.y), Math.min(boxA.max.z, boxB.max.z)), // 前上
+                new THREE.Vector3(boxA.min.x, Math.max(boxA.min.y, boxB.min.y), Math.max(boxA.min.z, boxB.min.z)), //后下
+                new THREE.Vector3(boxA.min.x, Math.min(boxA.max.y, boxB.max.y), Math.max(boxA.min.z, boxB.min.z)) //后上
+            ];
         }
     }
+    else if (contactAxis === 'y') {
+        const delta1 = Math.abs(boxA.max.y - boxB.min.y);
+        const delta2 = Math.abs(boxB.max.y - boxA.min.y);
+        if (delta1 <= delta2) {
+            // A 上侧与 B 下侧接触
+            contactFaceA = "TopFace";
+            contactFaceB = "BottomFace";
+            contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxB.min.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
+            contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxA.max.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
+            contactFaceCornersA = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxB.min.y, Math.min(boxA.max.z, boxB.max.z)), //左前
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxB.min.y, Math.max(boxA.min.z, boxB.min.z)), // 左后
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxB.min.y, Math.min(boxA.max.z, boxB.max.z)), //右前
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxB.min.y, Math.max(boxA.min.z, boxB.min.z)) //右后
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxA.max.y, Math.min(boxA.max.z, boxB.max.z)), //左前
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxA.max.y, Math.max(boxA.min.z, boxB.min.z)), // 左后
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxA.max.y, Math.min(boxA.max.z, boxB.max.z)), //右前
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxA.max.y, Math.max(boxA.min.z, boxB.min.z)) //右后
+            ];
+        } else {
+            // A 下侧与 B 上侧接触
+            contactFaceA = "BottomFace";
+            contactFaceB = "TopFace";
+            contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxB.max.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
+            contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, boxA.min.y, (Math.max(boxA.min.z, boxB.min.z) + Math.min(boxA.max.z, boxB.max.z)) / 2);
+            contactFaceCornersA = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxB.max.y, Math.min(boxA.max.z, boxB.max.z)), //左前
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxB.max.y, Math.max(boxA.min.z, boxB.min.z)), // 左后
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxB.max.y, Math.min(boxA.max.z, boxB.max.z)), //右前
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxB.max.y, Math.max(boxA.min.z, boxB.min.z)) //右后
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxA.min.y, Math.min(boxA.max.z, boxB.max.z)), //左前
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), boxA.min.y, Math.max(boxA.min.z, boxB.min.z)), // 左后
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxA.min.y, Math.min(boxA.max.z, boxB.max.z)), //右前
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), boxA.min.y, Math.max(boxA.min.z, boxB.min.z)) //右后
+            ];
+        }
+    }
+    else if (contactAxis === 'z') {
+        const delta1 = Math.abs(boxA.max.z - boxB.min.z);
+        const delta2 = Math.abs(boxB.max.z - boxA.min.z);
+        if (delta1 <= delta2) {
+            // A 的前侧面与 B 的后侧面接触
+            contactFaceA = "FrontFace";
+            contactFaceB = "BackFace";
+            contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxB.min.z);
+            contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.max.z);
+            contactFaceCornersA = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxB.min.z), //左下
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxB.min.z), // 左上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxB.min.z), //右下
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxB.min.z) //右上
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxA.max.z), //左下
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z), // 左上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxA.max.z), //右下
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.max.z) //右上
+            ];
+        } else {
+            // A 的后侧面与 B 的前侧面接触
+            contactFaceA = "BackFace";
+            contactFaceB = "FrontFace";
+            contactPointA.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxB.max.z);
+            contactPointB.set((Math.max(boxA.min.x, boxB.min.x) + Math.min(boxA.max.x, boxB.max.x)) / 2, (Math.min(boxA.max.y, boxB.max.y) + Math.max(boxA.min.y, boxB.min.y)) / 2, boxA.min.z);
+            contactFaceCornersA = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxB.max.z), //左下
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxB.max.z), // 左上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxB.max.z), //右下
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxB.max.z) //右上
+            ];
+            contactFaceCornersB = [
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.max(boxA.min.y, boxB.min.y), boxA.min.z), //左下
+                new THREE.Vector3(Math.max(boxA.min.x, boxB.min.x), Math.min(boxA.max.y, boxB.max.y), boxA.min.z), // 左上
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.max(boxA.min.y, boxB.min.y), boxA.min.z), //右下
+                new THREE.Vector3(Math.min(boxA.max.x, boxB.max.x), Math.min(boxA.max.y, boxB.max.y), boxA.min.z) //右上
+            ];
+        }
+    }
+    // console.log("meshA, meshB", meshA, meshB);
+    // console.log("contactfaceCornerA, B", contactFaceCornersA, contactFaceCornersB);
 
     return {
         isTouching: true,
-        contactAxis,
-        penetrationDepth,
-        contactType,
-        contactPointA: cA,
-        contactPointB: cB,
-        contactFaceCornersA: cornersA,
-        contactFaceCornersB: cornersB,
-        contactFaceA,
-        contactFaceB
+        contactAxis: contactAxis,
+        penetrationDepth: minOverlap, // 这里可以代表最小的重叠量
+        contactType: contactType,
+        contactPointA: contactPointA,
+        contactPointB: contactPointB,
+        contactFaceCornersA: contactFaceCornersA, //接触面的四个角点
+        contactFaceCornersB: contactFaceCornersB,
+        contactFaceA: contactFaceA,
+        contactFaceB: contactFaceB
     };
 }
 
@@ -1227,9 +1265,9 @@ export function calcLocalAnchorPosition(object3D, anchors) {
         //   1) 先检测有没有Height/Width/Depth
         //   2) 前面那段当成 fraction
         const pattern = /^([0-9./]+)(Height|Width|Depth)$/i;
-        console.log("Pat:", fractionTag);
+
         const m = fractionTag.match(pattern);
-        console.log("mmmmm", m);
+
         if (!m) return; // 不匹配就跳过
         const fractionStr = m[1]; // "1/1" or "0/1" or "0.25"
         const axisKey = m[2].toLowerCase(); // height / width / depth
@@ -1375,7 +1413,7 @@ export function calcLocalAnchorPosition(object3D, anchors) {
                 // 如果像 "FrontFace_Height_1/3" / "TopFace_Width_1/2" / "LeftFaceFrontHalf" / ...
                 // 先拆成 tokens
                 // console.log("HEREEEE:", mesh.name);
-                console.log("an:", [anchor]);
+
                 const parts = anchor.split('_')
                 if (parts.length != 3) break;
                 console.log("here:", parts);
@@ -1416,7 +1454,7 @@ export function calcLocalAnchorPosition(object3D, anchors) {
                         case 'bottomface': y = -height / 2; break;
                         default: break;
                     }
-                    console.log("result, parts", result, parts);
+
                     for (let i = 0; i < result.length; i++) {
                         const item = result[i]
                         console.log("item", item);
